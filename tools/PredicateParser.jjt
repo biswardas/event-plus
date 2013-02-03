@@ -1,0 +1,347 @@
+/* Copyright (c) 2006, Sun Microsystems, Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     * Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the Sun Microsystems, Inc. nor the names of its
+ *       contributors may be used to endorse or promote products derived from
+ *       this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+
+options {
+  OUTPUT_DIRECTORY = "com/biswa/ep/util/parser/predicate"; 
+  MULTI=true;
+  VISITOR=true;
+  KEEP_LINE_COLUMN = false;
+  STATIC = false;
+  NODE_PACKAGE = "com.biswa.ep.util.parser.predicate";
+  NODE_EXTENDS = "com.biswa.ep.util.parser.predicate.impl.CustomNode";
+  JJTREE_OUTPUT_DIRECTORY = "com/biswa/ep/util/parser/predicate";
+  
+}
+
+PARSER_BEGIN(PredicateBuilder)
+package com.biswa.ep.util.parser.predicate;
+
+import java.io.ByteArrayInputStream;
+import com.biswa.ep.entities.predicate.Predicate;
+import com.biswa.ep.entities.predicate.True;
+import com.biswa.ep.util.parser.predicate.impl.PredicateBuilderVisitorImpl;
+/** Predicate Grammar. */
+public class PredicateBuilder {
+
+  /** Entry point. */
+  public static void main(String args[]) {
+    System.out.println("Reading from standard input...");
+    try {
+    while(true){
+      PredicateBuilder t = new PredicateBuilder(System.in);
+      ASTStart n = t.Start();
+      n.dump("Preorder Tree:");      
+      PredicateBuilderVisitorImpl v = new PredicateBuilderVisitorImpl();
+      n.jjtAccept(v, null);
+      Predicate p = v.getPredicate();
+      System.out.println("Thank you.");
+      }
+    } catch (Exception e) {
+      System.out.println("Oops.");
+      System.out.println(e.getMessage());
+      e.printStackTrace();
+    }
+  }
+    /** Entry point. */
+  public static Predicate buildPredicate(String strPredicate) {
+  	if(strPredicate==null || strPredicate.trim().isEmpty()){
+  		return new com.biswa.ep.entities.predicate.True();
+  	}
+  	Predicate p = null; 
+    try {
+      PredicateBuilder t = new PredicateBuilder(new ByteArrayInputStream((strPredicate+";").getBytes()));
+      ASTStart n = t.Start();      
+      PredicateBuilderVisitorImpl v = new PredicateBuilderVisitorImpl();
+      n.jjtAccept(v, null);
+      p = v.getPredicate();
+    } catch (Exception e) {
+		throw new RuntimeException(e);
+    }
+    return p;
+  }
+}
+
+PARSER_END(PredicateBuilder)
+
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+| <"//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+| <"/*" (~["*"])* "*" (~["/"] (~["*"])* "*")* "/">
+}
+
+TOKEN : /* OPERATORS */
+{
+  < AND: "&&" >
+|
+  < OR: "||" >
+|  
+  < EQ: "==" >
+|
+  < NE: "!=" >
+|
+  < GT: ">" >
+|
+  < LT: "<" >
+|
+  < IN: "in" >
+|
+  < GE: ">=" >
+|
+  < LE: "<=" >
+|
+  < FALSE: "false" >
+|
+  < TRUE: "true" >
+|
+  < DECIMAL_LITERAL: <DECIMAL_PART> | "."<DECIMAL_PART> | (<DECIMAL_PART>("."<DECIMAL_PART>)) >
+|
+  <	#DECIMAL_PART:<DIGIT>(<DIGIT>)*>
+|
+  < STRING_LITERAL: "\""(<LETTER>|<DIGIT>)(<LETTER>|<DIGIT>)*"\"" >
+|
+  < ATTRIBUTE: (<LETTER>|<DIGIT>)(<LETTER>|<DIGIT>)*  >
+| 
+  < #LETTER: ["_","a"-"z","A"-"Z"] >
+|
+  < #DIGIT: ["0"-"9"] >
+}
+
+
+
+/** Main production. */
+ASTStart Start() : {}
+{
+  Predicate() ";"
+  { return jjtThis; }
+}
+
+/** A Predicate. */
+void Predicate() #void : {}
+{		
+	LOOKAHEAD(OrPredicate())
+  OrPredicate()
+  |
+	LOOKAHEAD(AndPredicate())
+  AndPredicate()
+  |
+  SimplePredicate()
+}
+
+/** An Or Predicate. */
+void OrPredicate() : {}
+{
+	
+  (
+     AndOrSimple() ( <OR> AndOrSimple())+
+  )
+}
+/** An Or Predicate. */
+void AndOrSimple() #void : {}
+{
+	
+  LOOKAHEAD(AndPredicate())
+    AndPredicate()|
+    SimplePredicate()
+  
+}
+/** An And Predicate. */
+void AndPredicate() : {}
+{
+	
+  (
+    SimplePredicate() ( <AND> SimplePredicate() )+
+  )
+}
+
+/** A Unary Expression. */
+void SimplePredicate() : {}	
+{
+  LOOKAHEAD(EmptyPredicate())
+  EmptyPredicate() 
+  |
+  "(" Predicate() ")" 
+  | 
+  LOOKAHEAD(TruePredicate())
+  TruePredicate()
+  |
+  LOOKAHEAD(FalsePredicate())
+  FalsePredicate()
+  |
+  EndPoint() 
+}
+
+void EndPoint():{
+	String name; 
+}
+{ 
+  Attribute()
+  (
+	  (
+	  <EQ>
+	  {  
+	    name="Eq";
+	  } 
+	  | 
+	  <NE>
+	  {  
+	    name="Ne";
+	  }  
+	  | 
+	  <GT>
+	  {  
+	    name="Gt";
+	  }  
+	  |
+	  <LT>
+	  {  
+	   	name="Lt";
+	  }  
+	  | 
+	  <GE>
+	  {  
+	    name="Ge";
+	  }  
+	  |
+	  <LE>
+	  {  
+	    name="Le";
+	  }
+	  )  
+	  (Operand(){jjtThis.setImage(name);}|AttributeOperand(){jjtThis.setImage("A"+name);})
+  |
+	  ( 
+	  <IN>
+	  {  
+	    jjtThis.setImage("In");
+	  }
+	  "("Operand()(","Operand())*")"
+	  ) 
+  )
+}
+
+/** An Attribute. */
+void Attribute() :
+{
+  Token t;
+}
+{
+	("${"
+  t=<ATTRIBUTE>
+  {
+    jjtThis.setImage(t.image);
+  }
+  "}"
+ 	)
+}
+
+
+/** An Attribute Operand. */
+void AttributeOperand() :
+{
+  Token t;
+}
+{
+	("${"
+  t=<ATTRIBUTE>
+  {
+    jjtThis.setImage(t.image);
+  }
+  "}"
+ 	)
+}
+
+/** An Operand. */
+void Operand() :{}
+{
+  SOperand()|DOperand()
+}
+
+/** An Operand. */
+void SOperand() :
+{
+  Token t;
+}
+{
+  t=<STRING_LITERAL>
+  {
+    jjtThis.setImage(t.image.substring(1,t.image.length()-1));
+  }
+}
+
+/** An Operand. */
+void DOperand() :
+{
+  Token t;
+}
+{
+  t=<DECIMAL_LITERAL>
+  {
+    jjtThis.setImage(t.image);
+  }
+}
+
+/** True Predicate. */
+void TruePredicate() :
+{
+  Token t;
+}
+{
+  t=<TRUE>
+  {
+    jjtThis.setImage("True");
+  }
+}
+
+/** Empty Predicate. */
+void EmptyPredicate() :{}
+{
+  "(" ")"
+  {
+    jjtThis.setImage("True");
+  }
+}
+
+/** False Predicate. */
+void FalsePredicate() :
+{
+  Token t;
+}
+{
+  t=<FALSE>
+  {
+    jjtThis.setImage("False");
+  }
+}
+
+

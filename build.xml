@@ -1,0 +1,38 @@
+<project name="event-plus" default="build" basedir=".">
+    <description>
+        Build event-plus Library
+    </description>
+    <target name="build" depends="compile">
+		<jar jarfile="dist/ep.jar" basedir="build/classes">
+		  <service type="com.biswa.ep.entities.transaction.TransactionGenerator">
+		    <provider classname="com.biswa.ep.entities.transaction.DefaultTransactionGenerator"/>
+		    <provider classname="com.biswa.ep.discovery.RMITransactionGenerator"/>
+		  </service>
+		  <service type="com.biswa.ep.entities.identity.IdentityGenerator">
+		    <provider classname="com.biswa.ep.entities.identity.DefaultIdentityGenerator"/>
+		  </service>
+		</jar>
+	</target>
+	<target name="compile" depends="clean,generate">
+		<javac destdir="build/classes" includeantruntime="false">
+			<src path="core"/>
+			<src path="tools"/>
+			<src path="depl"/>
+			<src path="generated"/>
+		</javac>
+	</target>
+    <target name="clean">
+		<mkdir dir="build/classes" />
+		<mkdir dir="dist" />
+	</target>
+	<target name="generate">
+		<mkdir dir="generated/java" />
+	    <java classname="com.sun.tools.internal.xjc.XJCFacade">
+            	<arg value="-d" />
+            	<arg value="depl"/>
+	            <arg value="-p" />
+	            <arg value="com.biswa.ep.deployment.util"/>
+	            <arg value="depl/resources/deployment-desc.xsd" />
+	    </java>
+	</target>
+</project>

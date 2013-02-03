@@ -1,0 +1,253 @@
+package com.biswa.ep.discovery;
+
+import java.lang.ref.WeakReference;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Semaphore;
+
+import bak.pcj.list.IntArrayList;
+
+import com.biswa.ep.entities.ConnectionEvent;
+import com.biswa.ep.entities.ContainerEntry;
+import com.biswa.ep.entities.ContainerEvent;
+import com.biswa.ep.entities.ContainerTask;
+import com.biswa.ep.entities.TransportEntry;
+import com.biswa.ep.entities.spec.FilterSpec;
+import com.biswa.ep.entities.transaction.Agent;
+import com.biswa.ep.entities.transaction.TransactionEvent;
+import com.biswa.ep.subscription.SubscriptionEvent;
+
+public class RMIListenerImpl implements RMIListener, Connector, EntryReader {
+	WeakReference<Agent> weakReference;
+
+	private Agent getAgent() {
+		return weakReference.get();
+	}
+
+	public RMIListenerImpl(Agent cl) {
+		weakReference = new WeakReference<Agent>(cl);
+	}
+
+	@Override
+	public void attributeAdded(ContainerEvent ce) throws RemoteException {
+		getAgent().attributeAdded(ce);
+	}
+
+	@Override
+	public void attributeRemoved(ContainerEvent ce) throws RemoteException {
+		getAgent().attributeRemoved(ce);
+	}
+
+	@Override
+	public void entryAdded(ContainerEvent ce) throws RemoteException {
+		getAgent().entryAdded(ce);
+	}
+
+	@Override
+	public void entryRemoved(ContainerEvent ce) throws RemoteException {
+		getAgent().entryRemoved(ce);
+	}
+
+	@Override
+	public void entryUpdated(ContainerEvent ce) throws RemoteException {
+		getAgent().entryUpdated(ce);
+	}
+
+	@Override
+	public void beginTran(TransactionEvent te) throws RemoteException {
+		getAgent().beginTran(te);
+	}
+
+	@Override
+	public void commitTran(TransactionEvent te) throws RemoteException {
+		getAgent().commitTran(te);
+	}
+
+	@Override
+	public void rollbackTran(TransactionEvent te) throws RemoteException {
+		getAgent().rollbackTran(te);
+	}
+
+	@Override
+	public void connected(ConnectionEvent ce) throws RemoteException {
+		getAgent().connected(ce);
+	}
+
+	@Override
+	public void disconnected(ConnectionEvent ce) throws RemoteException {
+		getAgent().disconnected(ce);
+	}
+
+	@Override
+	public void connect(String source, String sink, FilterSpec filterSpec)
+			throws RemoteException {
+		RMIRemoteContainer.createInstance(source, sink, filterSpec, getAgent());
+	}
+
+	@Override
+	public void disconnect(String source, String sink) throws RemoteException {
+		getAgent().disconnect(new ConnectionEvent(source, sink));
+	}
+
+	@Override
+	public void replay(String source, String sink, FilterSpec filterSpec)
+			throws RemoteException {
+		getAgent().replay(new ConnectionEvent(source, sink, filterSpec));
+	}
+
+	@Override
+	public void addFeedbackSource(String consumer, String producer)
+			throws RemoteException {
+		getAgent().addFeedbackSource(new TransactionEvent(producer));
+	}
+
+	@Override
+	public void receiveFeedback(String consumer, String producer,
+			int transactionID) throws RemoteException {
+		getAgent().receiveFeedback(
+				new TransactionEvent(producer, transactionID));
+	}
+
+	@Override
+	public void subscribe(SubscriptionEvent subscriptionEvent)
+			throws RemoteException {
+		getAgent().subscribe(subscriptionEvent);
+	}
+
+	@Override
+	public void unsubscribe(SubscriptionEvent subscriptionEvent)
+			throws RemoteException {
+		getAgent().unsubscribe(subscriptionEvent);
+	}
+
+	@Override
+	public void substitute(SubscriptionEvent subscriptionEvent)
+			throws RemoteException {
+		getAgent().substitute(subscriptionEvent);
+	}
+
+	@Override
+	public void invokeOperation(ContainerTask task) {
+		getAgent().invokeOperation(task);
+	}
+
+	@Override
+	public TransportEntry getByID(final int id) throws RemoteException {
+		final List<TransportEntry> holder = new ArrayList<TransportEntry>(1);
+		final Semaphore s = new Semaphore(1);
+		s.drainPermits();
+		getAgent().invokeOperation(new ContainerTask() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 6263129328893041488L;
+
+			@Override
+			protected void runtask() {
+				try {
+					ContainerEntry conEntry = getContainer().getConcreteEntry(
+							id);
+					if (conEntry == null) {
+						holder.add(null);
+					} else {
+						holder.add(conEntry.cloneConcrete());
+					}
+				} finally {
+					s.release();
+				}
+			}
+		});
+		s.acquireUninterruptibly();
+		return holder.get(0);
+	}
+
+	@Override
+	public TransportEntry[] getByID(final int[] ids) throws RemoteException {
+		final List<TransportEntry> holder = new ArrayList<TransportEntry>();
+		final Semaphore s = new Semaphore(1);
+		s.drainPermits();
+		getAgent().invokeOperation(new ContainerTask() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 6263129328893041488L;
+
+			@Override
+			protected void runtask() {
+				try {
+					for (int id : ids) {
+						ContainerEntry conEntry = getContainer()
+								.getConcreteEntry(id);
+						if (conEntry == null) {
+							holder.add(null);
+						} else {
+							holder.add(conEntry.cloneConcrete());
+						}
+					}
+				} finally {
+					s.release();
+				}
+			}
+		});
+		s.acquireUninterruptibly();
+		return holder.toArray(new TransportEntry[0]);
+	}
+
+	@Override
+	public TransportEntry[] getByFilter(final FilterSpec filterSpec)
+			throws RemoteException {
+		final List<TransportEntry> holder = new ArrayList<TransportEntry>();
+		final Semaphore s = new Semaphore(1);
+		s.drainPermits();
+		getAgent().invokeOperation(new ContainerTask() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 6263129328893041488L;
+
+			@Override
+			protected void runtask() {
+				try {
+					for (ContainerEntry containerEntry : getContainer()
+							.getContainerEntries()) {
+						if (filterSpec.filter(containerEntry)) {
+							holder.add(containerEntry.cloneConcrete());
+						}
+					}
+				} finally {
+					s.release();
+				}
+			}
+		});
+		s.acquireUninterruptibly();
+		return holder.toArray(new TransportEntry[0]);
+	}
+
+	@Override
+	public int[] getIDs() throws RemoteException {
+		final IntArrayList holder = new IntArrayList();
+		final Semaphore s = new Semaphore(1);
+		s.drainPermits();
+		getAgent().invokeOperation(new ContainerTask() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 6263129328893041488L;
+
+			@Override
+			protected void runtask() {
+				try {
+					for (ContainerEntry containerEntry : getContainer()
+							.getContainerEntries()) {
+						holder.add(containerEntry.getIdentitySequence());
+					}
+				} finally {
+					s.release();
+				}
+			}
+		});
+		s.acquireUninterruptibly();
+		return holder.toArray();
+	}
+}

@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://www.biswadas.com/pp/deployment-desc" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.biswadas.com/pp/deployment-desc">
+
+
+
+
+
+
+
+    <xsd:complexType name="Context">
+    	<xsd:sequence>
+    		<xsd:element name="Container" type="Container"
+    			maxOccurs="unbounded" minOccurs="0">
+    		</xsd:element>
+    		<xsd:element name="Param" type="Param" maxOccurs="unbounded" minOccurs="0"></xsd:element>
+    	</xsd:sequence>
+    	<xsd:attribute name="name" type="xsd:string"></xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="Container">
+    	<xsd:sequence>
+    		<xsd:element name="Listen" type="Listen"
+    			maxOccurs="unbounded" minOccurs="0">
+    		</xsd:element>
+    		<xsd:element name="Attribute" type="Attribute"
+    			maxOccurs="unbounded" minOccurs="0">
+    		</xsd:element>
+    		<xsd:element name="Publish" type="Publish"
+    			maxOccurs="unbounded" minOccurs="0">
+    		</xsd:element>
+    		<xsd:element name="Pivot" type="Pivot" maxOccurs="1"
+    			minOccurs="0">
+    		</xsd:element>
+    		<xsd:element name="Summary" type="Summary" maxOccurs="1"
+    			minOccurs="0">
+    		</xsd:element>
+    		<xsd:element name="Sort" type="Sort" maxOccurs="1"
+    			minOccurs="0">
+    		</xsd:element>
+    		<xsd:element name="Filter" type="Filter" maxOccurs="1"
+    			minOccurs="0">
+    		</xsd:element>
+    		<xsd:element name="JoinPolicy" type="JoinPolicy"
+    			maxOccurs="1" minOccurs="0">
+    		</xsd:element>
+    		<xsd:element name="Source" type="Source"
+    			maxOccurs="unbounded" minOccurs="0">
+    		</xsd:element>
+    		<xsd:element name="Feedback" type="Feedback"
+    			maxOccurs="unbounded" minOccurs="0">
+    		</xsd:element>
+    		<xsd:element name="Param" type="Param" maxOccurs="unbounded"
+    			minOccurs="0">
+    		</xsd:element>
+    		<xsd:element name="Subscribe" type="Subscribe" maxOccurs="unbounded" minOccurs="0"></xsd:element>
+    	</xsd:sequence>
+    	<xsd:attribute name="name" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="type" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="order" type="xsd:int"></xsd:attribute>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="Attribute">
+    	<xsd:sequence>
+    		<xsd:element name="Attribute" type="Attribute" maxOccurs="unbounded" minOccurs="0"></xsd:element>
+    	</xsd:sequence>
+    	<xsd:attribute name="name" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="descending" type="xsd:boolean"></xsd:attribute>
+    	<xsd:attribute name="className" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="summary" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="expression" type="xsd:string"></xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="Listen">
+    	<xsd:sequence>
+    		<xsd:element name="Filter" type="Filter"></xsd:element>
+    	</xsd:sequence>
+    	<xsd:attribute name="container" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="context" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="method" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="side" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="transactionGroup" type="xsd:int" default="2"></xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="Filter">
+    	<xsd:attribute name="predicate" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="chainMode" type="xsd:string" default="AND"></xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:element name="Context" type="Context"></xsd:element>
+
+    <xsd:complexType name="Publish">
+    	<xsd:attribute name="method" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="className" type="xsd:string"></xsd:attribute>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="Pivot">
+    	<xsd:sequence>
+    		<xsd:element name="Attribute" type="Attribute" maxOccurs="unbounded" minOccurs="1"></xsd:element>
+    	</xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="Summary">
+    	<xsd:sequence>
+    		<xsd:element name="Attribute" type="Attribute" maxOccurs="unbounded" minOccurs="1"></xsd:element>
+    	</xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="Sort">
+    	<xsd:sequence>
+    		<xsd:element name="Attribute" type="Attribute" maxOccurs="unbounded" minOccurs="1"></xsd:element>
+    	</xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="JoinPolicy">
+    	<xsd:attribute name="type" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="predicate" type="xsd:string"></xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="Source">
+    	<xsd:sequence>
+    		<xsd:element name="Param" type="Param" maxOccurs="unbounded" minOccurs="0"></xsd:element>
+    	</xsd:sequence>
+    	<xsd:attribute name="className" type="xsd:string"></xsd:attribute>
+    </xsd:complexType>
+    
+    <xsd:complexType name="Param">
+    	<xsd:attribute name="Name" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="Value" type="xsd:string"></xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="Feedback">
+    	<xsd:attribute name="context" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="container" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="method" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="alias" type="xsd:string"></xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="Subscribe">
+    	<xsd:sequence>
+    		<xsd:element name="Handler" type="Handler" maxOccurs="1" minOccurs="0"></xsd:element>
+    	</xsd:sequence>
+    	<xsd:attribute name="method" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="context" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="container" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="depends" type="xsd:string"></xsd:attribute>
+    	<xsd:attribute name="response" type="xsd:string"></xsd:attribute>
+    </xsd:complexType>
+
+
+
+    <xsd:complexType name="Handler">
+    	<xsd:attribute name="className" type="xsd:string"></xsd:attribute>
+    </xsd:complexType>
+</xsd:schema>
