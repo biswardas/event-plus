@@ -13,20 +13,25 @@
 		  </service>
 		</jar>
 	</target>
-	<target name="compile" depends="clean,generate">
+	<target name="compile" depends="clean,download-dependency,generate">
 		<javac destdir="build/classes" includeantruntime="false">
 			<src path="core"/>
 			<src path="tools"/>
 			<src path="depl"/>
-			<src path="generated"/>
+			<classpath>
+			      <fileset dir="lib">
+			        <include name="**/*.jar"/>
+			      </fileset>
+			</classpath>
 		</javac>
 	</target>
     <target name="clean">
+    	<delete dir="build/classes"/>
+    	<delete dir="dist"/>
 		<mkdir dir="build/classes" />
 		<mkdir dir="dist" />
 	</target>
 	<target name="generate">
-		<mkdir dir="generated/java" />
 	    <java classname="com.sun.tools.internal.xjc.XJCFacade">
             	<arg value="-d" />
             	<arg value="depl"/>
@@ -34,5 +39,10 @@
 	            <arg value="com.biswa.ep.deployment.util"/>
 	            <arg value="depl/resources/deployment-desc.xsd" />
 	    </java>
+	</target>
+
+	<target name="download-dependency">
+		<mkdir dir="lib" />
+	    <get src="http://repo1.maven.org/maven2/pcj/pcj/1.2/pcj-1.2.jar" dest="lib" usetimestamp="true"/>
 	</target>
 </project>
