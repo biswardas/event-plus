@@ -1,0 +1,850 @@
+package com.biswa.ep.entities;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Queue;
+import java.util.concurrent.TimeUnit;
+
+import com.biswa.ep.ClientToken;
+import com.biswa.ep.ContainerContext;
+import com.biswa.ep.entities.identity.ConcreteIdentityGenerator;
+import com.biswa.ep.entities.spec.FilterSpec;
+import com.biswa.ep.entities.spec.Spec;
+import com.biswa.ep.entities.spec.SortSpec.SortOrder;
+import com.biswa.ep.entities.substance.Substance;
+import com.biswa.ep.entities.transaction.Agent;
+import com.biswa.ep.entities.transaction.FeedbackAgent;
+import com.biswa.ep.entities.transaction.TransactionEvent;
+import com.biswa.ep.entities.transaction.TransactionRelay;
+/**Abstract schema defines the most of the behavior of the event flow.
+ * Manages the entity identity in one subsystem. manages the event flow  & propagation.
+ * Key Responsibilities<br>
+ * 1. Accept connection related activities.(Replay Attributes,Replay Container Entries,Add Client,Disconnect Client)<br>
+ * 2. Dispatch all events to the sink containers.(Structural Event,Data Event)<br>
+ * 3. Filter the entries, when filter is applied.(Filter the Inserts and Updates)<br>
+ * 4. Generating Container Identity.<br>
+ * @author biswa
+ *
+ */
+abstract public class AbstractContainer implements ContainerListener,ConnectionListener,TransactionRelay,Dispatcher,PropertyConstants{
+	final private ConcreteIdentityGenerator idGen = new ConcreteIdentityGenerator(); 
+	/**
+	 * Listeners listening this container
+	 */
+	final protected ListenerMap listenerMap = new ListenerMap();
+	
+	final class ListenerMap{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -6997839256225465529L;
+		final private HashMap<String,FilterAgent> hm = new HashMap<String,FilterAgent>();
+		private FilterAgent[] listeners = new FilterAgent[0];
+		
+		
+		public void put(String key, FilterAgent value) {
+			hm.put(key, value);
+			listeners = (FilterAgent[])hm.values().toArray(new FilterAgent[0]);
+		}
+
+		public void remove(Object key) {
+			hm.remove(key);
+			listeners = (FilterAgent[])hm.values().toArray(new FilterAgent[0]);
+		}
+
+		public FilterAgent[] values() {
+			return listeners;
+		}
+
+		public FilterAgent get(String sink) {
+			return hm.get(sink);
+		}
+
+		public boolean isEmpty() {
+			return hm.isEmpty();
+		}
+	};
+
+	/**
+	 * Listeners listening this container
+	 */
+	protected FeedbackAgent[] feedBackAgents = new FeedbackAgent[0];
+	
+	/**
+	 *Static storage for this container. 
+	 */
+	final protected Map<Attribute,Substance> staticStorage = new HashMap<Attribute,Substance>();
+	
+	/**
+	 * Name of this container
+	 */
+	final private  String name;
+	
+	/**
+	 * Dynamic container listener for this container. The thread which modifies all data structures in the 
+	 * current container. No other thread should touch the internal data structures directly.
+	 */ 
+	final private Agent containerAgent;
+	
+	/**Thread which deals with downstream container dynamic listeners.  
+	 * 
+	 */
+	final private Transmitter transmitter;
+	
+	/**
+	 * Client token generator.
+	 */
+	final private ClientToken clientToken = new ClientToken();
+	
+	/**
+	 * Configuration properties associated with this container.
+	 */
+	final private Properties props;
+	
+	/**
+	 * Whether this source is connected to its known sources. 
+	 */
+	private boolean connected;
+	
+	/**
+	 *The filter applied at the container level  
+	 */
+	protected FilterSpec filterSpec=FilterSpec.TRUE;
+	
+	/**
+	 * Whether this container is being re filtered / due to a filter change
+	 * 
+	 */
+	protected boolean refiltered = false;
+	
+	/**Class used to manage the listening agent and its filter and the container entries it passes.
+	 * 
+	 * @author biswa
+	 *
+	 */
+	public class FilterAgent{
+		public final String name;
+		public final int primeIdentity;
+		public final Agent agent;
+		private FilterSpec filterSpec;
+		FilterAgent(String sink,Agent agent){
+			primeIdentity = clientToken.getToken();//Obtain client id
+			this.agent=agent;
+			this.name=sink;
+		}
+		public void setFilterSpec(FilterSpec filterSpec) {
+			this.filterSpec = filterSpec;
+		}
+	}	
+	/**Constructor with properties to configure the container. properties are
+	 * strictly for the container configuration. Do not use it for any business
+	 * information.
+	 * @param name
+	 * @param props
+	 */
+	public AbstractContainer(String name,Properties props){
+		assert name!=null:"Name can not be null for the container";
+		assert props!=null:"Properties can not be null for the container";
+		this.name=name;
+		this.props=props;
+		transmitter = new TransmitterImpl(name);
+		containerAgent = new Agent(this);
+	}
+	
+	@Override
+	public void disconnect(ConnectionEvent connectionEvent) {
+		assert isConnected():"How the hell did you reach here";
+		//Always ensure the disconnected is played back to existing sinks.
+		final FilterAgent dcl = listenerMap.get(connectionEvent.getSink());
+		dispatchDisconnected(dcl.agent,connectionEvent);
+		listenerMap.remove(connectionEvent.getSink());
+		clientToken.releaseToken(dcl.primeIdentity);//Return the client id
+	}
+
+	private void dispatchDisconnected(final Agent dcl,final ConnectionEvent containerEvent){
+		getEventDispatcher().submit(new Runnable(){
+			public void run(){
+				dcl.disconnected(containerEvent);
+			}
+		});	
+	}
+	
+	@Override
+	public void connect(final ConnectionEvent connectionEvent) {
+		assert isConnected():"How the hell did you reach here";
+		final Agent dcl = connectionEvent.getAgent();
+		//When an target container requests connection
+		
+		//1. Write the public attributes to the requesting container 
+		for(Attribute attribute:getSubscribedAttributes()){
+			if(attribute.propagate()){
+				AbstractContainer.this.dispatchAttributeAdded(dcl,new LeafAttribute(attribute));
+			}
+		}
+		//2. Send the connected event
+		dispatchConnected(dcl,new ConnectionEvent(connectionEvent.getSource(),connectionEvent.getSink()));
+		
+		//3. Add the target container to the listener list
+		listenerMap.put(connectionEvent.getSink(),buildFilterAgent(connectionEvent.getSink(),dcl));
+		replay(connectionEvent);
+	}
+	
+	/**Constructs filter agent for the container.
+	 * 
+	 * @param dcl Agent
+	 * @return FilterAgent
+	 */
+	protected FilterAgent buildFilterAgent(final String sink,final Agent dcl) {
+		return new FilterAgent(sink,dcl);
+	}
+
+	/**Is Any clients Attached to this container?
+	 * 
+	 * @return
+	 */
+	protected boolean isClientsAttached() {
+		return !listenerMap.isEmpty();
+	}
+	
+	/**Returns the filter agent for this container.
+	 * 
+	 * @param sink String
+	 * @return FilterAgent
+	 */
+	protected FilterAgent getFilterAgent(String sink) {
+		return listenerMap.get(sink);
+	}
+	
+	/**Returns the filter agent for this container.
+	 * 
+	 * @return FilterAgent[]
+	 */
+	protected FilterAgent[] getFilterAgents() {
+		return listenerMap.values();
+	}
+	
+	private void dispatchConnected(final Agent dcl,final ConnectionEvent connectionEvent){
+		getEventDispatcher().submit(new Runnable(){
+			public void run(){
+				dcl.connected(connectionEvent);
+			}
+		});	
+	}
+	
+	@Override
+	public void replay(final ConnectionEvent connectionEvent) {
+		assert isConnected():"How the hell did you reach here";
+		final FilterAgent dcl = listenerMap.get(connectionEvent.getSink());
+		FilterSpec incomingFilter = connectionEvent.getFilterSpec();
+		if(incomingFilter!=null){
+			incomingFilter = incomingFilter.prepare();
+			dcl.filterSpec=filterSpec.chain(incomingFilter);
+		}else{
+			dcl.filterSpec=filterSpec;
+		}
+		//When an target container requests replay
+		//Dispatch all the qualifying entry in the current container
+		Attribute[] statelessAttributes = getStatelessAttributes();
+		for(ContainerEntry conEntry:getContainerEntries()){
+			conEntry.setFiltered(dcl.primeIdentity, false);
+			AbstractContainer.this.dispatchEntryAdded(dcl,conEntry,statelessAttributes);
+		}
+	}
+	
+	@Override
+	public void beginTran(int transactionID){
+		assert log("Begin Transaction: "+transactionID);
+		dispatchBeginTransaction(transactionID);
+	}
+
+	/**
+	 * Method which delegates the begin transaction to the dispatcher thread.
+	 * @param transactionID int
+	 */
+	protected void dispatchBeginTransaction(int transactionID){
+		for(FilterAgent dcl : listenerMap.values()){
+			assert log("Dispatch Begin Transaction: "+transactionID +" to "+dcl.primeIdentity);
+			dispatchBeginTransaction(dcl.agent,transactionID);
+		}
+	}
+		
+	private void dispatchBeginTransaction(final Agent dcl,int transactionID){
+		final TransactionEvent te = new TransactionEvent(this.name,transactionID);
+		getEventDispatcher().submit(new Runnable(){
+			public void run(){
+				dcl.beginTran(te);
+			}
+		});
+	}
+	
+	@Override
+	public void commitTran(){
+		assert log("Commit Transaction: "+getCurrentTransactionID());
+		dispatchCommitTransaction();
+		dispatchFeedback();
+	}
+
+	/**
+	 * Method which delegates the commit transaction to the dispatcher thread.
+	 */
+	protected void dispatchCommitTransaction(){
+		for(FilterAgent dcl : listenerMap.values()){
+			assert log("Dispatch Commit Transaction: "+getCurrentTransactionID() +" to "+dcl.primeIdentity);
+			dispatchCommitTransaction(dcl.agent,getCurrentTransactionID());
+		}
+	}
+		
+	private void dispatchCommitTransaction(final Agent dcl,int transactionID){
+		final TransactionEvent te = new TransactionEvent(this.name,transactionID);
+		getEventDispatcher().submit(new Runnable(){
+			public void run(){
+				dcl.commitTran(te);
+			}
+		});
+	}
+	@Override
+	public void rollbackTran(){
+		dispatchRollbackTransaction();
+		dispatchFeedback();
+	}
+
+	/**
+	 * Method which delegates the rollback transaction to the dispatcher thread.
+	 */
+	protected void dispatchRollbackTransaction(){
+		for(FilterAgent dcl : listenerMap.values()){
+			dispatchRollbackTransaction(dcl.agent,getCurrentTransactionID());
+		}
+	}
+		
+	private void dispatchRollbackTransaction(final Agent dcl,int transactionID){
+		final TransactionEvent te = new TransactionEvent(this.name,transactionID);
+		getEventDispatcher().submit(new Runnable(){
+			public void run(){
+				dcl.rollbackTran(te);
+			}
+		});
+	}
+	
+	/**
+	 * Dispatches feedback to interested upstream containers about the completion of transaction.
+	 */
+	protected void dispatchFeedback(){
+		for(FeedbackAgent feedbackAgent:feedBackAgents){
+			feedbackDispatched(feedbackAgent,getCurrentTransactionID());
+		}
+	}
+
+	private void feedbackDispatched(final FeedbackAgent feedbackAgent,final int transactionID) {
+		getEventDispatcher().submit(new Runnable(){
+			public void run(){
+				feedbackAgent.completionFeedback(transactionID);
+			}
+		});
+	}
+	
+	@Override
+	public void completionFeedback(int transactionID){
+		assert log("###################Completion Feedback: "+transactionID);
+	}
+
+	@Override
+	public void addFeedbackAgent(FeedbackAgent feedbackAgent){
+		FeedbackAgent[] newFeedBackAgents=new FeedbackAgent[feedBackAgents.length+1];
+		System.arraycopy(feedBackAgents, 0, newFeedBackAgents, 1, feedBackAgents.length);
+		newFeedBackAgents[0]=feedbackAgent;
+		feedBackAgents = newFeedBackAgents;
+	}
+	
+	@Override
+	public void dispatchAttributeAdded(Attribute requestedAttribute){
+		if(requestedAttribute.propagate()){
+			for(FilterAgent dcl : listenerMap.values()){
+				dispatchAttributeAdded(dcl.agent,new LeafAttribute(requestedAttribute));
+			}
+		}
+	}
+		
+	private void dispatchAttributeAdded(final Agent dcl,Attribute requestedAttribute){
+		final ContainerEvent containerEvent = new ContainerStructureEvent(this.name,requestedAttribute);
+		getEventDispatcher().submit(new Runnable(){
+			public void run(){
+				dcl.attributeAdded(containerEvent);
+			}
+		});
+	}
+	
+	@Override
+	public void dispatchAttributeRemoved(Attribute requestedAttribute){
+		if(requestedAttribute.propagate()){	
+			refilter();
+			requestedAttribute=new LeafAttribute(requestedAttribute);
+			for(FilterAgent dcl : listenerMap.values()){
+				dispatchAttributeRemoved(dcl.agent,requestedAttribute);
+			}
+		}
+	}
+	
+	private void dispatchAttributeRemoved(final Agent dcl,Attribute requestedAttribute){
+		final ContainerEvent containerEvent = new ContainerStructureEvent(this.name,requestedAttribute);
+		getEventDispatcher().submit(new Runnable(){
+			public void run(){
+				dcl.attributeRemoved(containerEvent);
+			}
+		});
+	}
+	
+	@Override
+	public void dispatchEntryAdded(ContainerEntry containerEntry){
+		for(FilterAgent dcl : listenerMap.values()){
+			if(dcl.filterSpec.filter(containerEntry)){
+				if(!refiltered || !containerEntry.isFiltered(dcl.primeIdentity)){
+					//Filter marks this entry as qualifying to be propagated
+					containerEntry.setFiltered(dcl.primeIdentity,true);
+					//Propagate this entry to all listening containers
+					dispatchFilteredEntryAdded(dcl.agent,containerEntry);
+					//Perform stateless attribution only after the entry is update ready
+					recomputeStatelessAttributes(dcl.agent,containerEntry,getStatelessAttributes());
+				}
+			}else{
+				dispatchEntryRemoved(containerEntry, dcl);
+			}
+		}
+	}	
+	
+	/**Helper method to filter the event and then dispatch entry added / entry removed.
+	 * 
+	 * @param dcl Agent the sink listener
+	 * @param containerEntry ContainerEntry current entry
+	 */
+	private void dispatchEntryAdded(final FilterAgent dcl,ContainerEntry containerEntry,Attribute[] statelessAttributes){
+		if(dcl.filterSpec.filter(containerEntry)){
+			//Filter marks this entry as qualifying to be propagated
+			containerEntry.setFiltered(dcl.primeIdentity,true);
+			//Propagate this entry to requesting containers
+			dispatchFilteredEntryAdded(dcl.agent, containerEntry);
+			recomputeStatelessAttributes(dcl.agent, containerEntry, statelessAttributes);
+		}else{
+			dispatchEntryRemoved(containerEntry, dcl);
+		}
+	}
+
+	/**Prepares the record for state less processing.
+	 * 
+	 * @param containerEntry ContainerEntry
+	 * @return StatelessContainerEntry
+	 */
+	protected StatelessContainerEntry prepareStatelessProcessing(
+			ContainerEntry containerEntry) {
+		StatelessContainerEntry slc = ContainerContext.SLC_ENTRY.get();
+		slc.setStatelessContainerEntry(containerEntry);
+		return slc;
+	}
+
+	/**Recomputes given set of state less attributes for the given receiver in the underlying
+	 * record.
+	 * @param receiver Agent
+	 * @param containerEntry ContainerEntry
+	 * @param statelessAttributes Attribute[]
+	 */
+	protected void recomputeStatelessAttributes(final Agent receiver,
+			ContainerEntry containerEntry, Attribute[] statelessAttributes) {
+		if(statelessAttributes.length>0){
+			StatelessContainerEntry slc = prepareStatelessProcessing(containerEntry);
+			for (Attribute notifiedAttribute : statelessAttributes) {
+				Substance substance = notifiedAttribute.failSafeEvaluate(notifiedAttribute, slc); 
+				slc.silentUpdate(notifiedAttribute, substance);
+				dispatchEntryUpdated(receiver,notifiedAttribute, substance, containerEntry);
+			}
+		}
+	}
+	
+	/**Performs state less attribution exclusively for the given receiver. This is performed
+	 * when the triggered change is applicable only to the applicable receiver.
+	 * @param receiver Agent
+	 * @param containerEntry CotnainerEntry
+	 */
+	protected void performExclusiveStatelessAttribution(final Agent receiver,ContainerEntry containerEntry) {
+		Queue<Attribute> queue = ContainerContext.STATELESS_QUEUE.get(); 
+		if(!queue.isEmpty()){ 
+			recomputeStatelessAttributes(receiver,containerEntry,queue.toArray(Attribute.ZERO_DEPENDENCY));
+			queue.clear();
+		}
+	}
+	
+	/** This method performs state less attribution after an attribute update request is received.
+	 * The attributed results are sent to all qualifying listeners.
+	 * 
+	 * @param containerEntry ContainerEntry
+	 */
+	protected void performPostUpdateStatelessAttribution(ContainerEntry containerEntry) {
+		Queue<Attribute> queue = ContainerContext.STATELESS_QUEUE.get();
+		if(!listenerMap.isEmpty() && !queue.isEmpty()){ 
+			StatelessContainerEntry slcEntry = prepareStatelessProcessing(containerEntry);
+			for (Attribute notifiedAttribute : queue) {
+				Substance substance = notifiedAttribute.failSafeEvaluate(notifiedAttribute, slcEntry); 
+				substance = slcEntry.silentUpdate(notifiedAttribute, substance);
+				for(FilterAgent dcl : listenerMap.values()){
+					if(containerEntry.isFiltered(dcl.primeIdentity)){
+						//Not participating in filter direct dispatch
+						dispatchEntryUpdated(dcl.agent,notifiedAttribute,substance,containerEntry);
+					}
+				}
+			}
+		}
+		queue.clear();
+	}
+	
+	private void dispatchFilteredEntryAdded(
+			final Agent dcl, ContainerEntry containerEntry) {
+		final ContainerEvent containerEvent = new ContainerInsertEvent(this.name,containerEntry.cloneConcrete(),getCurrentTransactionID());
+		getEventDispatcher().submit(new Runnable(){
+			public void run(){
+				dcl.entryAdded(containerEvent);
+			}
+		});
+	}
+	
+	@Override
+	public void dispatchEntryRemoved(ContainerEntry containerEntry){
+		for(FilterAgent dcl : listenerMap.values()){
+			dispatchEntryRemoved(containerEntry, dcl);
+		}
+	}
+
+	private void dispatchEntryRemoved(ContainerEntry containerEntry,
+			FilterAgent dcl) {
+		//Filter marks this entry as not qualifying to be propagated
+		if(containerEntry.isFiltered(dcl.primeIdentity)){
+			//This entry was earlier being propagated mark this 
+			//not qualifying anymore
+			containerEntry.setFiltered(dcl.primeIdentity,false);
+			//Remove this entry from requesting containers			
+			dispatchEntryRemoved(dcl.agent,containerEntry);
+		}
+	}
+	
+	private void dispatchEntryRemoved(final Agent dcl,ContainerEntry containerEntry){
+		final ContainerEvent containerEvent = new ContainerDeleteEvent(this.name,containerEntry.getInternalIdentity(),getCurrentTransactionID());
+		getEventDispatcher().submit(new Runnable(){
+			public void run(){
+				dcl.entryRemoved(containerEvent);
+			}
+		});
+	}
+	@Override
+	public void dispatchEntryUpdated(Attribute attribute, Substance substance, ContainerEntry containerEntry){
+		if(attribute.propagate()){
+			for(FilterAgent dcl : listenerMap.values()){
+				if(dcl.filterSpec.filter(containerEntry)){
+					//Filtered allowed this entry
+					if(containerEntry.isFiltered(dcl.primeIdentity)){
+						//This entry was being propagated before so just send the delta
+						dispatchEntryUpdated(dcl.agent,attribute,substance,containerEntry);
+					}else{
+						//The entry was not propagated before mark this being filtered 
+						containerEntry.setFiltered(dcl.primeIdentity,true);
+						//send the entire entry
+						dispatchFilteredEntryAdded(dcl.agent,containerEntry);
+					}
+				}else{
+					dispatchEntryRemoved(containerEntry, dcl);
+				}
+			}
+		}		
+	}
+
+	private void dispatchEntryUpdated(
+			final Agent dcl, Attribute attribute,
+			Substance substance, ContainerEntry containerEntry) {
+		final ContainerEvent containerEvent = new ContainerUpdateEvent(this.name,containerEntry.getInternalIdentity(),attribute,substance,getCurrentTransactionID());
+		getEventDispatcher().submit(new Runnable(){
+			public void run(){
+				dcl.entryUpdated(containerEvent);
+			}
+		});
+	}
+	
+	/**Returns all subscribed attributes in this container.
+	 * 
+	 * @return Attribute[]
+	 */
+	abstract protected Attribute[] getSubscribedAttributes();
+
+	/**Returns all stateless attributes in this container.
+	 * 
+	 * @return Attribute[]
+	 */
+	abstract protected Attribute[] getStatelessAttributes();
+	
+	/**Returns all static attributes in this container.
+	 * 
+	 * @return Attribute[]
+	 */
+	abstract protected Attribute[] getStaticAttributes();
+	
+	/**Returns all attribute names including transitively added attribute in this container.
+	 * 
+	 * @return String[]
+	 */
+	abstract protected String[] getAllAttributeNames();
+	
+	/**Obtains the attribute by name registered in this container
+	 * 
+	 * @param attributeName
+	 * @return Attribute
+	 */
+	public abstract Attribute getAttributeByName(String attributeName);
+	
+	/** The entries of this container which is seen by external world.
+	 * 
+	 * @return ContainerEntry[]
+	 */
+	public abstract ContainerEntry[] getContainerEntries();
+	
+	/**Method returns the concrete container entry.
+	 * 
+	 * @param int id of the entry
+	 * @return ContainerEntry
+	 */
+	public abstract ContainerEntry getConcreteEntry(int id);
+	
+	/**
+	 * Name of the container.
+	 * @return name
+	 */
+	public String getName() {
+		return name;
+	}
+	
+	/**Returns unique integer generated for this request.
+	 * 
+	 * @return int
+	 */
+	final public int generateIdentity() {
+		return idGen.generateIdentity();
+	}
+	
+	/**Gets the properties for this container.
+	 * 
+	 * @return Properties
+	 */
+	public Properties getProperties(){
+		return props;
+	}
+	/** Returns the dynamic container listener of this container.
+	 * 
+	 * @return Agent
+	 */
+	public Agent agent() {
+		return containerAgent;
+	}
+	
+	/**Returns the associated filter agent with this sink.
+	 * 
+	 * @param sinkName String
+	 * @return FilterAgent
+	 */
+	public FilterAgent getFliterAgent(String sinkName){
+		return listenerMap.get(sinkName);	
+	}
+	
+	/**Returns the transmitter with this container.
+	 * 
+	 * @return Transmitter
+	 */
+	public Transmitter getEventDispatcher() {
+		return transmitter;
+	}
+	
+	/**Returns the current activities transaction id.
+	 * 
+	 * @return int
+	 */
+	public int getCurrentTransactionID(){
+		return containerAgent.getCurrentTransactionID();
+	}
+	
+	@Override
+	public boolean isConnected() {
+		return connected;
+	}
+
+	@Override
+	public void connected(final ConnectionEvent connectionEvent) {
+		connected=true;
+	}
+
+	@Override
+	public void disconnected(final ConnectionEvent connectionEvent) {
+		connected=false;
+	}
+
+	/**Returns the static substance associated with the container.
+	 * 
+	 * @param attribute
+	 * @return Substance
+	 */
+	public Substance getStatic(Attribute attribute) {
+		return staticStorage.get(attribute);		
+	}
+	
+	@Override
+	abstract public void updateStatic(Attribute attribute,Substance substance,FilterSpec appliedFilter);
+	
+	@Override
+	final public void addSource(final ConnectionEvent connectionEvent){
+		//No Operation as Agent will manage this.
+		throw new UnsupportedOperationException("Add Source operation is managed by agent");
+	}
+	
+	@Override
+	public void applySpec(Spec spec){
+		spec.apply(this);
+	}
+
+	@Override
+	final public void invokeOperation(final ContainerTask task) {
+		//No Operation as Agent will manage this.
+		throw new UnsupportedOperationException("invokeOperation is managed by agent");		
+	}
+	
+	/**This method allows subclasses to schedule tasks on agent
+	 * in harmless manner.
+	 * 
+	 * @param task ContainerTask
+	 * @param initial int
+	 * @param delay int
+	 * @param timeUnit TimeUnit
+	 */
+	public void invokePeriodically(final ContainerTask task,int initial,int delay,TimeUnit timeUnit) {
+		agent().getEventCollector().scheduleWithFixedDelay(
+		new Runnable() {
+			@Override
+			public void run() {					
+				agent().invokeOperation(task);					
+			}
+
+		}, initial, delay, timeUnit);
+	}
+	
+	/**Constructor which accepts sort specification to provided sorting in the container
+	 * 
+	 * @param sortorder SortOrder
+	 */
+	public void applySort(final SortOrder ... sortorder){
+		throw new UnsupportedOperationException("This container does not support sorting");
+	}
+	
+	/**Apply the source filter on the container.
+	 * 
+	 * @param filterSpec FilterSpec
+	 */
+	public void applyFilter(final FilterSpec filterSpec){
+		filterSpec.prepare();
+		//Source Filter updated update the filter chains
+		for(FilterAgent sinkAgent:listenerMap.values()){
+			if(this.filterSpec!=sinkAgent.filterSpec){
+				//If the sink has not provided any filter then the only filter in action is 
+				//source filter so chain only when there is a sink filter
+				sinkAgent.filterSpec=filterSpec.chain(sinkAgent.filterSpec);	
+			}else{
+				//Replace the filter as the source filter is only in action.
+				sinkAgent.filterSpec=filterSpec;
+			}
+		}
+		//Update the source filter
+		this.filterSpec = filterSpec;
+		refilter();
+	}
+	
+	/**
+	 * Re filters the entire container in the event of a filter change. other scenarios which
+	 * may affect the downstream visibility.
+	 * 
+	 */
+	protected void refilter() {
+		//For each dispatch entry added
+		refiltered=true;
+		for(ContainerEntry conEntry:getContainerEntries()){
+			dispatchEntryAdded(conEntry);
+		}
+		refiltered=false;
+	}
+	
+	/**Returns the concurrency support for this container
+	 * 
+	 * @return int concurrency level
+	 */
+	public int concurrencySupport(){
+		String concurrent = getProperties().getProperty(CONCURRENT);
+		int concurrencyLevel = 0;
+		if(concurrent!=null){
+			concurrencyLevel = Integer.parseInt(concurrent);
+		}
+		return concurrencyLevel;
+	}
+	
+	/**
+	 * Returns the transaction timeout period for this container in milliseconds. defaults 0
+	 * @return int
+	 */
+	public int getTimeOutPeriodInMillis(){
+		String strTranTimeOut = getProperties().getProperty(TRAN_TIME_OUT);
+		int timeOut = 0;
+		if(strTranTimeOut!=null){
+			timeOut = Integer.parseInt(strTranTimeOut);
+		}
+		return timeOut;
+	}
+	
+	/**
+	 * Returns the begin on commit status of this container.
+	 * defaulted to false
+	 * @return boolean 
+	 */
+	public boolean beginOnCommit(){
+		String beginOnCommit = getProperties().getProperty(BEGIN_ON_COMMIT);
+		boolean begCommit = false;
+		if(beginOnCommit!=null){
+			begCommit = Boolean.parseBoolean(beginOnCommit);
+		}
+		return begCommit;
+	}	
+	
+	public boolean log(String str){
+		System.out.println(Thread.currentThread().getName()+":"+str);
+		return true;
+	}
+	
+	public boolean ensureExecutingInRightThread() {
+		return Thread.currentThread().getName().startsWith("PPL-"+getName());
+	}
+	
+	/**
+	 *Dumps the current container contents. 
+	 */
+	public void dumpContainer(){
+		log("##################Begin Dumping Container "+getName());
+		ContainerEntry[] contEntries = getContainerEntries();
+		for(ContainerEntry conEntry:contEntries){
+			log(conEntry.toString());
+		}
+		log("##################Number of entries:="+contEntries.length);
+		log("##################End Dumping Container "+getName());
+	}
+	
+	/**
+	 *Dumps the meta information for this container 
+	 */
+	public void dumpMetaInfo(){
+		log("##################Begin Dumping Container "+getName());
+		log(this.toString());
+		log("##################End Dumping Container "+getName());
+	}
+
+	public void destroy() {
+		getEventDispatcher().destroy();		
+	}
+}
