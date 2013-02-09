@@ -43,19 +43,4 @@ final public class PrivateAttribute extends Attribute{
 	final public boolean propagate() {
 		return false;
 	}
-
-	@Override
-	final public boolean isChannel() {
-		return false;
-	}
-
-	@Override
-	final public boolean isStateless() {
-		return false;
-	}
-
-	@Override
-	final public boolean isStatic() {
-		return false;
-	}	
 }

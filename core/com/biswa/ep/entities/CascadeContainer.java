@@ -198,7 +198,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 		private Subscription[] refreshSubscriptionAttributes() {
 			Collection<Subscription> strCollection = new HashSet<Subscription>();
 			for(AttributeMapEntry attrEntry : attMapStore.values()){				 
-				if(attrEntry.attribute.isChannel()){
+				if(attrEntry.attribute.isSubscription()){
 					strCollection.add((Subscription) attrEntry.attribute);
 				}
 			}

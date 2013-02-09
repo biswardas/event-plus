@@ -17,7 +17,7 @@ abstract public class Subscription extends Attribute {
 	}
 
 	@Override
-	final public boolean isChannel() {
+	final public boolean isSubscription() {
 		return true;
 	}
 	
