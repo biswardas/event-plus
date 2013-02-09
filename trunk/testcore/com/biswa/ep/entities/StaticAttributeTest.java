@@ -40,7 +40,7 @@ public class StaticAttributeTest{
 		assertTrue(staticAttribute.initializeOnInsert());
 	}
 
-	@Test(expected=RuntimeException.class)
+	@Test
 	public void testSetPropagate() {
 		StaticAttribute staticAttribute = new StaticAttributeX("staticAttribute");
 		staticAttribute.setPropagate(true);

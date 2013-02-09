@@ -20,12 +20,6 @@ abstract public class Subscription extends Attribute {
 	final public boolean isSubscription() {
 		return true;
 	}
-
-	@Override
-	public final void setPropagate(boolean propagate) {
-		throw new UnsupportedOperationException(
-				"Can not change propagation status on Subscription Attribute");
-	}
 	
 	@Override
 	final public boolean propagate() {

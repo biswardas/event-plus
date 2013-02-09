@@ -35,12 +35,6 @@ final public class PrivateAttribute extends Attribute {
 	}
 
 	@Override
-	public final void setPropagate(boolean propagate) {
-		throw new UnsupportedOperationException(
-				"Can not change propagation status on Private Attribute");
-	}
-
-	@Override
 	public final Attribute[] dependsOn() {
 		return ZERO_DEPENDENCY;
 	}
