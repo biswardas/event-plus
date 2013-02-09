@@ -13,6 +13,15 @@
 		  </service>
 		</jar>
     	<jar jarfile="dist/test.jar" basedir="build/test"/>
+    	<jar jarfile="lib/services.jar">
+		  <service type="com.biswa.ep.entities.transaction.TransactionGenerator">
+		    <provider classname="com.biswa.ep.entities.transaction.DefaultTransactionGenerator"/>
+		    <provider classname="com.biswa.ep.discovery.RMITransactionGenerator"/>
+		  </service>
+		  <service type="com.biswa.ep.entities.identity.IdentityGenerator">
+		    <provider classname="com.biswa.ep.entities.identity.DefaultIdentityGenerator"/>
+		  </service>
+		</jar>
 	</target>
 	<target name="test">
 		<javac destdir="build/test" includeantruntime="true">
