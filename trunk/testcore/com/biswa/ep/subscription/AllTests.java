@@ -1,4 +1,4 @@
-package com.biswa.ep.entities;
+package com.biswa.ep.subscription;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -8,10 +8,7 @@ import com.biswa.ep.subscription.SubscriptionAttributeTest;
 
 @RunWith(Suite.class)
 @SuiteClasses({
-		LeafAttributeTest.class,
-		PrivateAttributeTest.class,
-		StatelessAttributeTest.class,
-		StaticAttributeTest.class})
+		SubscriptionAttributeTest.class})
 public class AllTests {
 
 }
