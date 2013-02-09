@@ -45,7 +45,7 @@ final public class PrivateAttribute extends Attribute {
 	}
 
 	@Override
-	protected final Attribute[] dependsOn() {
+	public final Attribute[] dependsOn() {
 		return ZERO_DEPENDENCY;
 	}
 

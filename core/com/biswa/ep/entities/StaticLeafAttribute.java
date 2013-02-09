@@ -19,7 +19,7 @@ public class StaticLeafAttribute extends StaticAttribute {
 	}
 	
 	@Override
-	protected Attribute[] dependsOn() {
+	public final Attribute[] dependsOn() {
 		return ZERO_DEPENDENCY;
 	}
 }
