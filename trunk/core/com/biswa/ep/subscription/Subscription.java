@@ -20,19 +20,15 @@ abstract public class Subscription extends Attribute {
 	final public boolean isSubscription() {
 		return true;
 	}
+
+	@Override
+	public final void setPropagate(boolean propagate) {
+		throw new UnsupportedOperationException(
+				"Can not change propagation status on Private Attribute");
+	}
 	
 	@Override
 	final public boolean propagate() {
-		return false;
-	}
-	
-	@Override
-	final public boolean isStateless() {
-		return false;
-	}
-
-	@Override
-	final public boolean isStatic() {
 		return false;
 	}
 

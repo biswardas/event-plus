@@ -32,6 +32,12 @@ public abstract class StaticAttribute extends Attribute{
 	final public boolean isStatic() {
 		return true;
 	}
+
+	@Override
+	public final void setPropagate(boolean propagate) {
+		throw new UnsupportedOperationException(
+				"Can not change propagation status on Private Attribute");
+	}
 	
 	@Override
 	final public boolean propagate(){

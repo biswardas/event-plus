@@ -40,7 +40,7 @@ final public class PrivateAttribute extends Attribute {
 
 	@Override
 	public final void setPropagate(boolean propagate) {
-		throw new RuntimeException(
+		throw new UnsupportedOperationException(
 				"Can not change propagation status on Private Attribute");
 	}
 
