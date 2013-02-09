@@ -32,7 +32,7 @@ public abstract class StatelessAttribute extends Attribute{
 	}
 
 	@Override
-	final public boolean shouldInitializeOnInsert() {
+	final public boolean initializeOnInsert() {
 		return false;
 	}
 }

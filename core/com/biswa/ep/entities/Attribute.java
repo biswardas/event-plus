@@ -37,7 +37,7 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	/**
 	 * Defines constant invalid minor index.
 	 */
-	private static final int INVALID_MINOR = Integer.MIN_VALUE;
+	protected static final int INVALID_MINOR = Integer.MIN_VALUE;
 
 	/**
 	 * Name of the attribute can not be null or space. Keep the name short and
@@ -152,7 +152,7 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	 * 
 	 * @return
 	 */
-	public boolean shouldInitializeOnInsert() {
+	public boolean initializeOnInsert() {
 		return initializeOnInsert;
 	}
 

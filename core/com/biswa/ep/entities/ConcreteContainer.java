@@ -119,7 +119,7 @@ public class ConcreteContainer extends CascadeContainer{
 		storeInternalIdentity(containerEntry);
 		//Initialize all zero dependency attributes & attribute the constants
 		for (Attribute notifiedAttribute : getSubscribedAttributes()) {
-			if(notifiedAttribute.shouldInitializeOnInsert()){
+			if(notifiedAttribute.initializeOnInsert()){
 				Substance substance = notifiedAttribute.failSafeEvaluate(null, containerEntry);
 				containerEntry.silentUpdate(notifiedAttribute, substance);
 			}
