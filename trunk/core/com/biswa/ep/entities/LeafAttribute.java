@@ -31,8 +31,8 @@ final public class LeafAttribute extends Attribute{
 		super(name);
 	}
 	
-	public LeafAttribute(String name, int i) {
-		super(name,i);
+	public LeafAttribute(String name, int minor) {
+		super(name,minor);
 	}
 	
 	@Override
