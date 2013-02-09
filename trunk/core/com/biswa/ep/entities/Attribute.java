@@ -261,7 +261,7 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	 * 
 	 * @return Attribute[]
 	 */
-	protected Attribute[] dependsOn() {
+	public Attribute[] dependsOn() {
 		return dependsOnList.toArray(ZERO_DEPENDENCY);
 	}
 
