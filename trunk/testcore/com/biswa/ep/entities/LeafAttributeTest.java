@@ -1,13 +1,12 @@
 package com.biswa.ep.entities;
 
-import junit.framework.TestCase;
-
+import static org.junit.Assert.*;
 import org.junit.Test;
 
 import com.biswa.ep.entities.substance.DecimalSubstance;
 import com.biswa.ep.entities.substance.Substance;
 
-public class LeafAttributeTest extends TestCase{
+public class LeafAttributeTest{
 	Attribute attribute = null;
 	DecimalSubstance ds;
 	public LeafAttributeTest() {

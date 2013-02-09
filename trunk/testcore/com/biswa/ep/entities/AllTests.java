@@ -1,16 +1,13 @@
 package com.biswa.ep.entities;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
 
+@RunWith(Suite.class)
+@SuiteClasses({
+		LeafAttributeTest.class,
+		PrivateAttributeTest.class })
 public class AllTests {
-
-	public static Test suite() {
-		TestSuite suite = new TestSuite("Test for com.biswa.ep.entities");
-		//$JUnit-BEGIN$
-		suite.addTestSuite(LeafAttributeTest.class);
-		//$JUnit-END$
-		return suite;
-	}
 
 }
