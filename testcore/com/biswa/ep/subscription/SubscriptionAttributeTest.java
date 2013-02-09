@@ -32,7 +32,7 @@ public class SubscriptionAttributeTest{
 		assertTrue(subscriptionAttribute.initializeOnInsert());
 	}
 
-	@Test(expected=RuntimeException.class)
+	@Test
 	public void testSetPropagate() {
 		SubscriptionAttribute subscriptionAttribute = new SubscriptionAttribute("subscriptionAttribute",null,null,null,null);
 		subscriptionAttribute.setPropagate(true);

@@ -30,7 +30,7 @@ public class PrivateAttributeTest{
 		assertTrue(privateAttribute.initializeOnInsert());
 	}
 
-	@Test(expected=RuntimeException.class)
+	@Test
 	public void testSetPropagate() {
 		PrivateAttribute privateAttribute = new PrivateAttribute("privateAttribute");
 		privateAttribute.setPropagate(true);
