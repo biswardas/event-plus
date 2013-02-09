@@ -184,7 +184,14 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	}
 
 	/**
-	 * This method sets whether this attribute can be propagated.
+	 * This method sets whether this attribute can be propagated. If an
+	 * attribute is only transitively added then it is disabled for propagation.
+	 * If an attribute is initially added by the container as candidate
+	 * attribute however also got qualified to be added due to transitive
+	 * dependency followed by candidate removal attribute looses its propagation
+	 * status it originally had. The down stream container gets the notification
+	 * of attribute being removed however the container keeps it due to its
+	 * dependency.
 	 * 
 	 * @param boolean
 	 */
