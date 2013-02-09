@@ -28,10 +28,6 @@ final public class PrivateAttribute extends Attribute {
 		super(name);
 	}
 
-	public PrivateAttribute(String name, int i) {
-		super(name, i);
-	}
-
 	@Override
 	protected final Substance evaluate(Attribute attribute,
 			ContainerEntry containerEntry) {

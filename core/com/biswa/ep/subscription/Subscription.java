@@ -24,7 +24,7 @@ abstract public class Subscription extends Attribute {
 	@Override
 	public final void setPropagate(boolean propagate) {
 		throw new UnsupportedOperationException(
-				"Can not change propagation status on Private Attribute");
+				"Can not change propagation status on Subscription Attribute");
 	}
 	
 	@Override
