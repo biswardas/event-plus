@@ -33,7 +33,7 @@ public class ChannelContainerTest {
 	Semaphore semaphore = new Semaphore(1);
 	private ConcreteContainer listeningContainer = new ConcreteContainer(LISTENING_CONTAINER, new Properties());
 	
-	Agent agent = new Agent(listeningContainer){//Fictious agent 
+	Agent agent = new Agent(listeningContainer){//Fictitious agent 
 
 		@Override
 		public void beginTran(TransactionEvent te) {
