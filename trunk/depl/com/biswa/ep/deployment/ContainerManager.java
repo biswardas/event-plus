@@ -51,7 +51,6 @@ public class ContainerManager {
 			Deployer.deployer.execute(new DeploymentTask(context, this));
 		} catch (JAXBException e) {
 			e.printStackTrace();
-			System.err.println("Error while repairing graph.");
 		}		
 	}
 	
@@ -68,7 +67,7 @@ public class ContainerManager {
 			try {
 				oneEntry.getValue().terminate();
 			} catch (Exception e) {
-				System.err.println("Error while unregistering jmxObject");				
+				e.printStackTrace();				
 			}
 		}
 		
@@ -76,7 +75,7 @@ public class ContainerManager {
 			try {
 				oneEntry.getValue().unpublish(oneEntry.getKey());
 			} catch (Exception e) {
-				System.err.println("Error while unregistering jmxObject");				
+				e.printStackTrace();
 			}
 		}
 
@@ -84,7 +83,7 @@ public class ContainerManager {
 			try {
 				Deployer.mbs.unregisterMBean(jmxObject);
 			} catch (Exception e) {
-				System.err.println("Error while unregistering jmxObject");				
+				e.printStackTrace();		
 			}
 		}
 		
@@ -94,7 +93,7 @@ public class ContainerManager {
 		try {
 			Deployer.mbs.unregisterMBean(containerManagementBean);
 		} catch (Exception e) {
-			System.err.println("Error while unregistering jmxObject");				
+			e.printStackTrace();				
 		}
 		accepter.clear();
 		sourceMap.clear();
@@ -112,7 +111,6 @@ public class ContainerManager {
 			containerMbeanMap.put(cs, objectName);
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.err.println("Error while binding container to JMX");
 		}
 	}
 	public void registerWithManagementServer(Context context) {
@@ -123,7 +121,6 @@ public class ContainerManager {
 			Deployer.mbs.registerMBean(csMbean, containerManagementBean);
 		}catch(Exception e){
 			e.printStackTrace();
-			System.err.println("Error deploying depl manager with JMX");
 		}
 	}
 
