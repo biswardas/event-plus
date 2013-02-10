@@ -1,7 +1,10 @@
 package com.biswa.ep.discovery;
 
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.biswa.ep.deployment.Accepter;
 import com.biswa.ep.deployment.ContainerManager;
@@ -11,6 +14,7 @@ import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.transaction.SubscriptionAgent;
 
 public class RMIAccepterImpl extends Accepter {
+	private Map<String,Remote> map = new HashMap<String,Remote>();
 	public RMIAccepterImpl(ContainerManager scm){
 		super(scm);
 	}
@@ -19,6 +23,7 @@ public class RMIAccepterImpl extends Accepter {
 	public void publish(AbstractContainer cs) {
 		RMIListenerImpl rl = new RMIListenerImpl(cs
 				.agent());
+		map.put(cs.getName(), rl);
 		RMIListener stub;
 		try {
 			stub = (RMIListener) UnicastRemoteObject
@@ -33,10 +38,9 @@ public class RMIAccepterImpl extends Accepter {
 	@Override
 	public void unpublish(AbstractContainer cs) {
 		try {
-			RMIListener remoteObj= RegistryHelper.getRMIListener(cs.getName());
-			UnicastRemoteObject.unexportObject(remoteObj, true);
 			Binder binder = RegistryHelper.getBinder();
 			binder.unbind(cs.getName());
+			UnicastRemoteObject.unexportObject(map.remove(cs.getName()), true);
 		} catch (RemoteException e) {
 			throw new RuntimeException(e);
 		}		
@@ -67,18 +71,16 @@ public class RMIAccepterImpl extends Accepter {
 	}
 
 	@Override
-	public void addFeedbackSource(Feedback feedback, AbstractContainer cs) {
+	public void addFeedbackSource(Feedback feedback, AbstractContainer originatingContainer) {
 		String listeningSchema = feedback.getContext()+"."+feedback.getContainer();		
 		Connector connecter = RegistryHelper.getConnecter(listeningSchema);
 		try {
-			connecter.addFeedbackSource(listeningSchema, feedbackAs(feedback,cs));
+			connecter.addFeedbackSource(listeningSchema, feedbackAs(feedback,originatingContainer));
 		} catch (RemoteException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
-
-		AbstractContainer originatingContainer = getContainerManager().getSchema(cs.getName());
-		originatingContainer.agent().addFeedbackAgent(new RMIFeedbackAgentImpl(feedbackAs(feedback,cs), listeningSchema));
+		originatingContainer.agent().addFeedbackAgent(new RMIFeedbackAgentImpl(feedbackAs(feedback,originatingContainer), listeningSchema));
 	}
 
 	@Override
