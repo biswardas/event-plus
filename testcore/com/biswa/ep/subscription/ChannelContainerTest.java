@@ -1,4 +1,4 @@
-package com.biswa.ep.entities;
+package com.biswa.ep.subscription;
 
 import static org.junit.Assert.fail;
 
@@ -7,6 +7,11 @@ import java.util.concurrent.Semaphore;
 
 import org.junit.Test;
 
+import com.biswa.ep.entities.ConcreteContainer;
+import com.biswa.ep.entities.ConnectionEvent;
+import com.biswa.ep.entities.ContainerEvent;
+import com.biswa.ep.entities.ContainerStructureEvent;
+import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.substance.ObjectSubstance;
 import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.entities.transaction.Agent;
@@ -79,7 +84,7 @@ public class ChannelContainerTest {
 	@Test
 	public void testSubscribe() {
 		buildChannelContainer();
-		channel.agent().attributeAdded(new ContainerStructureEvent(channel.getName(),new InstrumentProcessor()));
+		channel.agent().attributeAdded(new ContainerStructureEvent(channel.getName(),new DummySubscriptionProcessor()));
 		
 		
 		semaphore.drainPermits();
