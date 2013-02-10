@@ -14,26 +14,23 @@ public class LocalAccepterImpl extends Accepter {
 		super(scm);
 	}
 	@Override
-	public void listen(Listen listen, AbstractContainer cs) {
+	public void listen(Listen listen, AbstractContainer sinkSchema) {
 		String sourceName = listen.getContext()+"."+listen.getContainer();
 		AbstractContainer sourceSchema = getContainerManager().getSchema(sourceName);
-		AbstractContainer sinkSchema = getContainerManager().getSchema(cs.getName());
-		sourceSchema.agent().connect(new ConnectionEvent(sourceName,cs.getName(),sinkSchema.agent(),buildFilter(listen)));
+		sourceSchema.agent().connect(new ConnectionEvent(sourceName,sinkSchema.getName(),sinkSchema.agent(),buildFilter(listen)));
 	}
 	@Override
-	public void replay(Listen listen, AbstractContainer cs) {
+	public void replay(Listen listen, AbstractContainer sinkSchema) {
 		String sourceName = listen.getContext()+"."+listen.getContainer();
 		AbstractContainer sourceSchema = getContainerManager().getSchema(sourceName);
-		AbstractContainer sinkSchema = getContainerManager().getSchema(cs.getName());
-		sourceSchema.agent().replay(new ConnectionEvent(sourceName,cs.getName(),sinkSchema.agent(),buildFilter(listen)));
+		sourceSchema.agent().replay(new ConnectionEvent(sourceName,sinkSchema.getName(),sinkSchema.agent(),buildFilter(listen)));
 	}
 	@Override
-	public void addFeedbackSource(Feedback feedback, AbstractContainer cs) {
+	public void addFeedbackSource(Feedback feedback, AbstractContainer sinkSchema) {
 		String listeningSchema = feedback.getContext()+"."+feedback.getContainer();
 		AbstractContainer listeningContainer = getContainerManager().getSchema(listeningSchema);
-		listeningContainer.agent().addFeedbackSource(new TransactionEvent(feedbackAs(feedback,cs)));
-		AbstractContainer originatingContainer = getContainerManager().getSchema(cs.getName());
-		originatingContainer.agent().addFeedbackAgent(new FeedbackAgentImpl(feedbackAs(feedback,cs), listeningContainer.agent()));
+		listeningContainer.agent().addFeedbackSource(new TransactionEvent(feedbackAs(feedback,sinkSchema)));
+		sinkSchema.agent().addFeedbackAgent(new FeedbackAgentImpl(feedbackAs(feedback,sinkSchema), listeningContainer.agent()));
 	}
 	@Override
 	public SubscriptionAgent getSubscriptionAgent(String context,
