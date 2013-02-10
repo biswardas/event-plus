@@ -1,4 +1,4 @@
-package com.biswa.ep.entities;
+package com.biswa.ep.subscription;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,7 +12,7 @@ import com.biswa.ep.entities.substance.DecimalSubstance;
 import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.subscription.SubscriptionProcessor;
 
-public class InstrumentProcessor extends SubscriptionProcessor {
+public class DummySubscriptionProcessor extends SubscriptionProcessor {
 
 	final private Set<ContainerEntry> containerEntrySet = new HashSet<ContainerEntry>();
 	final private ScheduledThreadPoolExecutor eventDispatcher =new ScheduledThreadPoolExecutor(1,new NamedThreadFactory("Randomizer"));
@@ -21,8 +21,8 @@ public class InstrumentProcessor extends SubscriptionProcessor {
 	 */
 	private static final long serialVersionUID = -3323119285543564956L;
 	//WeakHashMap instrumentMap = new WeakHashMap<K, V>();
-	public InstrumentProcessor() {
-		super("InstrumentProcessor");
+	public DummySubscriptionProcessor() {
+		super("DummySubscriptionProcessor");
 	}
 
 	@Override
