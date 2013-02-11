@@ -4,9 +4,9 @@ import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.substance.Substance;
 
-public class ProxySubscriptionProcessor extends SubscriptionProcessor{
+public class SubscriptionContainerProxyProcessor extends SubscriptionContainerProcessor{
 
-	public ProxySubscriptionProcessor() {
+	public SubscriptionContainerProxyProcessor() {
 		super("Proxy");
 	}
 

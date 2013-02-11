@@ -3,7 +3,7 @@
         Build event-plus Library
     </description>
     <target name="build" depends="clean,download-dependency,generate,compile,test">
-		<jar jarfile="dist/ep.jar" basedir="build/classes">
+		<jar jarfile="dist/ep.jar" basedir="build/sources">
 		  <service type="com.biswa.ep.entities.transaction.TransactionGenerator">
 		    <provider classname="com.biswa.ep.entities.transaction.DefaultTransactionGenerator"/>
 		    <provider classname="com.biswa.ep.discovery.RMITransactionGenerator"/>
@@ -24,12 +24,12 @@
 		</jar>
 	</target>
 	<target name="test">
-		<javac destdir="build/test" includeantruntime="true">
+		<javac destdir="build/test" includeantruntime="true" debug="true">
 			<src path="testcore"/>
 			<src path="testtools"/>
 			<src path="testdepl"/>
 			<classpath>
-				  <pathelement location="build/classes"/>
+				  <pathelement location="build/sources"/>
 			      <fileset dir="lib">
 			        <include name="**/*.jar"/>
 			      </fileset>
@@ -37,7 +37,7 @@
 		</javac>
 	</target>
 	<target name="compile">
-		<javac destdir="build/classes" includeantruntime="false">
+		<javac destdir="build/sources" includeantruntime="false" debug="true">
 			<src path="core"/>
 			<src path="tools"/>
 			<src path="depl"/>
@@ -51,10 +51,10 @@
 	
     <target name="clean">
     	<delete dir="build/test"/>
-    	<delete dir="build/classes"/>
+    	<delete dir="build/sources"/>
     	<delete dir="dist"/>
 		<mkdir dir="build/test" />
-		<mkdir dir="build/classes" />
+		<mkdir dir="build/sources" />
 		<mkdir dir="dist" />
 	</target>
 	

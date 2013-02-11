@@ -8,7 +8,7 @@ import com.biswa.ep.entities.substance.Substance;
  * @author biswa
  *
  */
-public class DefaultAttributeSubscription implements AttributeSubscription {
+public class SubscriptionAttrHandlerImpl implements SubscriptionAttrHandler {
 	
 	@Override
 	public Substance substitute(SubscriptionAttribute subscriptionAttribute,ContainerEntry containerEntry) {

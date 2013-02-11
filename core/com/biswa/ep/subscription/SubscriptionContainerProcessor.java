@@ -9,7 +9,7 @@ import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.entities.transaction.TransactionEvent;
 
-public abstract class SubscriptionProcessor extends Subscription {
+public abstract class SubscriptionContainerProcessor extends Subscription {
 	/**
 	 * The name by which the updates are sent to the underlying container.
 	 */
@@ -34,13 +34,13 @@ public abstract class SubscriptionProcessor extends Subscription {
 	/**
 	 * The container associated with this Subscription processor
 	 */
-	private transient AbstractContainer channelContainer = null;
+	private transient AbstractContainer subscriptionContainer = null;
 	
 	/**Constructor to create a Subscription processor
 	 * 
 	 * @param name String
 	 */
-	protected SubscriptionProcessor(String name) {
+	protected SubscriptionContainerProcessor(String name) {
 		super(name);
 	}
 	
@@ -55,10 +55,10 @@ public abstract class SubscriptionProcessor extends Subscription {
 	/**Attach the container to this processor so the external world can communicate
 	 * with this container.
 	 * 
-	 * @param channelContainer
+	 * @param subscriptionContainer
 	 */
-	protected void setContainer(AbstractContainer channelContainer) {
-		this.channelContainer=channelContainer;
+	protected void setContainer(AbstractContainer subscriptionContainer) {
+		this.subscriptionContainer=subscriptionContainer;
 		init();
 	}
 	
@@ -66,8 +66,8 @@ public abstract class SubscriptionProcessor extends Subscription {
 	 * Begins a transaction for the associated container
 	 */
 	final protected void begin(){
-		transactionId = channelContainer.agent().getNextTransactionID();
-		channelContainer.agent().beginTran(new TransactionEvent(ANONYMOUS, transactionId));
+		transactionId = subscriptionContainer.agent().getNextTransactionID();
+		subscriptionContainer.agent().beginTran(new TransactionEvent(ANONYMOUS, transactionId));
 	}
 	
 	/**Method which receives all updates from an subscription service.
@@ -78,14 +78,14 @@ public abstract class SubscriptionProcessor extends Subscription {
 	final protected void update(ContainerEntry containerEntry,Substance substance){
 		ContainerEvent updateEvent= new ContainerUpdateEvent(ANONYMOUS,
 				containerEntry.getIdentitySequence(),this,substance,transactionId);
-		channelContainer.agent().entryUpdated(updateEvent);
+		subscriptionContainer.agent().entryUpdated(updateEvent);
 	}
 
 	/**
 	 * Commits the transaction for the associated container.
 	 */
 	final protected void commit(){
-		channelContainer.agent().commitTran(new TransactionEvent(ANONYMOUS, transactionId));
+		subscriptionContainer.agent().commitTran(new TransactionEvent(ANONYMOUS, transactionId));
 	}
 	
 	/**

@@ -19,8 +19,8 @@ import com.biswa.ep.entities.predicate.Predicate;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.transaction.Inlet;
 import com.biswa.ep.entities.transaction.SubscriptionAgent;
-import com.biswa.ep.subscription.AttributeSubscription;
-import com.biswa.ep.subscription.DefaultAttributeSubscription;
+import com.biswa.ep.subscription.SubscriptionAttrHandler;
+import com.biswa.ep.subscription.SubscriptionAttrHandlerImpl;
 import com.biswa.ep.subscription.SubscriptionAttribute;
 import com.biswa.ep.util.parser.predicate.PredicateBuilder;
 
@@ -46,15 +46,15 @@ public class DeploymentHandler extends AbstractDeploymentHandler{
 			Accepter accepter = containerManager.valueOf(subscribe.getMethod());			
 			SubscriptionAgent subAgent = accepter.getSubscriptionAgent(subscribe.getContext(), subscribe.getContainer());
 			Handler handler = subscribe.getHandler();
-			AttributeSubscription attrSubs = null;
+			SubscriptionAttrHandler attrSubs = null;
 			if(handler!=null){
 				try {
-					attrSubs = (AttributeSubscription) Class.forName(handler.getClassName()).newInstance();
+					attrSubs = (SubscriptionAttrHandler) Class.forName(handler.getClassName()).newInstance();
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
 			}else{
-				attrSubs = new DefaultAttributeSubscription();
+				attrSubs = new SubscriptionAttrHandlerImpl();
 			}
 			SubscriptionAttribute subsAttribute = new SubscriptionAttribute(subscribe.getDepends(),subscribe.getResponse(),subscribe.getContext()+"."+subscribe.getContainer(),subAgent,attrSubs);
 			ContainerEvent ce = new ContainerStructureEvent(cs.getName(),subsAttribute);

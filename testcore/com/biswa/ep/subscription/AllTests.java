@@ -9,7 +9,7 @@ import com.biswa.ep.subscription.SubscriptionAttributeTest;
 @RunWith(Suite.class)
 @SuiteClasses({
 		SubscriptionAttributeTest.class,
-		ChannelContainerTest.class})
+		SubscriptionContainerTest.class})
 public class AllTests {
 
 }
