@@ -7,7 +7,7 @@ import com.biswa.ep.entities.substance.Substance;
  * @author biswa
  *
  */
-public interface AttributeSubscription {
+public interface SubscriptionAttrHandler {
 
 	/**Subscribes a subject for the current entity
 	 * 

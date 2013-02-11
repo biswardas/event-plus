@@ -10,9 +10,9 @@ import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.substance.DecimalSubstance;
 import com.biswa.ep.entities.substance.Substance;
-import com.biswa.ep.subscription.SubscriptionProcessor;
+import com.biswa.ep.subscription.SubscriptionContainerProcessor;
 
-public class DummySubscriptionProcessor extends SubscriptionProcessor {
+public class DummySubscriptionProcessor extends SubscriptionContainerProcessor {
 
 	final private Set<ContainerEntry> containerEntrySet = new HashSet<ContainerEntry>();
 	final private ScheduledThreadPoolExecutor eventDispatcher =new ScheduledThreadPoolExecutor(1,new NamedThreadFactory("Randomizer"));

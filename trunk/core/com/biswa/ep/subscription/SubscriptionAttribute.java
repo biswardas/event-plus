@@ -21,7 +21,7 @@ final public class SubscriptionAttribute extends Subscription {
 	/**
 	 * Handler dealing with subscription
 	 */
-	private AttributeSubscription attSubscription;
+	private SubscriptionAttrHandler attSubscription;
 	/**
 	 * Agent dealing with subscription
 	 */
@@ -41,7 +41,7 @@ final public class SubscriptionAttribute extends Subscription {
 	 * @param source String
 	 * @param subAgent SubscriptionAgent
 	 */
-	public SubscriptionAttribute(String depends,String result,String source,SubscriptionAgent subAgent,AttributeSubscription attSubscription) {
+	public SubscriptionAttribute(String depends,String result,String source,SubscriptionAgent subAgent,SubscriptionAttrHandler attSubscription) {
 		super(depends+result);
 		this.source=source;
 		this.subAgent = subAgent; 

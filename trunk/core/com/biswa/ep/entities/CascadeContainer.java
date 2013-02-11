@@ -56,9 +56,9 @@ public abstract class CascadeContainer extends AbstractContainer{
 		private Attribute[] subscribedAttributes = new Attribute[0];
 		
 		/**
-		 * Channel Attributes added to this container.
+		 * Subscription Attributes added to this container.
 		 */
-		private Subscription[] channelAttributes = new Subscription[0];
+		private Subscription[] subscriptionAttributes = new Subscription[0];
 		
 		/**
 		 *Stateless Attributes present in this container. 
@@ -158,8 +158,8 @@ public abstract class CascadeContainer extends AbstractContainer{
 		 * 
 		 * @return Subscription[]
 		 */
-		private Subscription[] getChannelAttributes() {
-			return channelAttributes ;
+		private Subscription[] getSubscriptionAttributes() {
+			return subscriptionAttributes ;
 		}
 		
 		/**Returns the Attribute names along with transitively added attributes.
@@ -191,7 +191,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 			return rootSubscribedAttributes.toArray(Attribute.ZERO_DEPENDENCY);
 		}
 		
-		/**Revalidates the channel attribute for the container
+		/**Revalidates the subscription attribute for the container
 		 * 
 		 * @return Subscription[]
 		 */
@@ -238,7 +238,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 		private void revalidateDependencyGraph(){
 			statelessAttributes = refreshStatelessAttributes();
 			staticAttributes = refreshStaticAttributes();
-			channelAttributes = refreshSubscriptionAttributes();
+			subscriptionAttributes = refreshSubscriptionAttributes();
 			subscribedAttributes = refreshRootKeySet();
 			allAttributes = (String[])attMapStore.keySet().toArray(new String[0]);
 			for(AttributeMapEntry attrEntry : attMapStore.values()){
@@ -512,7 +512,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 	 * cleanup method to destroy any subscriptions in this container, when an entry is removed.
 	 */
 	protected void destroy(ContainerEntry containerEntry){
-		for(Subscription subsAttribute:attributeMap.getChannelAttributes()){
+		for(Subscription subsAttribute:attributeMap.getSubscriptionAttributes()){
 			subsAttribute.unsubscribe(containerEntry);
 		}		
 	}

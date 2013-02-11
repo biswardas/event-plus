@@ -7,7 +7,7 @@ public enum ContainerDeployer {
 	Timed(TimedDeploymentHandler.class),
 	Pivot(PivotDeploymentHandler.class), 
 	Join(JoinDeploymentHandler.class),
-	Channel(ChannelDeploymentHandler.class),
+	Subscription(SubscriptionDeploymentHandler.class),
 	Proxy(ProxyDeploymentHandler.class),
 	TProxy(TransactionDeploymentHandler.class),
 	Static(StaticDeploymentHandler.class);

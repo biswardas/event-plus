@@ -57,21 +57,21 @@ public interface Connector extends Remote  {
 
 	void receiveFeedback(String consumer, String producer,int transactionID) throws RemoteException;
 	
-	/**Invokes subscription on Channel container.
+	/**Invokes subscription on subscription container.
 	 * 
 	 * @param subscriptionEvent SubscriptionEvent 
 	 */
 	void subscribe(SubscriptionEvent subscriptionEvent) throws RemoteException;
 	
 	/**
-	 * Invokes un subscribe on Channel container.
+	 * Invokes un subscribe on subscription container.
 	 * 
 	 * @param subscriptionEvent SubscriptionEvent 
 	 */
 	void unsubscribe(SubscriptionEvent subscriptionEvent) throws RemoteException;
 
 	/**
-	 * Invokes substitute on Channel container.
+	 * Invokes substitute on subscription container.
 	 * 
 	 * @param subscriptionEvent SubscriptionEvent 
 	 */

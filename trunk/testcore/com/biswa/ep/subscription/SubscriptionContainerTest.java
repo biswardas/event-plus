@@ -16,19 +16,19 @@ import com.biswa.ep.entities.substance.ObjectSubstance;
 import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.entities.transaction.Agent;
 import com.biswa.ep.entities.transaction.TransactionEvent;
-import com.biswa.ep.subscription.ChannelContainer;
+import com.biswa.ep.subscription.SubscriptionContainer;
 import com.biswa.ep.subscription.SubscriptionEvent;
 import com.biswa.ep.subscription.SubscriptionRequest;
 
-public class ChannelContainerTest {
-	private static final String CHANNEL_CONTAINER = "channelContainer";
+public class SubscriptionContainerTest {
+	private static final String SUBSCRIPTION_CONTAINER = "subscriptionContainer";
 
 	private static final String LISTENING_CONTAINER = "ListeningContainer";
 	SubscriptionRequest subRequest = new SubscriptionRequest(LISTENING_CONTAINER,100, new LeafAttribute("Result"));
 	Substance substance = new ObjectSubstance("BISWA");
-	SubscriptionEvent subscriptionEvent = new SubscriptionEvent(substance,CHANNEL_CONTAINER,subRequest);
+	SubscriptionEvent subscriptionEvent = new SubscriptionEvent(substance,SUBSCRIPTION_CONTAINER,subRequest);
 	
-	ChannelContainer channel = null;	
+	SubscriptionContainer subscriptionContainer = null;	
 	Properties props = new Properties();
 	Semaphore semaphore = new Semaphore(1);
 	private ConcreteContainer listeningContainer = new ConcreteContainer(LISTENING_CONTAINER, new Properties());
@@ -45,7 +45,7 @@ public class ChannelContainerTest {
 		public void commitTran(TransactionEvent te) {
 			System.out.println("TransactionEvent CommitTran:"+te);
 			semaphore.release();
-			channel.agent().completionFeedback(te.getTransactionId());
+			subscriptionContainer.agent().completionFeedback(te.getTransactionId());
 		}
 
 		@Override
@@ -83,45 +83,45 @@ public class ChannelContainerTest {
 	
 	@Test
 	public void testSubscribe() {
-		buildChannelContainer();
-		channel.agent().attributeAdded(new ContainerStructureEvent(channel.getName(),new DummySubscriptionProcessor()));
+		buildSubscriptionContainer();
+		subscriptionContainer.agent().attributeAdded(new ContainerStructureEvent(subscriptionContainer.getName(),new DummySubscriptionProcessor()));
 		
 		
 		semaphore.drainPermits();
-		channel.agent().subscribe(subscriptionEvent);
-		channel.agent().substitute(subscriptionEvent);
-		channel.agent().unsubscribe(subscriptionEvent);
-		channel.agent().subscribe(subscriptionEvent);
-		channel.agent().substitute(subscriptionEvent);
-		channel.agent().unsubscribe(subscriptionEvent);
-		channel.agent().subscribe(subscriptionEvent);
-		channel.agent().substitute(subscriptionEvent);
-		channel.agent().unsubscribe(subscriptionEvent);
-		channel.agent().subscribe(subscriptionEvent);
-		channel.agent().substitute(subscriptionEvent);
-		channel.agent().unsubscribe(subscriptionEvent);
-		channel.agent().subscribe(subscriptionEvent);
-		channel.agent().substitute(subscriptionEvent);
-		channel.agent().unsubscribe(subscriptionEvent);
-		channel.agent().subscribe(subscriptionEvent);
-		channel.agent().substitute(subscriptionEvent);
-		channel.agent().unsubscribe(subscriptionEvent);
+		subscriptionContainer.agent().subscribe(subscriptionEvent);
+		subscriptionContainer.agent().substitute(subscriptionEvent);
+		subscriptionContainer.agent().unsubscribe(subscriptionEvent);
+		subscriptionContainer.agent().subscribe(subscriptionEvent);
+		subscriptionContainer.agent().substitute(subscriptionEvent);
+		subscriptionContainer.agent().unsubscribe(subscriptionEvent);
+		subscriptionContainer.agent().subscribe(subscriptionEvent);
+		subscriptionContainer.agent().substitute(subscriptionEvent);
+		subscriptionContainer.agent().unsubscribe(subscriptionEvent);
+		subscriptionContainer.agent().subscribe(subscriptionEvent);
+		subscriptionContainer.agent().substitute(subscriptionEvent);
+		subscriptionContainer.agent().unsubscribe(subscriptionEvent);
+		subscriptionContainer.agent().subscribe(subscriptionEvent);
+		subscriptionContainer.agent().substitute(subscriptionEvent);
+		subscriptionContainer.agent().unsubscribe(subscriptionEvent);
+		subscriptionContainer.agent().subscribe(subscriptionEvent);
+		subscriptionContainer.agent().substitute(subscriptionEvent);
+		subscriptionContainer.agent().unsubscribe(subscriptionEvent);
 		//-------------------------------------------------------
-		channel.agent().subscribe(subscriptionEvent);
+		subscriptionContainer.agent().subscribe(subscriptionEvent);
 		semaphore.acquireUninterruptibly();
 		semaphore.acquireUninterruptibly(3);
 		semaphore.acquireUninterruptibly(3);
 		semaphore.acquireUninterruptibly(3);
 	}
-	protected ChannelContainer buildChannelContainer() {
+	protected SubscriptionContainer buildSubscriptionContainer() {
 		semaphore.drainPermits();
-		channel = new ChannelContainer(CHANNEL_CONTAINER,props);
-		channel.agent().addSource(new ConnectionEvent("ANONYMOUS", "ANONYMOUS"));
-		channel.agent().connected(new ConnectionEvent("ANONYMOUS", "ANONYMOUS"));
-		channel.agent().addFeedbackSource(new TransactionEvent(LISTENING_CONTAINER));
-		channel.agent().connect(new ConnectionEvent(CHANNEL_CONTAINER, LISTENING_CONTAINER, agent));
+		subscriptionContainer = new SubscriptionContainer(SUBSCRIPTION_CONTAINER,props);
+		subscriptionContainer.agent().addSource(new ConnectionEvent("ANONYMOUS", "ANONYMOUS"));
+		subscriptionContainer.agent().connected(new ConnectionEvent("ANONYMOUS", "ANONYMOUS"));
+		subscriptionContainer.agent().addFeedbackSource(new TransactionEvent(LISTENING_CONTAINER));
+		subscriptionContainer.agent().connect(new ConnectionEvent(SUBSCRIPTION_CONTAINER, LISTENING_CONTAINER, agent));
 		semaphore.acquireUninterruptibly();
-		return channel;
+		return subscriptionContainer;
 	}
 
 }

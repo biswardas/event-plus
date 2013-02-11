@@ -22,12 +22,12 @@ import com.biswa.ep.entities.substance.Substance;
  * @author biswa
  *
  */
-public class SubscriptionHandler implements SubscriptionSupport {
+public class SubscriptionContainerHandler implements SubscriptionSupport {
 	
 	/**
 	 * Processor associated with this container.
 	 */
-	private SubscriptionProcessor processor;
+	private SubscriptionContainerProcessor processor;
 	
 	/**
 	 * 
@@ -62,7 +62,7 @@ public class SubscriptionHandler implements SubscriptionSupport {
 	 * 
 	 * @param container
 	 */
-	public SubscriptionHandler(AbstractContainer container) {
+	public SubscriptionContainerHandler(AbstractContainer container) {
 		this.subsContainerSupport=container;
 	}	
 	
@@ -174,8 +174,8 @@ public class SubscriptionHandler implements SubscriptionSupport {
 	 * @param requestedAttribute Attribute
 	 */
 	public void dispatchAttributeAdded(Attribute requestedAttribute) {
-		if(requestedAttribute instanceof SubscriptionProcessor){
-			processor=(SubscriptionProcessor) requestedAttribute;
+		if(requestedAttribute instanceof SubscriptionContainerProcessor){
+			processor=(SubscriptionContainerProcessor) requestedAttribute;
 			//Set the container in which the subscription is operating
 			processor.setContainer(subsContainerSupport);
 		}
