@@ -1,9 +1,8 @@
 package com.biswa.ep.entities.substance;
 
-import com.biswa.ep.entities.substance.AbstractSubstance;
 
 
-public class DecimalSubstance extends AbstractSubstance {
+public class DecimalSubstance extends Real {
 	/**
 	 * 
 	 */
