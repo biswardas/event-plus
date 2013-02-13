@@ -1,6 +1,6 @@
 == Getting Started ==
 
-EventPlus is a complex event processing middle-ware library based on Java. Can run inside in any JVM / Application container or run in its standalone JVM or distributed 
+Event-Plus is a complex event processing middle-ware library based on Java. Can run inside in any JVM / Application container or run in its standalone JVM or distributed 
 across multiple hardware.
 
 == Terminology ==
