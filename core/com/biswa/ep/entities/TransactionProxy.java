@@ -5,42 +5,49 @@ import java.util.Properties;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.entities.transaction.Agent;
-/**This container only relays the transaction. No data or attributes are propagated from this container.
+
+/**
+ * This container only relays the transaction. No data or attributes are
+ * propagated from this container. Purpose of this container is to uniquely
+ * group the transactions in downstream container. Think about forming a perfect
+ * diamond.
  * 
  * @author biswa
- *
+ * 
  */
 public class TransactionProxy extends AbstractContainer {
 
 	public TransactionProxy(String name, Properties props) {
 		super(name, props);
 	}
+
 	@Override
 	public void connect(final ConnectionEvent connectionEvent) {
-		assert isConnected():"How the hell did you reach here";
+		assert isConnected() : "How the hell did you reach here";
 		final Agent dcl = connectionEvent.getAgent();
-		getEventDispatcher().submit(new Runnable(){
-			public void run(){
+		getEventDispatcher().submit(new Runnable() {
+			public void run() {
 				dcl.connected(connectionEvent);
 			}
-		});	
+		});
 
-		final FilterAgent filterAgent = buildFilterAgent(connectionEvent.getSink(),dcl);
-		//3. Add the target container to the listener list
-		listenerMap.put(connectionEvent.getSink(),filterAgent);
+		final FilterAgent filterAgent = buildFilterAgent(
+				connectionEvent.getSink(), dcl);
+		// 3. Add the target container to the listener list
+		listenerMap.put(connectionEvent.getSink(), filterAgent);
 		FilterSpec incomingFilter = connectionEvent.getFilterSpec();
-		if(incomingFilter!=null){
+		if (incomingFilter != null) {
 			incomingFilter = incomingFilter.prepare();
 			filterAgent.setFilterSpec(filterSpec.chain(incomingFilter));
-		}else{
+		} else {
 			filterAgent.setFilterSpec(filterSpec);
 		}
 	}
-	
+
 	@Override
 	public void replay(final ConnectionEvent connectionEvent) {
 	}
-	
+
 	@Override
 	public void entryAdded(ContainerEvent ce) {
 	}
@@ -50,7 +57,8 @@ public class TransactionProxy extends AbstractContainer {
 	}
 
 	@Override
-	public void entryUpdated(ContainerEvent ce) {	}
+	public void entryUpdated(ContainerEvent ce) {
+	}
 
 	@Override
 	public void clear() {
