@@ -50,7 +50,6 @@ public final class FeedbackTracker {
 		 * @return boolean
 		 */
 		boolean isCircuitComplete(int sourceNum){
-			assert expected%sourceNum==0:"Sorry I did not know you when transaction begun.";
 			expected = expected|sourceNum;
 			return expected==ClientToken.ALL_AVAILABLE;
 		}
