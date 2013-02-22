@@ -1,7 +1,5 @@
 package com.biswa.ep.entities;
 
-import com.biswa.ep.entities.substance.NullSubstance;
-import com.biswa.ep.entities.substance.Substance;
 
 /**
  * Class used to add attributes which is not dependent on any other attribute
@@ -11,7 +9,7 @@ import com.biswa.ep.entities.substance.Substance;
  * 
  */
 
-final public class PrivateAttribute extends Attribute {
+public abstract class PrivateAttribute extends Attribute {
 
 	/**
 	 * 
@@ -26,17 +24,6 @@ final public class PrivateAttribute extends Attribute {
 	 */
 	public PrivateAttribute(String name) {
 		super(name);
-	}
-
-	@Override
-	protected final Substance evaluate(Attribute attribute,
-			ContainerEntry containerEntry) {
-		return NullSubstance.NULL_SUBSTANCE;
-	}
-
-	@Override
-	public final Attribute[] dependsOn() {
-		return ZERO_DEPENDENCY;
 	}
 
 	@Override
