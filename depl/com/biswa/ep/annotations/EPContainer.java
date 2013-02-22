@@ -14,18 +14,20 @@ public @interface EPContainer {
 
 	String name() default "";
 
-	Feedback[] feedBack() default {};
+	Feedback[] feedback() default {};
 
 	String publish() default "";
 	
 	Transaction[] transaction() default {}; 
 
 	public @interface Feedback {
-		String context() default "";
+		String context();
 
-		String source() default "";
+		String container();
+		
+		String publish();
 
-		String alias() default "";
+		String alias() default "";		
 	}
 	
 	public @interface Transaction {

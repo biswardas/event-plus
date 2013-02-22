@@ -23,6 +23,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
+import com.biswa.ep.annotations.EPContainer.Feedback;
 import com.biswa.ep.annotations.EPContainer.Transaction;
 import com.sun.javadoc.AnnotationValue;
 import com.sun.tools.javac.code.Symbol;
@@ -104,6 +105,11 @@ public class GenSourceVisitor implements
 					writeListeners(epContext, epContainer, interfaceElement);
 				}
 				visitAttributes(innerElement, epContainer);
+				for(Feedback feedback:containerAnnot.feedback()){
+					write("<Feedback container='" + feedback.container()
+							+ "' context='" + feedback.context() + "' method='"
+							+ feedback.publish() + "'/>");
+				}
 				write("</Container>");
 			}
 		}
@@ -115,21 +121,23 @@ public class GenSourceVisitor implements
 		boolean supportsFeedback = false;
 		EPContainer containerAnnot = inheritedContainer
 				.getAnnotation(EPContainer.class);
-		supportsFeedback = containerAnnot.type().supportsFeedback();
-		if (!epContext.getEnclosedElements().contains(inheritedContainer)) {
-			listenMethod = containerAnnot.publish();
-		}
-		String containerToListen = inheritedContainer.getSimpleName()
-				.toString();
-		String contextToListen = inheritedContainer.getEnclosingElement()
-				.getSimpleName().toString();
-		write("<Listen container='" + containerToListen + "' context='"
-				+ contextToListen + "' method='" + listenMethod
-				+ "' transactionGroup='"
-				+ tranGroup(epContainer, inheritedContainer) + "'/>");
-		if (supportsFeedback) {
-			write("<Feedback container='" + containerToListen + "' context='"
-					+ contextToListen + "' method='" + listenMethod + "'/>");
+		if(containerAnnot!=null){//All inheritance may not be containers
+			supportsFeedback = containerAnnot.type().supportsFeedback();
+			if (!epContext.getEnclosedElements().contains(inheritedContainer)) {
+				listenMethod = containerAnnot.publish();
+			}
+			String containerToListen = inheritedContainer.getSimpleName()
+					.toString();
+			String contextToListen = inheritedContainer.getEnclosingElement()
+					.getSimpleName().toString();
+			write("<Listen container='" + containerToListen + "' context='"
+					+ contextToListen + "' method='" + listenMethod
+					+ "' transactionGroup='"
+					+ tranGroup(epContainer, inheritedContainer) + "'/>");
+			if (supportsFeedback) {
+				write("<Feedback container='" + containerToListen + "' context='"
+						+ contextToListen + "' method='" + listenMethod + "'/>");
+			}
 		}
 	}
 
@@ -162,9 +170,11 @@ public class GenSourceVisitor implements
 					write("<Listen container='" + iannot.container()
 							+ "' context='" + sourceContext + "' method='"
 							+ listenMethod + "'/>");
-					write("<Feedback container='" + iannot.container()
-							+ "' context='" + sourceContext + "' method='"
-							+ listenMethod + "'/>");
+					//TODO What about proxy?
+					//write("<Feedback container='" + iannot.container()
+					//		+ "' context='" + sourceContext + "' method='"
+					//		+ listenMethod + "'/>");
+					
 					write("<Subscribe container='" + iannot.container()
 							+ "' context='" + sourceContext + "' method='"
 							+ listenMethod + "' depends='" + iannot.depends()
