@@ -57,7 +57,11 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			private HashMap<String, HashSet<String>> inheritanceTree = new HashMap<String, HashSet<String>>();
 
 			private String lookUpType(String sourceClassName, String variable) {
-				Element element = typeMap.get(sourceClassName).get(variable);
+				HashMap<String, Element> myMap =  typeMap.get(sourceClassName);
+				if(myMap==null){
+					throw new RuntimeException(sourceClassName + " Is this a container? Detected dependency: "+variable);
+				}
+				Element element = myMap.get(variable);
 				String type = null;
 				if (element == null) {
 					Set<String> parentType = inheritanceTree
@@ -400,8 +404,10 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 				write("class");
 				write(" " + arg0.getSimpleName());
 				if (arg0.getExtendsClause() != null) {
-					dependencyManager.addInheritance(currentContainerName,
+					if(isEPContainer(((DeclaredType)typeElement.getSuperclass()).asElement())){
+						dependencyManager.addInheritance(currentContainerName,
 							typeElement.getSuperclass().toString());
+					}
 					write(" extends "
 							+ ((DeclaredType) typeElement.getSuperclass())
 									.asElement().getSimpleName() + " ");
@@ -435,10 +441,14 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		Iterator<? extends TypeMirror> iter = interfaceList.iterator();
 		while (iter.hasNext()) {
 			TypeMirror oneInterface = iter.next();
-			write(((DeclaredType) oneInterface).asElement().getSimpleName()
+			Element asElement = ((DeclaredType) oneInterface).asElement();
+			write(asElement.getSimpleName()
 					.toString());
-			dependencyManager.addInheritance(currentContainerName, oneInterface
-					.toString());
+
+			if(isEPContainer(asElement)){
+				dependencyManager.addInheritance(currentContainerName, oneInterface
+						.toString());
+			}
 			if (iter.hasNext()) {
 				write(",");
 			}
@@ -652,5 +662,8 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+	private boolean isEPContainer(Element e){
+		return e.getAnnotation(EPContainer.class)!=null;
 	}
 }
