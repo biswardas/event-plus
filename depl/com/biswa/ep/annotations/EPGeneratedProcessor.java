@@ -2,7 +2,6 @@ package com.biswa.ep.annotations;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.HashMap;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;

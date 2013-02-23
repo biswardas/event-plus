@@ -2,7 +2,7 @@ package com.biswa.ep.deployment;
 
 import java.util.List;
 
-import com.biswa.ep.deployment.handler.ContainerDeployer;
+import com.biswa.ep.annotations.EPConType;
 import com.biswa.ep.deployment.util.Container;
 import com.biswa.ep.deployment.util.Context;
 import com.biswa.ep.deployment.util.Feedback;
@@ -28,7 +28,7 @@ final class DeploymentTask implements Runnable {
 	public void run() {
 		List<Container> containers = Deployer.getOrderedContainers(context);
 		for (Container container : containers) {
-			ContainerDeployer deployer = ContainerDeployer
+			EPConType deployer = EPConType
 					.valueOf(container.getType());
 			String name = deployer.getHandler().getQualifiedName(container, context);
 			AbstractContainer cs = null;
@@ -41,7 +41,7 @@ final class DeploymentTask implements Runnable {
 	}
 
 	private void graphRepair(Container container,
-			ContainerDeployer deployer, AbstractContainer cs) {
+			EPConType deployer, AbstractContainer cs) {
 		//Set Expectation on the container if any
 		deployer.getHandler().expectConnected(container,cs);
 		//Listen to new friends
@@ -57,7 +57,7 @@ final class DeploymentTask implements Runnable {
 	}
 
 	private void regularDeploy(ContainerManager containerManager, final Context context,
-			Container container, ContainerDeployer deployer) {
+			Container container, EPConType deployer) {
 		AbstractContainer cs = deployer.getHandler().deploy(
 				container, context,containerManager);
 		containerManager.register(cs);
