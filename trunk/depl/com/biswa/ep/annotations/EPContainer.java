@@ -5,12 +5,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.biswa.ep.deployment.handler.ContainerDeployer;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target( { ElementType.TYPE })
 public @interface EPContainer {
-	ContainerDeployer type() default ContainerDeployer.Simple;
+	EPConType type() default EPConType.Simple;
 
 	String publish() default "";
 

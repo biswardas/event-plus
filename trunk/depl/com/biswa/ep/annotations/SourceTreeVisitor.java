@@ -17,7 +17,6 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 
-import com.biswa.ep.deployment.handler.ContainerDeployer;
 import com.sun.source.tree.AnnotationTree;
 import com.sun.source.tree.ArrayAccessTree;
 import com.sun.source.tree.BinaryTree;
@@ -48,7 +47,6 @@ import com.sun.source.util.Trees;
  * 
  */
 public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
-	private int classLevel = 0;
 	private String currentContainerName;
 
 	private class DependencyManager {
@@ -632,7 +630,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 
 	private EPAttrType getEPAttrType(EPAttribute epAttribute,
 			EPContainer epContainer) {
-		if (epContainer.type() == ContainerDeployer.Static) {
+		if (epContainer.type() == EPConType.Static) {
 			return EPAttrType.Static;
 		}
 		EPAttrType attrType = EPAttrType.Member;
