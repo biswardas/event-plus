@@ -13,14 +13,13 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleElementVisitor6;
 
-import com.biswa.ep.annotations.EPContainer.Feedback;
 import com.biswa.ep.annotations.EPContainer.Transaction;
 import com.sun.tools.javac.code.Symbol;
 
-public class GenSourceVisitor extends
-		SimpleElementVisitor6<Void,Void> {
+public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 	private Writer writer = null;
 	private String context = null;
+	private ProxyManager proxyManager = new ProxyManager();
 
 	public GenSourceVisitor() {
 		writer = new OutputStreamWriter(System.out);
@@ -50,58 +49,123 @@ public class GenSourceVisitor extends
 					.getAnnotation(EPContainer.class);
 			if (containerAnnot != null) {
 				TypeElement epContainer = (TypeElement) innerElement;
+				String containerName = epContainer.getSimpleName().toString();
 				TransactionGrouper tranGrouper = new TransactionGrouper(
 						epContainer);
 				write("<Container type='" + containerAnnot.type() + "' name='"
-						+ epContainer.getSimpleName() + "'>");
-				if (!containerAnnot.publish().isEmpty()) {
-					write("<Publish method='" + containerAnnot.publish()
-							+ "'/>");
-				}
-				if (epContainer.getSuperclass().getKind() != TypeKind.NONE) {
-					Element classElement = ((DeclaredType) epContainer
-							.getSuperclass()).asElement();
-					if (classElement.getAnnotation(EPContainer.class) != null) {
-						writeListener(epContext, epContainer, classElement,
-								tranGrouper.generateAndRegisterTransactionGroup(classElement));
+						+ containerName + "'>");
+				write("<Publish method='" + containerAnnot.publish() + "'/>");
+				String contextToListen = containerAnnot.context().isEmpty() ? context
+						: containerAnnot.context();
+				switch (containerAnnot.type()) {
+				case Proxy:
+					proxyManager.registerProxy(epContainer);
+
+					writeListener(tranGrouper.genRegTranGrp(containerName),
+							containerAnnot.publish(),
+							containerAnnot.container(), contextToListen);
+
+					writeSubscriber(containerAnnot.container(),
+							contextToListen, containerAnnot.publish(),
+							"SUBJECT", "Proxy");
+					break;
+				default:
+					if (epContainer.getSuperclass().getKind() != TypeKind.NONE) {
+						Element classElement = ((DeclaredType) epContainer
+								.getSuperclass()).asElement();
+						if (classElement.getAnnotation(EPContainer.class) != null) {
+							generateListener(epContext, epContainer,
+									classElement,
+									tranGrouper.genRegTranGrp(classElement));
+						}
 					}
-				}
-				for (TypeMirror typeMirror : epContainer.getInterfaces()) {
-					Element interfaceElement = ((DeclaredType) typeMirror)
-							.asElement();
-					if (interfaceElement.getAnnotation(EPContainer.class) != null) {
-						writeListener(epContext, epContainer, interfaceElement,
-								tranGrouper.generateAndRegisterTransactionGroup(interfaceElement));
+					for (TypeMirror typeMirror : epContainer.getInterfaces()) {
+						Element interfaceElement = ((DeclaredType) typeMirror)
+								.asElement();
+						if (interfaceElement.getAnnotation(EPContainer.class) != null) {
+							generateListener(epContext, epContainer,
+									interfaceElement,
+									tranGrouper.genRegTranGrp(interfaceElement));
+						}
 					}
-				}
-				visitAttributes(epContainer, tranGrouper);
-				for (Feedback feedback : containerAnnot.feedback()) {
-					write("<Feedback container='" + feedback.container()
-							+ "' context='" + feedback.context() + "' method='"
-							+ feedback.publish() + "'/>");
-				}
-				for(String oneParam:containerAnnot.params()){
-					write("<Param Name='"+getKey(oneParam)+"' Value='"+getValue(oneParam)+"'/>");	
+					visitAttributes(epContainer, tranGrouper);
+					for (String oneParam : containerAnnot.params()) {
+						write("<Param Name='" + getKey(oneParam) + "' Value='"
+								+ getValue(oneParam) + "'/>");
+					}
+
 				}
 				write("</Container>");
 			}
 		}
 	}
 
-	private String getKey(String oneParam) {
-		return oneParam.substring(0,oneParam.indexOf('='));
-	}
-	private String getValue(String oneParam) {
-		return oneParam.substring(oneParam.indexOf('=')+1);
+	private void visitAttributes(Element epContainer,
+			TransactionGrouper tranGrouper) {
+		for (Element innerElement : epContainer.getEnclosedElements()) {
+			EPAttribute epAttribute = innerElement
+					.getAnnotation(EPAttribute.class);
+			if (epAttribute != null) {
+				Symbol.ClassSymbol tElement = (Symbol.ClassSymbol) innerElement;
+				writeAttribute(tElement.flatName().toString());
+				if (epAttribute.type() == EPAttrType.Subscriber) {
+					String sourceContext = epAttribute.context().isEmpty() ? context
+							: epAttribute.context();
+					EPPublish listenMethod = sourceContext == context ? EPPublish.LOCAL
+							: epContainer.getAnnotation(EPContainer.class)
+									.publish();
+					// What about listening same container multiple times from
+					// same entry
+					if (!tranGrouper.isRegistered(epAttribute.container())) {
+						if (sourceContext == context
+								&& proxyManager.isProxy(epAttribute.container())) {
+							TypeElement proxyContainer = proxyManager
+									.getProxy(epAttribute.container());
+							EPContainer proxyAnnotation = proxyContainer
+									.getAnnotation(EPContainer.class);
+							String actualContext = proxyAnnotation.context().isEmpty() ? context
+									: proxyAnnotation.context();
+							if(!tranGrouper.isRegistered(proxyAnnotation.container())){
+								writeListener(tranGrouper.genRegTranGrp(proxyAnnotation.container()), listenMethod,
+										epAttribute.container(), sourceContext);	
+								writeFeedback(proxyAnnotation.publish(), proxyAnnotation.container(),
+										actualContext);
+							}else{
+								writeListener(tranGrouper.genRegTranGrp(proxyAnnotation.container()), listenMethod,
+										epAttribute.container(), sourceContext);
+							}
+						}else{
+							writeListener(tranGrouper.genRegTranGrp(epAttribute
+									.container()), listenMethod,
+									epAttribute.container(), sourceContext);	
+							writeFeedback(listenMethod, epAttribute.container(),
+									sourceContext);						
+						}
+					}
+
+					writeSubscriber(epAttribute.container(), sourceContext,
+							listenMethod, epAttribute.depends(), innerElement
+									.getSimpleName().toString());
+				}
+			}
+		}
 	}
 
-	private void writeListener(Element epContext, Element epContainer,
+	private String getKey(String oneParam) {
+		return oneParam.substring(0, oneParam.indexOf('='));
+	}
+
+	private String getValue(String oneParam) {
+		return oneParam.substring(oneParam.indexOf('=') + 1);
+	}
+
+	private void generateListener(Element epContext, Element epContainer,
 			Element inheritedContainer, int tranGroup) {
-		String listenMethod = "LOCAL";
 		boolean supportsFeedback = false;
 		EPContainer containerAnnot = inheritedContainer
 				.getAnnotation(EPContainer.class);
 		supportsFeedback = containerAnnot.type().supportsFeedback();
+		EPPublish listenMethod = EPPublish.LOCAL;
 		if (!epContext.getEnclosedElements().contains(inheritedContainer)) {
 			listenMethod = containerAnnot.publish();
 		}
@@ -109,49 +173,35 @@ public class GenSourceVisitor extends
 				.toString();
 		String contextToListen = inheritedContainer.getEnclosingElement()
 				.getSimpleName().toString();
-		write("<Listen container='" + containerToListen + "' context='"
-				+ contextToListen + "' method='" + listenMethod
-				+ "' transactionGroup='" + tranGroup + "'/>");
+		writeListener(tranGroup, listenMethod, containerToListen,
+				contextToListen);
 		if (supportsFeedback) {
-			write("<Feedback container='" + containerToListen + "' context='"
-					+ contextToListen + "' method='" + listenMethod + "'/>");
+			writeFeedback(listenMethod, containerToListen, contextToListen);
 		}
 	}
 
-	private void visitAttributes(Element epContainer,
-			TransactionGrouper tranGrouper) {
-		for (Element innerElement : epContainer.getEnclosedElements()) {
-			EPAttribute iannot = innerElement.getAnnotation(EPAttribute.class);
-			if (iannot != null) {
-				Symbol.ClassSymbol tElement = (Symbol.ClassSymbol) innerElement;
-				write("<Attribute className='" + tElement.flatName() + "'/>");
-				if (iannot.type() == EPAttrType.Subscriber) {
-					String sourceContext = iannot.context().isEmpty() ? context
-							: iannot.context();
-					String listenMethod = sourceContext == context ? "LOCAL"
-							: epContainer.getAnnotation(EPContainer.class)
-									.publish();
-					// What about listening same container multiple times from
-					// same entry
-					if(!tranGrouper.isRegistered(iannot.container())){
-						write("<Listen container='" + iannot.container()
-								+ "' context='" + sourceContext + "' method='"
-								+ listenMethod + "' transactionGroup='"
-								+ tranGrouper.generateAndRegisterTransactionGroup(iannot.container()) + "'/>");	
-					}
-					// TODO What about proxy?
-					// write("<Feedback container='" + iannot.container()
-					// + "' context='" + sourceContext + "' method='"
-					// + listenMethod + "'/>");
+	private void writeListener(int tranGroup, EPPublish listenMethod,
+			String containerToListen, String contextToListen) {
+		write("<Listen container='" + containerToListen + "' context='"
+				+ contextToListen + "' method='" + listenMethod
+				+ "' transactionGroup='" + tranGroup + "'/>");
+	}
 
-					write("<Subscribe container='" + iannot.container()
-							+ "' context='" + sourceContext + "' method='"
-							+ listenMethod + "' depends='" + iannot.depends()
-							+ "' response='" + innerElement.getSimpleName()
-							+ "'/>");
-				}
-			}
-		}
+	private void writeAttribute(String string) {
+		write("<Attribute className='" + string + "'/>");
+	}
+
+	private void writeFeedback(EPPublish listenMethod,
+			String containerToListen, String contextToListen) {
+		write("<Feedback container='" + containerToListen + "' context='"
+				+ contextToListen + "' method='" + listenMethod + "'/>");
+	}
+
+	private void writeSubscriber(String container, String context,
+			EPPublish listenMethod, String depends, String response) {
+		write("<Subscribe container='" + container + "' context='" + context
+				+ "' method='" + listenMethod + "' depends='" + depends
+				+ "' response='" + response + "'/>");
 	}
 
 	private void write(String string) {
@@ -177,7 +227,7 @@ class TransactionGrouper {
 		tran = epContainerAnn.transaction();
 	}
 
-	public int generateAndRegisterTransactionGroup(Element inheritedContainer) {
+	public int genRegTranGrp(Element inheritedContainer) {
 		String containerName = inheritedContainer.getSimpleName().toString();
 		if (!containerTrangroupMap.containsKey(containerName)) {
 			int tranGroup = 0;
@@ -188,7 +238,8 @@ class TransactionGrouper {
 					}
 				}
 			}
-			containerTrangroupMap.put(containerName, tranGroup == 0 ? 1 : tranGroup);
+			containerTrangroupMap.put(containerName, tranGroup == 0 ? 1
+					: tranGroup);
 		}
 		return containerTrangroupMap.get(containerName);
 	}
@@ -198,17 +249,34 @@ class TransactionGrouper {
 	 * 
 	 * @return
 	 */
-	public int generateAndRegisterTransactionGroup(String containerName) {
+	public int genRegTranGrp(String containerName) {
 		if (!containerTrangroupMap.containsKey(containerName)) {
 			containerTrangroupMap.put(containerName,
 					1 << (tran.length + ++count));
 		}
 		return containerTrangroupMap.get(containerName);
 	}
+
 	/*
 	 * Check if transaction group already generated for this
 	 */
-	public boolean isRegistered(String containerName){
+	public boolean isRegistered(String containerName) {
 		return containerTrangroupMap.containsKey(containerName);
+	}
+}
+
+class ProxyManager {
+	private HashMap<String, TypeElement> proxies = new HashMap<String, TypeElement>();
+
+	public void registerProxy(TypeElement epContainer) {
+		proxies.put(epContainer.getSimpleName().toString(), epContainer);
+	}
+
+	public TypeElement getProxy(String name) {
+		return proxies.get(name);
+	}
+
+	public boolean isProxy(String name) {
+		return proxies.containsKey(name);
 	}
 }

@@ -11,19 +11,11 @@ import java.lang.annotation.Target;
 public @interface EPContainer {
 	EPConType type() default EPConType.Simple;
 
-	String publish() default "";
-
-	Feedback[] feedback() default {};
-
-	public @interface Feedback {
-		String context();
-
-		String container();
-		
-		String publish();
-
-		String alias() default "";		
-	}
+	EPPublish publish() default EPPublish.LOCAL;
+	
+	String context() default "";
+	
+	String container() default "";
 	
 	Transaction[] transaction() default {}; 
 	
