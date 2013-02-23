@@ -17,7 +17,5 @@ public @interface EPAttribute {
 	
 	String container() default "";
 	
-	String response() default "";
-	
 	String processor() default "";
 }
