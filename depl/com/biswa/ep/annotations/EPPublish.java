@@ -1,13 +1,15 @@
-package com.biswa.ep.deployment;
+package com.biswa.ep.annotations;
 
+import com.biswa.ep.deployment.Accepter;
+import com.biswa.ep.deployment.LocalAccepterImpl;
 import com.biswa.ep.discovery.RMIAccepterImpl;
 
-public enum ContainerAccepter {
+public enum EPPublish {
 	RMI(RMIAccepterImpl.class),
 	LOCAL(LocalAccepterImpl.class);
 	Class<? extends Accepter> handlerclass= null;
 
-	ContainerAccepter(Class<? extends Accepter> handlerclass) {
+	EPPublish(Class<? extends Accepter> handlerclass) {
 		this.handlerclass=handlerclass;
 	}
 

@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import javax.management.ObjectName;
 import javax.xml.bind.JAXBException;
 
+import com.biswa.ep.annotations.EPPublish;
 import com.biswa.ep.deployment.mbean.CSOperation;
 import com.biswa.ep.deployment.mbean.CSOperationMBean;
 import com.biswa.ep.deployment.mbean.ConMan;
@@ -27,7 +28,7 @@ public class ContainerManager {
 	
 	public ContainerManager(){
 		//Load protocol handlers
-		for(ContainerAccepter conAccepter:ContainerAccepter.values()){
+		for(EPPublish conAccepter:EPPublish.values()){
 			try {
 				Accepter handler = (Accepter) conAccepter.getHandler().getConstructors()[0].newInstance(this);
 				this.accepter.put(conAccepter.name(),handler);				
