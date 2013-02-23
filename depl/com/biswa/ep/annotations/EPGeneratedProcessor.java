@@ -33,8 +33,7 @@ public class EPGeneratedProcessor extends AbstractProcessor {
 						StandardLocation.SOURCE_OUTPUT, "",
 						element.getSimpleName()+".xml", element);
 				Writer writer = fob.openWriter();
-				element.accept(new GenSourceVisitor(writer),
-						new HashMap<Object, Object>());
+				element.accept(new GenSourceVisitor(writer),null);
 				writer.close();
 			} catch (IOException e) {
 				throw new RuntimeException(e);

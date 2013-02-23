@@ -12,13 +12,9 @@ import com.biswa.ep.deployment.handler.ContainerDeployer;
 public @interface EPContainer {
 	ContainerDeployer type() default ContainerDeployer.Simple;
 
-	String name() default "";
+	String publish() default "";
 
 	Feedback[] feedback() default {};
-
-	String publish() default "";
-	
-	Transaction[] transaction() default {}; 
 
 	public @interface Feedback {
 		String context();
@@ -30,7 +26,11 @@ public @interface EPContainer {
 		String alias() default "";		
 	}
 	
+	Transaction[] transaction() default {}; 
+	
 	public @interface Transaction {
 		String[] group() default {};
 	}
+
+	String[] params() default {};
 }
