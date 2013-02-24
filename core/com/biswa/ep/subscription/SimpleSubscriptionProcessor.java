@@ -1,6 +1,7 @@
 package com.biswa.ep.subscription;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.SynchronousQueue;
 
@@ -15,7 +16,7 @@ public abstract class SimpleSubscriptionProcessor extends
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	final protected SynchronousQueue<HashMap<Object, Object>> queue = new SynchronousQueue<HashMap<Object, Object>>();
+	final protected SynchronousQueue<Map<Object, Object>> queue = new SynchronousQueue<Map<Object, Object>>();
 	
 	final private HashMap<Object, ContainerEntry> containerEntrySet = new HashMap<Object, ContainerEntry>();
 
@@ -31,7 +32,7 @@ public abstract class SimpleSubscriptionProcessor extends
 		Thread t = new Thread(producerName) {
 			public void run() {
 				while (true) {
-					HashMap<Object, Object> incomingObject;
+					Map<Object, Object> incomingObject;
 					try {
 						incomingObject = queue.take();
 						begin();
@@ -42,7 +43,7 @@ public abstract class SimpleSubscriptionProcessor extends
 						}
 						commit();
 					} catch (InterruptedException e) {
-						e.printStackTrace();
+						throw new RuntimeException(e);
 					}
 				}
 			}
@@ -53,7 +54,7 @@ public abstract class SimpleSubscriptionProcessor extends
 				try {
 					failSafeInit();
 				} catch (Exception e) {
-					e.printStackTrace();
+					throw new RuntimeException(e);
 				}
 			};
 		};

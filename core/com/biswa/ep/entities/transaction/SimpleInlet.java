@@ -1,6 +1,7 @@
 package com.biswa.ep.entities.transaction;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.concurrent.SynchronousQueue;
@@ -12,7 +13,7 @@ import com.biswa.ep.entities.substance.ObjectSubstance;
 import com.biswa.ep.entities.substance.Substance;
 
 public abstract class SimpleInlet implements Inlet {
-	protected SynchronousQueue<HashMap<Object, Object>> queue = new SynchronousQueue<HashMap<Object, Object>>();
+	protected SynchronousQueue<Map<Object, Object>> queue = new SynchronousQueue<Map<Object, Object>>();
 	private final String SOURCE_NAME = "ANONYMOUS";
 
 	private Agent agent = null;
@@ -30,7 +31,7 @@ public abstract class SimpleInlet implements Inlet {
 		Thread t = new Thread(producerName) {
 			public void run() {
 				while (true) {
-					HashMap<Object, Object> incomingObject = null;
+					Map<Object, Object> incomingObject = null;
 					try {
 						incomingObject = queue.take();
 						int tranID = agent.getNextTransactionID();
@@ -49,7 +50,7 @@ public abstract class SimpleInlet implements Inlet {
 										hm), tranID));
 						agent.commitTran(te);
 					} catch (InterruptedException e) {
-						e.printStackTrace();
+						throw new RuntimeException(e);
 					}
 				}
 			}
@@ -60,7 +61,7 @@ public abstract class SimpleInlet implements Inlet {
 				try {
 					failSafeInit();
 				} catch (Exception e) {
-					e.printStackTrace();
+					throw new RuntimeException(e);
 				}
 			};
 		};
