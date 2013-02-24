@@ -27,17 +27,19 @@ public class EPGeneratedProcessor extends AbstractProcessor {
 	public boolean process(Set<? extends TypeElement> annotations,
 			RoundEnvironment roundEnv) {
 		for (Element element : roundEnv.getRootElements()) {
-			try {
-				FileObject fob = processingEnv.getFiler().createResource(
-						StandardLocation.SOURCE_OUTPUT, "",
-						element.getSimpleName()+".xml", element);
-				Writer writer = fob.openWriter();
-				element.accept(new GenSourceVisitor(writer),null);
-				writer.close();
-			} catch (IOException e) {
-				throw new RuntimeException(e);
+			if(element.getAnnotation(Generated.class)!=null){
+				try {
+					FileObject fob = processingEnv.getFiler().createResource(
+							StandardLocation.SOURCE_OUTPUT, "",
+							element.getSimpleName()+".xml", element);
+					Writer writer = fob.openWriter();
+					element.accept(new GenSourceVisitor(writer),null);
+					writer.close();
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
 			}
 		}
-		return true;
+		return false;
 	}
 }
