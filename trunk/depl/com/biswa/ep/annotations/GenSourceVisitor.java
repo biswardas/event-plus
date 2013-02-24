@@ -89,11 +89,14 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 						}
 					}
 					visitAttributes(epContainer, tranGrouper);
-					for (String oneParam : containerAnnot.params()) {
-						write("<Param Name='" + getKey(oneParam) + "' Value='"
-								+ getValue(oneParam) + "'/>");
-					}
 
+				}
+				if (!containerAnnot.generator().isEmpty()) {
+					write("<Source className='"+((Symbol.ClassSymbol)epContainer).flatName()+"$Inlet'/>");
+				}
+				for (String oneParam : containerAnnot.params()) {
+					write("<Param Name='" + getKey(oneParam) + "' Value='"
+							+ getValue(oneParam) + "'/>");
 				}
 				write("</Container>");
 			}

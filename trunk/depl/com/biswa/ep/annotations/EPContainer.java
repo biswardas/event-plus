@@ -17,6 +17,8 @@ public @interface EPContainer {
 	
 	String container() default "";
 	
+	String generator() default "";
+	
 	Transaction[] transaction() default {}; 
 	
 	public @interface Transaction {

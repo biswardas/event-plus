@@ -15,14 +15,16 @@ public abstract class SimpleSubscriptionProcessor extends
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	final protected SynchronousQueue<HashMap<Object, Object>> queue = new SynchronousQueue<HashMap<Object, Object>>();
+	
 	final private HashMap<Object, ContainerEntry> containerEntrySet = new HashMap<Object, ContainerEntry>();
 
 	protected SimpleSubscriptionProcessor(String name) {
 		super(name);
 	}
 
-	public abstract SynchronousQueue<HashMap<Object, Object>> getQueue();
-
+	protected abstract void failSafeInit() throws Exception;
+	
 	@Override
 	public void init() {
 		String producerName = getClass().getName();
@@ -31,7 +33,7 @@ public abstract class SimpleSubscriptionProcessor extends
 				while (true) {
 					HashMap<Object, Object> incomingObject;
 					try {
-						incomingObject = getQueue().take();
+						incomingObject = queue.take();
 						begin();
 						for (Entry<Object, Object> oneEntry : incomingObject
 								.entrySet()) {
@@ -46,6 +48,16 @@ public abstract class SimpleSubscriptionProcessor extends
 			}
 		};
 		t.start();
+		Thread procthread = new Thread(producerName){
+			public void run() {
+				try {
+					failSafeInit();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			};
+		};
+		procthread.start();
 	}
 
 	public abstract Object subscribe(Object subject);
@@ -59,7 +71,7 @@ public abstract class SimpleSubscriptionProcessor extends
 		containerEntrySet.put(subject, containerEntry);
 		HashMap<Object, Object> hm = new HashMap<Object, Object>();
 		hm.put(subject, subscribe(subject));
-		getQueue().add(hm);
+		queue.add(hm);
 		return containerEntry.getSubstance(this);
 	};
 
