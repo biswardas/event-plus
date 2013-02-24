@@ -67,13 +67,10 @@ public class DeploymentHandler extends AbstractDeploymentHandler{
 			try {
 				Inlet oneInlet = (Inlet) Class.forName(source.getClassName()).newInstance();
 				oneInlet.setAgent(cs.agent(),props);
+				oneInlet.init();
 				containerManager.registerSource(cs,oneInlet);
-			} catch (InstantiationException e) {
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
+			} catch (Exception e) {
+				throw new RuntimeException(e);
 			}
 		}
 	}
