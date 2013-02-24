@@ -21,6 +21,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import com.biswa.ep.NamedThreadFactory;
+import com.biswa.ep.UncaughtExceptionHandler;
 import com.biswa.ep.deployment.mbean.ConMan;
 import com.biswa.ep.deployment.mbean.ConManMBean;
 import com.biswa.ep.deployment.util.Container;
@@ -28,7 +29,7 @@ import com.biswa.ep.deployment.util.Context;
 import com.biswa.ep.deployment.util.Listen;
 import com.biswa.ep.deployment.util.Param;
 
-public class Deployer {
+public class Deployer extends UncaughtExceptionHandler{
 	private static final String MANUAL = "manual";
 
 	private static final String DEPLOYMENT_ORDER = "deployment.order";

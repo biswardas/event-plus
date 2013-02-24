@@ -8,27 +8,38 @@ import java.rmi.registry.Registry;
 public class RegistryHelper {
 	private static final String PP_REGISTRY_PORT = "pp.registryPort";
 	private static final String PP_REGISTRY_HOST = "pp.registryHost";
+	private static final String PP_REGISTRY_AUTO = "pp.auto.registry.disable";
 	private static Registry registry;
 	private static Binder binder;
 	static{
-		String registryHost=null;
-		int port=0;
+		boolean auto = Boolean.getBoolean(PP_REGISTRY_AUTO);
+		String registryHost=System.getProperty(PP_REGISTRY_HOST);
+		int port=Integer.getInteger(PP_REGISTRY_PORT,Registry.REGISTRY_PORT);		
 		try{
-			registryHost=System.getProperty(PP_REGISTRY_HOST);
-			port=Integer.getInteger(PP_REGISTRY_PORT,Registry.REGISTRY_PORT);
-			if(registryHost==null){
-				registry = LocateRegistry.getRegistry(registryHost,port);
-			}else{
-				registry = LocateRegistry.getRegistry(port);
-			}
-			binder = (Binder) registry.lookup(Binder.BINDER);
+			init(registryHost,port);
 		}catch(RemoteException e){
-			e.printStackTrace();
-			throw new RuntimeException("Is Registry running? Could not connect to registry"+registryHost+":"+port);
+			if(!auto){
+				try {
+					RMIDiscoveryManager.main(new  String[0]);
+					init(registryHost,port);
+				} catch (Exception e1) {
+					throw new RuntimeException("Registry not running? Could not launch in process registry "+registryHost+":"+port,e1);
+				}
+			}else{
+				throw new RuntimeException("Is Registry running? Could not connect to registry "+registryHost+":"+port,e);				
+			}
 		}catch(NotBoundException e){
-			e.printStackTrace();
-			throw new RuntimeException("Is Discovery running? Could not obtain binder from "+registryHost+":"+port);
+			throw new RuntimeException("Is Discovery running? Could not obtain binder from "+registryHost+":"+port,e);
 		}
+	}
+	
+	private static void init(String registryHost,int port) throws RemoteException, NotBoundException{
+		if(registryHost==null){
+			registry = LocateRegistry.getRegistry(registryHost,port);
+		}else{
+			registry = LocateRegistry.getRegistry(port);
+		}
+		binder = (Binder) registry.lookup(Binder.BINDER);
 	}
 	
 	public static RMIListener getRMIListener(String name){
@@ -46,7 +57,7 @@ public class RegistryHelper {
         try{
         	connecter = (Connector) registry.lookup(name);
         }catch(Exception e){
-        	throw new RuntimeException("Could not obtain the remote handle",e);
+        	throw new RuntimeException("Could not obtain the remote handle:"+name,e);
         }
 		return connecter;
 	}
@@ -56,7 +67,7 @@ public class RegistryHelper {
         try{
         	entryReader = (EntryReader) registry.lookup(name);
         }catch(Exception e){
-        	throw new RuntimeException("Could not obtain the remote handle",e);
+        	throw new RuntimeException("Could not obtain the remote handle:"+name,e);
         }
 		return entryReader;
 	}

@@ -8,6 +8,7 @@ import java.rmi.server.UnicastRemoteObject;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
+import com.biswa.ep.UncaughtExceptionHandler;
 import com.biswa.ep.deployment.mbean.Discovery;
 /**
  * The class responsible to attach binder to the registry. This is required to
@@ -19,7 +20,7 @@ import com.biswa.ep.deployment.mbean.Discovery;
  * @author biswa
  *
  */
-public class RMIDiscoveryManager {
+public class RMIDiscoveryManager extends UncaughtExceptionHandler{
 	public final static MBeanServer MBS = ManagementFactory.getPlatformMBeanServer();
 	public static void main(String args[]) throws InterruptedException{
 		Thread t = new Thread(new Runnable(){
@@ -50,8 +51,7 @@ public class RMIDiscoveryManager {
 					MBS.registerMBean(new Discovery(transgen), transGenName);
 					
 				} catch(Exception e){
-					e.printStackTrace();
-					throw new RuntimeException("Error occured while starting registry"+registryHost+":"+port);
+					throw new RuntimeException("Error occured while starting registry"+registryHost+":"+port,e);
 				}
 			}
 		},"pp.registryserver"
