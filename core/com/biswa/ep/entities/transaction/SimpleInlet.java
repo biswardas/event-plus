@@ -8,12 +8,25 @@ import java.util.concurrent.SynchronousQueue;
 
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ContainerInsertEvent;
+import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.TransportEntry;
 import com.biswa.ep.entities.substance.ObjectSubstance;
 import com.biswa.ep.entities.substance.Substance;
 
 public abstract class SimpleInlet implements Inlet {
 	protected SynchronousQueue<Map<Object, Object>> queue = new SynchronousQueue<Map<Object, Object>>();
+	private Map<Object,Attribute> cachedAttr = new HashMap<Object,Attribute>(){
+		private static final long serialVersionUID = -8944792144074973287L;
+
+		@Override
+		public Attribute get(Object key){
+			Attribute attribute = super.get(key);
+			if(attribute==null){
+				put(key,(attribute=new LeafAttribute(key.toString())));
+			}
+			return attribute;
+		}
+	};
 	private final String SOURCE_NAME = "ANONYMOUS";
 
 	private Agent agent = null;
@@ -41,9 +54,8 @@ public abstract class SimpleInlet implements Inlet {
 						HashMap<Attribute, Substance> hm = new HashMap<Attribute, Substance>();
 						for (Entry<Object, Object> oneEntry : incomingObject
 								.entrySet()) {
-							hm.put(agent.cl.getAttributeByName(oneEntry
-									.getKey().toString()), new ObjectSubstance(
-									oneEntry.getValue()));
+							Substance substance =  new ObjectSubstance(oneEntry.getValue());
+							hm.put(cachedAttr.get(oneEntry.getKey()),substance);
 						}
 						agent.entryAdded(new ContainerInsertEvent(SOURCE_NAME,
 								new TransportEntry(agent.cl.generateIdentity(),
