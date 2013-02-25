@@ -14,13 +14,13 @@ public interface StockQuoteAnalyzer {
 	@EPContainer(type = EPConType.Subscription)
 	public interface NYSE {
 		@EPAttribute(type = EPAttrType.SubProcessor, processor = "processor.NYSEMarketData")
-		Double marketData = null; 
+		Quote marketData = null; 
 	}
 
 	@EPContainer(type = EPConType.Subscription)
 	public interface NASDAQ {
 		@EPAttribute(type = EPAttrType.SubProcessor, processor = "processor.NASDAQMarketData")
-		Double marketData = null;
+		Quote marketData = null;
 	}
 
 	@EPContainer(generator = "generator.Portfolio")
