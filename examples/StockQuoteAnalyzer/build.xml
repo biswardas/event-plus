@@ -1,0 +1,54 @@
+<project name="stock-quote-demo" default="build" basedir=".">
+	<description>
+        Build event-plus Library
+    </description>
+	<target name="build" depends="clean,compile">
+		<jar jarfile="dist/stk_quote.jar" basedir="build/sources"/>
+	</target>
+	<target name="compile">
+		<javac destdir="build/sources" includeantruntime="false" debug="true">
+			<src path="src" />
+			<classpath>
+				<fileset dir="lib">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="clean">
+		<delete dir="build/sources" />
+		<delete dir="dist" />
+		<mkdir dir="build/sources" />
+		<mkdir dir="dist" />
+	</target>
+
+	<target name="run-server">
+		<java classname="com.biswa.ep.deployment.Deployer" fork="true">
+			<jvmarg value="-Ddeployment.desc=StockQuoteAnalyzer.xml">
+			</jvmarg>
+			<classpath>
+				<fileset dir="lib">
+					<include name="**/*.jar" />
+				</fileset>
+				<fileset dir="dist">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</java>
+	</target>
+	<target name="run-client">
+		<java classname="com.biswa.ep.util.RemoteViewer" fork="true">
+			<arg value="StockQuoteAnalyzer"/>
+			<arg value="Portfolio"/>
+			<classpath>
+				<fileset dir="lib">
+					<include name="**/*.jar" />
+				</fileset>
+				<fileset dir="dist">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</java>
+	</target>
+</project>
