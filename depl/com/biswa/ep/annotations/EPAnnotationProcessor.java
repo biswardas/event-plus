@@ -33,7 +33,7 @@ public class EPAnnotationProcessor extends AbstractProcessor {
 	public boolean process(Set<? extends TypeElement> annotations,
 			RoundEnvironment roundEnv) {
 		for (Element element : roundEnv.getRootElements()) {
-			if (element.getAnnotation(Generated.class) == null) {
+			if (element.getAnnotation(Generated.class) == null && element.getAnnotation(EPContext.class)!=null) {
 				System.out.println("Invoking on:" + element.getSimpleName());
 				Trees trees = Trees.instance(processingEnv);
 				TreePath tp = trees.getPath(element);
