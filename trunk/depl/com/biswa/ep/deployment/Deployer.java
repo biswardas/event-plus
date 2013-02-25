@@ -1,6 +1,9 @@
 package com.biswa.ep.deployment;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -73,14 +76,33 @@ public class Deployer extends UncaughtExceptionHandler{
 	}
 	
 	
+	@SuppressWarnings("unchecked")
 	public static Context buildContext(String fileName) throws JAXBException{
 		JAXBContext jc = JAXBContext
 				.newInstance("com.biswa.ep.deployment.util");
 
 		Unmarshaller unmarshaller = jc.createUnmarshaller();
+		InputStream ins = null;
 		@SuppressWarnings("unchecked")
-		JAXBElement<Context> rootObj = (JAXBElement<Context>) unmarshaller
-				.unmarshal(new File(fileName));
+		JAXBElement<Context> rootObj = null;
+		try{
+			File file = new File(fileName);
+			if(file.exists()){
+				ins = new FileInputStream(file);
+			}else{
+				ins = ClassLoader.getSystemResourceAsStream(fileName);
+			}
+			rootObj = (JAXBElement<Context>) unmarshaller
+					.unmarshal(ins);
+		}catch(Exception e){
+			throw new RuntimeException(e);
+		}finally{
+			try {
+				ins.close();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
 		return (Context) rootObj.getValue();
 	}
 
