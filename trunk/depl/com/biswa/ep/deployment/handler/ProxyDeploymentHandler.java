@@ -12,7 +12,6 @@ public class ProxyDeploymentHandler extends DeploymentHandler{
 		ConcreteContainer cs = new SubscriptionContainerProxy(getQualifiedName(container, context),getProperties(container.getParam()));
 		deployCommon(container, cs,containerManager);
 		expectConnected(container, cs);
-		attachSources(container, cs,containerManager);
 		return cs;
 	}
 }
