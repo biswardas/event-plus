@@ -431,8 +431,8 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 	}
 
 	private void generateInlet(EPContainer epContainerAnn) {
-		writeln("public class Inlet extends SimpleInlet{");
-		writeln(epContainerAnn.generator() + " generator =new "
+		writeln("static public class Inlet extends SimpleInlet{");
+		writeln("private " +epContainerAnn.generator() + " generator =new "
 				+ epContainerAnn.generator() + "();");
 		writeln("@Override");
 		writeln("protected void failSafeInit() throws Exception{generator.init(queue);}");
@@ -613,7 +613,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 
 		switch (attrType) {
 		case SubProcessor:
-			writeln(epAttribute.processor() + " processor =new "
+			writeln("private " +epAttribute.processor() + " processor =new "
 					+ epAttribute.processor() + "();");
 
 			// Generate Eval Function
