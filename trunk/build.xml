@@ -1,106 +1,86 @@
 <project name="event-plus" default="build" basedir=".">
-    <description>
+	<description>
         Build event-plus Library
     </description>
-    <target name="build" depends="clean,download-dependency,generate,compile,test">
+
+	<target name="build" depends="clean,download-dependency,generate,compile">
 		<jar jarfile="dist/ep.jar" basedir="build/sources">
-		  <service type="com.biswa.ep.entities.transaction.TransactionGenerator">
-		    <provider classname="com.biswa.ep.entities.transaction.DefaultTransactionGenerator"/>
-		    <provider classname="com.biswa.ep.discovery.RMITransactionGenerator"/>
-		  </service>
-		  <service type="com.biswa.ep.entities.identity.IdentityGenerator">
-		    <provider classname="com.biswa.ep.entities.identity.DefaultIdentityGenerator"/>
-		  </service>
-		</jar>
-    	<jar jarfile="dist/test.jar" basedir="build/test"/>
-    	<jar jarfile="lib/services.jar">
-		  <service type="com.biswa.ep.entities.transaction.TransactionGenerator">
-		    <provider classname="com.biswa.ep.entities.transaction.DefaultTransactionGenerator"/>
-		    <provider classname="com.biswa.ep.discovery.RMITransactionGenerator"/>
-		  </service>
-		  <service type="com.biswa.ep.entities.identity.IdentityGenerator">
-		    <provider classname="com.biswa.ep.entities.identity.DefaultIdentityGenerator"/>
-		  </service>
+			<service type="com.biswa.ep.entities.transaction.TransactionGenerator">
+				<provider classname="com.biswa.ep.entities.transaction.DefaultTransactionGenerator" />
+				<provider classname="com.biswa.ep.discovery.RMITransactionGenerator" />
+			</service>
+			<service type="com.biswa.ep.entities.identity.IdentityGenerator">
+				<provider classname="com.biswa.ep.entities.identity.DefaultIdentityGenerator" />
+			</service>
+			<service type="javax.annotation.processing.Processor">
+				<provider classname="com.biswa.ep.annotations.EPAnnotationProcessor" />
+				<provider classname="com.biswa.ep.annotations.EPGeneratedProcessor" />		
+			</service>
+		    <manifest>
+		      <attribute name="Main-Class"  value="com.biswa.ep.discovery.RMIDiscoveryManager"/>
+		    </manifest>
 		</jar>
 	</target>
 	<target name="test">
-		<javac destdir="build/test" includeantruntime="true" debug="true">
-			<src path="testcore"/>
-			<src path="testtools"/>
-			<src path="testdepl"/>
+		<javac destdir="build/test" includeantruntime="false" debug="true">
+			<src path="testcore" />
+			<src path="testtools" />
+			<src path="testdepl" />
 			<classpath>
-				  <pathelement location="build/sources"/>
-			      <fileset dir="lib">
-			        <include name="**/*.jar"/>
-			      </fileset>
+				<pathelement location="build/sources" />
+				<fileset dir="lib">
+					<include name="**/*.jar" />
+				</fileset>
 			</classpath>
 		</javac>
+		<jar jarfile="dist/test.jar" basedir="build/test"/>
+		<jar jarfile="lib/services.jar">
+			<service type="com.biswa.ep.entities.transaction.TransactionGenerator">
+				<provider classname="com.biswa.ep.entities.transaction.DefaultTransactionGenerator" />
+				<provider classname="com.biswa.ep.discovery.RMITransactionGenerator" />
+			</service>
+			<service type="com.biswa.ep.entities.identity.IdentityGenerator">
+				<provider classname="com.biswa.ep.entities.identity.DefaultIdentityGenerator" />
+			</service>
+		</jar>
 	</target>
 	<target name="compile">
 		<javac destdir="build/sources" includeantruntime="false" debug="true">
-			<src path="core"/>
-			<src path="tools"/>
-			<src path="depl"/>
+			<src path="core" />
+			<src path="tools" />
+			<src path="depl" />
+			<src path="viewer" />
 			<classpath>
-			      <fileset dir="lib">
-			        <include name="**/*.jar"/>
-			      </fileset>
+				<fileset dir="lib">
+					<include name="**/*.jar" />
+				</fileset>
+		        <pathelement location="${java.home}/../lib/tools.jar"/>
 			</classpath>
 		</javac>
 	</target>
-	
-    <target name="clean">
-    	<delete dir="build/test"/>
-    	<delete dir="build/sources"/>
-    	<delete dir="dist"/>
+
+	<target name="clean">
+		<delete dir="build/test" />
+		<delete dir="build/sources" />
+		<delete dir="dist" />
 		<mkdir dir="build/test" />
 		<mkdir dir="build/sources" />
 		<mkdir dir="dist" />
 	</target>
-	
+
 	<target name="generate">
-	    <java classname="com.sun.tools.internal.xjc.XJCFacade">
-            	<arg value="-d" />
-            	<arg value="depl"/>
-	            <arg value="-p" />
-	            <arg value="com.biswa.ep.deployment.util"/>
-	            <arg value="depl/resources/deployment-desc.xsd" />
-	    </java>
+		<java classname="com.sun.tools.internal.xjc.XJCFacade">
+			<arg value="-d" />
+			<arg value="depl" />
+			<arg value="-p" />
+			<arg value="com.biswa.ep.deployment.util" />
+			<arg value="depl/resources/deployment-desc.xsd" />
+		</java>
 	</target>
 
 	<target name="download-dependency">
 		<mkdir dir="lib" />
-	    <get src="http://repo1.maven.org/maven2/pcj/pcj/1.2/pcj-1.2.jar" dest="lib" usetimestamp="true"/>
-	    <get src="http://repo1.maven.org/maven2/junit/junit/4.11/junit-4.11.jar" dest="lib" usetimestamp="true"/>
-	</target>
-
-	<target name="start-rmi-discovery-manager">
-	    <java classname="com.biswa.ep.discovery.RMIDiscoveryManager" fork="true">
-	    	<jvmarg value="-Djava.rmi.server.hostname=localhost"></jvmarg>
-			<classpath>
-			      <fileset dir="lib">
-			        <include name="**/*.jar"/>
-			      </fileset>
-			      <fileset dir="dist">
-			        <include name="**/*.jar"/>
-			      </fileset>
-			</classpath>
-	    </java>
-	</target>
-
-
-	<target name="start-deployer" depends="start-rmi-discovery-manager">
-	    <java classname="com.biswa.ep.deployment.Deployer" fork="true">
-	    	<jvmarg value="-Djava.rmi.server.hostname=localhost"></jvmarg>
-	    	<jvmarg value="-Dpp.registryHost=localhost"></jvmarg>
-		    <jvmarg value="-Dpp.registryPort=1099"></jvmarg>
-		    <jvmarg value="-Ddeployment.desc=examples/deployment-desc.xml"></jvmarg>
-			<classpath>
-				  <pathelement location="bin/classes"/>
-			      <fileset dir="lib">
-			        <include name="**/*.jar"/>
-			      </fileset>
-			</classpath>
-	    </java>
+		<get src="http://repo1.maven.org/maven2/pcj/pcj/1.2/pcj-1.2.jar" dest="lib" usetimestamp="true" />
+		<get src="http://repo1.maven.org/maven2/junit/junit/4.11/junit-4.11.jar" dest="lib" usetimestamp="true" />
 	</target>
 </project>
