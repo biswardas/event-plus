@@ -73,6 +73,7 @@ public class Deployer extends UncaughtExceptionHandler{
 		System.out.println("Attempting to deploy "+fileName);
 		Context context = buildContext(fileName);
 		deploy(context);
+		System.out.println(fileName+" deployed.");
 	}
 	
 	
