@@ -210,7 +210,7 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 	private void write(String string) {
 		try {
 			writer.write(string);
-			System.out.println(string);
+			//System.out.println(string);
 			writer.write("\n");
 			writer.flush();
 		} catch (IOException e) {
