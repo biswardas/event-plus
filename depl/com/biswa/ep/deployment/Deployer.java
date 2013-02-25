@@ -84,7 +84,6 @@ public class Deployer extends UncaughtExceptionHandler{
 
 		Unmarshaller unmarshaller = jc.createUnmarshaller();
 		InputStream ins = null;
-		@SuppressWarnings("unchecked")
 		JAXBElement<Context> rootObj = null;
 		try{
 			File file = new File(fileName);
