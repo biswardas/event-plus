@@ -35,10 +35,6 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	final protected ListenerMap listenerMap = new ListenerMap();
 	
 	final class ListenerMap{
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -6997839256225465529L;
 		final private HashMap<String,FilterAgent> hm = new HashMap<String,FilterAgent>();
 		private FilterAgent[] listeners = new FilterAgent[0];
 		
