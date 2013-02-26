@@ -24,6 +24,6 @@ public class FeedbackAgentImpl implements FeedbackAgent {
 	}
 	@Override
 	public void completionFeedback(int transactionId) {
-		agent.receiveFeedback(new TransactionEvent(originator,transactionId));
+		agent.receiveFeedback(new FeedbackEvent(originator,transactionId));
 	}
 }

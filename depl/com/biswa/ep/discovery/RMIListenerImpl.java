@@ -15,6 +15,7 @@ import com.biswa.ep.entities.ContainerTask;
 import com.biswa.ep.entities.TransportEntry;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.transaction.Agent;
+import com.biswa.ep.entities.transaction.FeedbackEvent;
 import com.biswa.ep.entities.transaction.TransactionEvent;
 import com.biswa.ep.subscription.SubscriptionEvent;
 
@@ -99,14 +100,14 @@ public class RMIListenerImpl implements RMIListener, Connector, EntryReader {
 	@Override
 	public void addFeedbackSource(String consumer, String producer)
 			throws RemoteException {
-		getAgent().addFeedbackSource(new TransactionEvent(producer));
+		getAgent().addFeedbackSource(new FeedbackEvent(producer));
 	}
 
 	@Override
 	public void receiveFeedback(String consumer, String producer,
 			int transactionID) throws RemoteException {
 		getAgent().receiveFeedback(
-				new TransactionEvent(producer, transactionID));
+				new FeedbackEvent(producer, transactionID));
 	}
 
 	@Override

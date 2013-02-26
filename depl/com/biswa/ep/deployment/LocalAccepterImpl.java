@@ -5,6 +5,7 @@ import com.biswa.ep.deployment.util.Listen;
 import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.transaction.FeedbackAgentImpl;
+import com.biswa.ep.entities.transaction.FeedbackEvent;
 import com.biswa.ep.entities.transaction.SubscriptionAgent;
 import com.biswa.ep.entities.transaction.SubscriptionAgentImpl;
 import com.biswa.ep.entities.transaction.TransactionEvent;
@@ -29,7 +30,7 @@ public class LocalAccepterImpl extends Accepter {
 	public void addFeedbackSource(Feedback feedback, AbstractContainer sinkSchema) {
 		String listeningSchema = feedback.getContext()+"."+feedback.getContainer();
 		AbstractContainer listeningContainer = getContainerManager().getSchema(listeningSchema);
-		listeningContainer.agent().addFeedbackSource(new TransactionEvent(feedbackAs(feedback,sinkSchema)));
+		listeningContainer.agent().addFeedbackSource(new FeedbackEvent(feedbackAs(feedback,sinkSchema)));
 		sinkSchema.agent().addFeedbackAgent(new FeedbackAgentImpl(feedbackAs(feedback,sinkSchema), listeningContainer.agent()));
 	}
 	@Override

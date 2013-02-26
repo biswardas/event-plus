@@ -3,7 +3,7 @@ package com.biswa.ep.entities;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import com.biswa.ep.entities.transaction.TransactionEvent;
+import com.biswa.ep.entities.transaction.FeedbackEvent;
 /**Container which waits for the client to report completion of a 
  * particular transaction, before sending next batch of updates. 
  * The container triggers the updates in following scenarios.<br>
@@ -72,6 +72,6 @@ public class FeedbackAwareContainer extends ThrottledContainer {
 	@Override
 	public void disconnect(ConnectionEvent connectionEvent) {
 		super.disconnect(connectionEvent);
-		agent().removeFeedbackSource(new TransactionEvent(connectionEvent.getSink()));
+		agent().removeFeedbackSource(new FeedbackEvent(connectionEvent.getSink()));
 	}
 }

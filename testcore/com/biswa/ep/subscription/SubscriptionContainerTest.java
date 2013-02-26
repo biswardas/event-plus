@@ -15,10 +15,8 @@ import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.substance.ObjectSubstance;
 import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.entities.transaction.Agent;
+import com.biswa.ep.entities.transaction.FeedbackEvent;
 import com.biswa.ep.entities.transaction.TransactionEvent;
-import com.biswa.ep.subscription.SubscriptionContainer;
-import com.biswa.ep.subscription.SubscriptionEvent;
-import com.biswa.ep.subscription.SubscriptionRequest;
 
 public class SubscriptionContainerTest {
 	private static final String SUBSCRIPTION_CONTAINER = "subscriptionContainer";
@@ -118,7 +116,7 @@ public class SubscriptionContainerTest {
 		subscriptionContainer = new SubscriptionContainer(SUBSCRIPTION_CONTAINER,props);
 		subscriptionContainer.agent().addSource(new ConnectionEvent("ANONYMOUS", "ANONYMOUS"));
 		subscriptionContainer.agent().connected(new ConnectionEvent("ANONYMOUS", "ANONYMOUS"));
-		subscriptionContainer.agent().addFeedbackSource(new TransactionEvent(LISTENING_CONTAINER));
+		subscriptionContainer.agent().addFeedbackSource(new FeedbackEvent(LISTENING_CONTAINER));
 		subscriptionContainer.agent().connect(new ConnectionEvent(SUBSCRIPTION_CONTAINER, LISTENING_CONTAINER, agent));
 		semaphore.acquireUninterruptibly();
 		return subscriptionContainer;

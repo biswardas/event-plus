@@ -147,7 +147,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	}
 	
 	@Override
-	public void addFeedbackSource(final TransactionEvent transactionEvent) {
+	public void addFeedbackSource(final FeedbackEvent feedbackEvent) {
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
@@ -158,7 +158,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 					private static final long serialVersionUID = -4797910052132196386L;
 
 					public void runtask() {
-						feedbackTracker.addFeedbackSource(transactionEvent.getSource());
+						feedbackTracker.addFeedbackSource(feedbackEvent.getSource());
 					}
 				};
 				executeOrEnque(r);
@@ -168,7 +168,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	}
 	
 	@Override
-	public void removeFeedbackSource(final TransactionEvent transactionEvent) {
+	public void removeFeedbackSource(final FeedbackEvent feedbackEvent) {
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
@@ -179,7 +179,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 					private static final long serialVersionUID = -7746282951782449425L;
 
 					public void runtask() {
-						feedbackTracker.removeFeedbackSource(transactionEvent.getSource());
+						feedbackTracker.removeFeedbackSource(feedbackEvent.getSource());
 					}
 				};
 				executeOrEnque(r);
@@ -189,7 +189,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	}	
 
 	@Override
-	public void receiveFeedback(final TransactionEvent transactionEvent) {
+	public void receiveFeedback(final FeedbackEvent feedbackEvent) {
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
@@ -200,7 +200,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 					private static final long serialVersionUID = 1161720797713415315L;
 
 					public void runtask() {
-						feedbackTracker.trackFeedback(transactionEvent.getTransactionId(),transactionEvent.getSource());
+						feedbackTracker.trackFeedback(feedbackEvent.getTransactionId(),feedbackEvent.getSource());
 					}
 				};
 				executeOrEnquePostConnected(r);
