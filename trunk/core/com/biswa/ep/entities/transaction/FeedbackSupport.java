@@ -8,19 +8,19 @@ package com.biswa.ep.entities.transaction;
 public interface FeedbackSupport {
 	/**
 	 * Method sets expectation on sources to expect feedback
-	 * @param transactionEvent TransactionEvent
+	 * @param feedbackEvent FeedbackEvent
 	 */
-	void addFeedbackSource(TransactionEvent transactionEvent);
+	void addFeedbackSource(FeedbackEvent feedbackEvent);
 
 	/**
 	 * Method removes expectation on sources that one originator 
 	 * no long going to send feedback
-	 * @param transactionEvent TransactionEvent
+	 * @param feedbackEvent FeedbackEvent
 	 */
-	void removeFeedbackSource(TransactionEvent transactionEvent);
+	void removeFeedbackSource(FeedbackEvent feedbackEvent);
 	/**Method receives feedback from the sink container.
 	 * 
-	 * @param transactionEvent TransactionEvent
+	 * @param feedbackEvent FeedbackEvent
 	 */
-	void receiveFeedback(TransactionEvent transactionEvent);
+	void receiveFeedback(FeedbackEvent feedbackEvent);
 }
