@@ -8,7 +8,6 @@ import com.biswa.ep.entities.transaction.FeedbackAgentImpl;
 import com.biswa.ep.entities.transaction.FeedbackEvent;
 import com.biswa.ep.entities.transaction.SubscriptionAgent;
 import com.biswa.ep.entities.transaction.SubscriptionAgentImpl;
-import com.biswa.ep.entities.transaction.TransactionEvent;
 
 public class LocalAccepterImpl extends Accepter {
 	public LocalAccepterImpl(ContainerManager scm) {
