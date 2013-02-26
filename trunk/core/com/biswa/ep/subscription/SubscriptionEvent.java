@@ -1,7 +1,6 @@
 package com.biswa.ep.subscription;
 
-import java.util.EventObject;
-
+import com.biswa.ep.EPEvent;
 import com.biswa.ep.entities.substance.Substance;
 /**
  * Carrier object for the subscription information. This object is propagated when a client container 
@@ -9,16 +8,11 @@ import com.biswa.ep.entities.substance.Substance;
  * @author biswa
  *
  */
-public class SubscriptionEvent extends EventObject {
+public class SubscriptionEvent extends EPEvent {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 8223517204217745643L;
-	/**
-	 * The target source which will fulfill the obligation
-	 * 
-	 */
-	private String source;
 	
 	/**
 	 * The subject which was subscribed
@@ -39,15 +33,7 @@ public class SubscriptionEvent extends EventObject {
 	public SubscriptionEvent(Substance subject,String source, SubscriptionRequest subscriptionRequest) {
 		super(source);
 		this.subject=subject;
-		this.source=source;
 		this.subscriptionRequest=subscriptionRequest;
-	}
-	
-	/**Name of the source being subscribed.
-	 * @return String
-	 */
-	public String getSource() {
-		return source;
 	}
 	
 	/**
@@ -68,7 +54,7 @@ public class SubscriptionEvent extends EventObject {
 
 	@Override
 	public String toString() {
-		return "SubscriptionEvent [source=" + source + ", subject=" + subject
+		return "SubscriptionEvent [source=" + getSource() + ", subject=" + subject
 				+ ", subscriptionRequest=" + subscriptionRequest + "]";
 	}	
 }
