@@ -1,7 +1,6 @@
 package com.biswa.ep.entities;
 
-import java.util.EventObject;
-
+import com.biswa.ep.EPEvent;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.transaction.Agent;
 
@@ -10,7 +9,7 @@ import com.biswa.ep.entities.transaction.Agent;
  * @author biswa
  *
  */
-public class ConnectionEvent extends EventObject {
+public class ConnectionEvent extends EPEvent {
 
 	
 	private static final int DEFAULT_TRANSACTION_GROUP = 1;
@@ -22,11 +21,7 @@ public class ConnectionEvent extends EventObject {
 	 * Container listeners are nullified when they leave the virtual machine 
 	 */
 	private transient Agent dcl;
-	/**
-	 * Source name has to be serialized and should not be relied on the superclass source which is not
-	 * serialized.
-	 */
-	private String source;
+
 	private String sink;
 	
 	/**
@@ -55,7 +50,6 @@ public class ConnectionEvent extends EventObject {
 	 */
 	public ConnectionEvent(String source,String sink,int transactionGroup, Agent dcl,FilterSpec filterSpec) {
 		super(source);
-		this.source = source;
 		this.sink = sink;
 		this.transactionGroup=transactionGroup;
 		this.dcl = dcl;
@@ -116,13 +110,6 @@ public class ConnectionEvent extends EventObject {
 	public ConnectionEvent(String source,String sink,int transactionGroup) {
 		this(source,sink,transactionGroup,null,null);
 	}
-
-	/**
-	 * @return String Returns the fully qualified Source name
-	 */
-	public String getSource(){
-		return source;
-	}
 	
 	/**
 	 * Return the transaction group of this source.
@@ -157,7 +144,7 @@ public class ConnectionEvent extends EventObject {
 
 	@Override
 	public String toString() {
-		return "ConnectionEvent [source=" + source + ", sink=" + sink
+		return "ConnectionEvent [source=" + getSource() + ", sink=" + sink
 				+ ", transactionGroup=" + transactionGroup + "]";
 	}
 	
