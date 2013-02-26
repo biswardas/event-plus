@@ -1,5 +1,6 @@
 package com.biswa.ep.subscription;
 
+import com.biswa.ep.EPEvent;
 import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ContainerEntry;
@@ -10,10 +11,7 @@ import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.entities.transaction.TransactionEvent;
 
 public abstract class SubscriptionContainerProcessor extends Subscription {
-	/**
-	 * The name by which the updates are sent to the underlying container.
-	 */
-	private static final String ANONYMOUS = "ANONYMOUS";
+
 	/**
 	 * 
 	 */
@@ -67,7 +65,7 @@ public abstract class SubscriptionContainerProcessor extends Subscription {
 	 */
 	final protected void begin(){
 		transactionId = subscriptionContainer.agent().getNextTransactionID();
-		subscriptionContainer.agent().beginTran(new TransactionEvent(ANONYMOUS, transactionId));
+		subscriptionContainer.agent().beginTran(new TransactionEvent(EPEvent.DEF_SRC, transactionId));
 	}
 	
 	/**Method which receives all updates from an subscription service.
@@ -76,7 +74,7 @@ public abstract class SubscriptionContainerProcessor extends Subscription {
 	 * @param substance
 	 */
 	final protected void update(ContainerEntry containerEntry,Substance substance){
-		ContainerEvent updateEvent= new ContainerUpdateEvent(ANONYMOUS,
+		ContainerEvent updateEvent= new ContainerUpdateEvent(EPEvent.DEF_SRC,
 				containerEntry.getIdentitySequence(),this,substance,transactionId);
 		subscriptionContainer.agent().entryUpdated(updateEvent);
 	}
@@ -85,7 +83,7 @@ public abstract class SubscriptionContainerProcessor extends Subscription {
 	 * Commits the transaction for the associated container.
 	 */
 	final protected void commit(){
-		subscriptionContainer.agent().commitTran(new TransactionEvent(ANONYMOUS, transactionId));
+		subscriptionContainer.agent().commitTran(new TransactionEvent(EPEvent.DEF_SRC, transactionId));
 	}
 	
 	/**
