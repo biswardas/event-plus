@@ -6,6 +6,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import com.biswa.ep.ContainerContext;
+import com.biswa.ep.EPEvent;
 import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.entities.transaction.Agent;
 /**Abstract Throttled container supports throttling of the incoming changes.
@@ -240,7 +241,15 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 	protected void trackThrottledTransaction() {
 		lastTransactionProcessed = super.getCurrentTransactionID();
 	}
-
+	
+	@Override
+	public String[] getKnownTransactionOrigins(){
+		//Throttled container can not reveal its true origins 
+		//as the downstream container do not see actual transaction 
+		//instead see a coalesced transaction.
+		return new String[]{getName(),EPEvent.DEF_SRC};
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
