@@ -106,4 +106,13 @@ public class StaticContainer extends CascadeContainer {
 			});
 		}
 	}
+	@Override
+	public final void dumpContainer(){
+		log("##################Begin Dumping Container "+getName());
+		for(Attribute attribute:getStaticAttributes()){
+			final Substance substance = getStatic(attribute);
+			log(attribute+"="+substance);
+		}
+		log("##################End Dumping Container "+getName());
+	}
 }
