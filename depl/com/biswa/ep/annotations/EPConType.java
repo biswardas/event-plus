@@ -10,10 +10,9 @@ import com.biswa.ep.deployment.handler.SplitDeploymentHandler;
 import com.biswa.ep.deployment.handler.StaticDeploymentHandler;
 import com.biswa.ep.deployment.handler.SubscriptionDeploymentHandler;
 import com.biswa.ep.deployment.handler.TimedDeploymentHandler;
-import com.biswa.ep.deployment.handler.TransactionDeploymentHandler;
 
 public enum EPConType {
-	Simple(DeploymentHandler.class),
+	Basic(DeploymentHandler.class),
 	Split(SplitDeploymentHandler.class), 
 	Feedback(FeedbackDeploymentHandler.class,true), 
 	Timed(TimedDeploymentHandler.class),
@@ -21,7 +20,6 @@ public enum EPConType {
 	Join(JoinDeploymentHandler.class),
 	Subscription(SubscriptionDeploymentHandler.class,true),
 	Proxy(ProxyDeploymentHandler.class),
-	TProxy(TransactionDeploymentHandler.class),
 	Static(StaticDeploymentHandler.class);
 	IDeployerHandler handler = null;
 	boolean feedback = false;

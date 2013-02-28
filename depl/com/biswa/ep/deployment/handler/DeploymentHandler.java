@@ -24,14 +24,11 @@ import com.biswa.ep.subscription.SubscriptionAttrHandlerImpl;
 import com.biswa.ep.subscription.SubscriptionAttribute;
 import com.biswa.ep.util.parser.predicate.PredicateBuilder;
 
-public class DeploymentHandler extends AbstractDeploymentHandler{
-	@Override
-	public ConcreteContainer deploy(Container container,Context context,ContainerManager containerManager) {
-		ConcreteContainer cs = new ConcreteContainer(getQualifiedName(container, context),getProperties(container.getParam()));
+public abstract class DeploymentHandler extends AbstractDeploymentHandler{
+	public void deploy(ConcreteContainer cs, Container container,Context context,ContainerManager containerManager) {
 		deployCommon(container, cs,containerManager);
 		expectConnected(container, cs);
 		attachSources(container, cs,containerManager);
-		return cs;
 	}
 
 	protected void deployCommon(Container container,

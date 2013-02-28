@@ -10,9 +10,7 @@ public class FeedbackDeploymentHandler extends DeploymentHandler {
 	@Override
 	public ConcreteContainer deploy(Container container,Context context,ContainerManager containerManager) {
 		ConcreteContainer cs = new FeedbackAwareContainer(getQualifiedName(container, context),getProperties(container.getParam()));
-		deployCommon(container, cs,containerManager);
-		expectConnected(container, cs);
-		attachSources(container, cs,containerManager);
+		super.deploy(cs, container, context, containerManager);
 		return cs;
 	}
 }
