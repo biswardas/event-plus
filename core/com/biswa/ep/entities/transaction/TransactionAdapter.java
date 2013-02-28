@@ -520,22 +520,16 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		}
 	}
 
-	/**Return the current transaction in progress
-	 * 
-	 * @return int
-	 */
+	@Override
 	public int getCurrentTransactionID(){
 		return transactionTracker.getCurrentTransactionID();
 	}
 
-	/**Return the current transaction origin
-	 * 
-	 * @return String
-	 */
+	@Override
 	public String getCurrentTransactionOrigin(){
 		return transactionTracker.getCurrentTransactionOrigin();
 	}
-	
+	@Override
 	public String[] getKnownTransactionOrigins(){
 		return transactionTracker.getKnownTransactionOrigins();		
 	}
