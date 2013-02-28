@@ -11,6 +11,7 @@ import java.util.Set;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -149,7 +150,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 					break;
 				case METHOD:
 					ExecutableElement meth = (ExecutableElement) element;
-					type =  meth.asType().toString();
+					type =  meth.getReturnType().toString();
 				default:
 					break;
 			}
@@ -553,11 +554,19 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		// Generate Class
 		EPAttribute epAttribute = null;
 		if ((epAttribute = arg1.getAnnotation(EPAttribute.class)) == null) {
-			writeln("@EPAttribute(type = EPAttrType.Member)");
-			writeln("public static class " + name + " extends Attribute{");
+			if(arg1.getModifiers().contains(Modifier.PRIVATE)){
+				writeln("@EPAttribute(type = EPAttrType.Private)");
+				writeln("public static class " + name + " extends PrivateAttribute{");
+			}else{
+				writeln("@EPAttribute(type = EPAttrType.Member)");
+				writeln("public static class " + name + " extends Attribute{");
+			}
 		} else {
 			writeln("public static class " + name + " extends "
-					+ epAttribute.type().getName() + "{");
+					+ epAttribute.type().getName() + "{");		
+			if(arg1.getModifiers().contains(Modifier.PRIVATE)){
+				writeln("@Override public boolean propagate(){return false;}");
+			}
 		}
 		writeln("private static final long serialVersionUID = 1L;");
 		EPAttrType attrType = getEPAttrType(epAttribute, epContainer);
