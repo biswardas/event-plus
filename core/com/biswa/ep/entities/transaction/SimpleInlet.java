@@ -48,7 +48,7 @@ public abstract class SimpleInlet implements Inlet {
 					try {
 						incomingObject = queue.take();
 						int tranID = agent.getNextTransactionID();
-						TransactionEvent te = new TransactionEvent(EPEvent.DEF_SRC,
+						TransactionEvent te = new TransactionEvent(EPEvent.DEF_SRC,EPEvent.DEF_SRC,
 								tranID);
 						agent.beginTran(te);
 						HashMap<Attribute, Substance> hm = new HashMap<Attribute, Substance>();

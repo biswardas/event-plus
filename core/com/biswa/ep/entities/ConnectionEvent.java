@@ -12,7 +12,7 @@ import com.biswa.ep.entities.transaction.Agent;
 public class ConnectionEvent extends EPEvent {
 
 	
-	private static final int DEFAULT_TRANSACTION_GROUP = 1;
+	private static final String[] DEFAULT_TRANSACTION_GROUP = {};
 	/**
 	 * 
 	 */
@@ -37,7 +37,7 @@ public class ConnectionEvent extends EPEvent {
 	 * C,D can belong to transaction group 2
 	 * 
 	 */
-	private int transactionGroup;
+	private String[] transactionGroup;
 
 	/**Constructor used when Connection Requested event is sent to Source container.
 	 * Connection requested must use this constructor and a valid Agent
@@ -48,7 +48,7 @@ public class ConnectionEvent extends EPEvent {
 	 * @param dcl Agent dynamic container listener of the sink.
 	 * @param filterSpec Filter applied to this sink
 	 */
-	public ConnectionEvent(String source,String sink,int transactionGroup, Agent dcl,FilterSpec filterSpec) {
+	public ConnectionEvent(String source,String sink,String[] transactionGroup, Agent dcl,FilterSpec filterSpec) {
 		super(source);
 		this.sink = sink;
 		this.transactionGroup=transactionGroup;
@@ -80,8 +80,6 @@ public class ConnectionEvent extends EPEvent {
 	public ConnectionEvent(String source,String sink, Agent dcl,FilterSpec filterSpec) {
 		this(source, sink,DEFAULT_TRANSACTION_GROUP, dcl,filterSpec);
 	}		
-
-
 	
 	/**Shallow version of the event used when the replay is requested and
 	 * the connection confirmation is sent.
@@ -100,22 +98,21 @@ public class ConnectionEvent extends EPEvent {
 	 */
 	public ConnectionEvent(String source,String sink,FilterSpec filterSpec) {
 		this(source,sink,DEFAULT_TRANSACTION_GROUP,null,filterSpec);
-	}	
-
+	}
+	
 	/**Shallow version of the event used when source expectation is set
 	 * @param source String source which serving the information 
 	 * @param sink String sink which consumes the information
 	 * @param transactionGroup the transaction group this source belongs the sink do care about
 	 */
-	public ConnectionEvent(String source,String sink,int transactionGroup) {
+	public ConnectionEvent(String source,String sink,String[] transactionGroup) {
 		this(source,sink,transactionGroup,null,null);
 	}
-	
 	/**
 	 * Return the transaction group of this source.
 	 * @return int
 	 */
-	public int getTransactionGroup() {
+	public String[] getTransactionGroup() {
 		return transactionGroup;
 	}
 

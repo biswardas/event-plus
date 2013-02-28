@@ -23,6 +23,7 @@ public class EPEvent extends EventObject {
 	 */
 	public EPEvent(String source) {
 		super(source);
+		assert source!=null;
 		this.source=source;
 	}
 	

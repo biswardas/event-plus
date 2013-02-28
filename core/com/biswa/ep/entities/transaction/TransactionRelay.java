@@ -10,7 +10,7 @@ public interface TransactionRelay {
 	 * Method to begin transaction
 	 * @param transactionId
 	 */
-	void beginTran(int transactionId);
+	void beginTran();
 	/**
 	 * Method to commit transaction
 	 */

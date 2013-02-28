@@ -65,7 +65,7 @@ public abstract class SubscriptionContainerProcessor extends Subscription {
 	 */
 	final protected void begin(){
 		transactionId = subscriptionContainer.agent().getNextTransactionID();
-		subscriptionContainer.agent().beginTran(new TransactionEvent(EPEvent.DEF_SRC, transactionId));
+		subscriptionContainer.agent().beginTran(new TransactionEvent(subscriptionContainer.getName(), transactionId));
 	}
 	
 	/**Method which receives all updates from an subscription service.
@@ -83,7 +83,7 @@ public abstract class SubscriptionContainerProcessor extends Subscription {
 	 * Commits the transaction for the associated container.
 	 */
 	final protected void commit(){
-		subscriptionContainer.agent().commitTran(new TransactionEvent(EPEvent.DEF_SRC, transactionId));
+		subscriptionContainer.agent().commitTran(new TransactionEvent(subscriptionContainer.getName(), transactionId));
 	}
 	
 	/**

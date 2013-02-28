@@ -102,9 +102,9 @@ public class RMIRemoteContainer extends AbstractContainer {
 	}
 
 	@Override
-	public void beginTran(int transactionID){
+	public void beginTran(){
 		try {
-			final TransactionEvent te = new TransactionEvent(this.source,transactionID);
+			final TransactionEvent te = new TransactionEvent(this.source,getCurrentTransactionOrigin(),getCurrentTransactionID());
 			rmiListener.beginTran(te);
 		} catch (RemoteException e) {
 			cleanup(e);
@@ -114,7 +114,7 @@ public class RMIRemoteContainer extends AbstractContainer {
 	@Override
 	public void commitTran(){
 		try {
-			final TransactionEvent te = new TransactionEvent(this.source,getCurrentTransactionID());
+			final TransactionEvent te = new TransactionEvent(this.source,getCurrentTransactionOrigin(),getCurrentTransactionID());
 			rmiListener.commitTran(te);
 		} catch (RemoteException e) {
 			cleanup(e);
@@ -124,7 +124,7 @@ public class RMIRemoteContainer extends AbstractContainer {
 	@Override
 	public void rollbackTran(){
 		try {
-			final TransactionEvent te = new TransactionEvent(this.source,getCurrentTransactionID());
+			final TransactionEvent te = new TransactionEvent(this.source,getCurrentTransactionOrigin(),getCurrentTransactionID());
 			rmiListener.rollbackTran(te);
 		} catch (RemoteException e) {
 			cleanup(e);

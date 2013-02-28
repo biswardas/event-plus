@@ -10,7 +10,7 @@ abstract public class OuterTask implements Runnable {
 		try{
 			runouter();
 		}catch(Throwable th){
-			th.printStackTrace();
+			th.printStackTrace(System.out);
 		}
 	}
 	abstract protected void runouter();
