@@ -54,7 +54,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			private HashMap<String, HashMap<String, Element>> typeMap = new HashMap<String, HashMap<String, Element>>();
 			private HashMap<String, HashSet<String>> inheritanceTree = new HashMap<String, HashSet<String>>();
 
-			private String lookUpType(String sourceClassName, String variable) {
+			private Element lookUpType(String sourceClassName, String variable) {
 				HashMap<String, Element> myMap = typeMap.get(sourceClassName);
 				if (myMap == null) {
 					throw new RuntimeException(sourceClassName
@@ -62,30 +62,19 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 							+ variable);
 				}
 				Element element = myMap.get(variable);
-				String type = null;
 				if (element == null) {
 					Set<String> parentType = inheritanceTree
 							.get(sourceClassName);
 					if (parentType != null) {
 						for (String oneSuper : parentType) {
-							type = lookUpType(oneSuper, variable);
-							if (type != null) {
+							element = lookUpType(oneSuper, variable);
+							if (element != null) {
 								break;
 							}
 						}
 					}
-				} else {
-					switch (element.getKind()) {
-						case FIELD:
-							VariableElement vael = (VariableElement) element;
-							return vael.asType().toString();
-						case METHOD:
-							ExecutableElement meth = (ExecutableElement) element;
-							return meth.asType().toString();
-						default: break;
-					}
 				}
-				return type;
+				return element;
 			}
 
 			public void add(String currentContainerName, String superClassName) {
@@ -151,18 +140,24 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		}
 
 		public String lookUpType(String oneDependency) {
-			return typeManager.lookUpType(currentContainerName, oneDependency);
-		}
-
-		public boolean existsInCurrentContainer(String memberName) {
-			return typeManager.typeMap.get(currentContainerName)
-					.get(memberName) != null;
+			String type = null;
+			Element element = typeManager.lookUpType(currentContainerName, oneDependency);
+			switch (element.getKind()) {
+				case FIELD:
+					VariableElement vael = (VariableElement) element;
+					type =  vael.asType().toString();
+					break;
+				case METHOD:
+					ExecutableElement meth = (ExecutableElement) element;
+					type =  meth.asType().toString();
+				default:
+					break;
+			}
+			return type;
 		}
 
 		public EPAttribute getEPAttribute(String memberName) {
-			EPAttribute att = typeManager.typeMap.get(currentContainerName)
-					.get(memberName).getAnnotation(EPAttribute.class);
-			return att;
+			return typeManager.lookUpType(currentContainerName, memberName).getAnnotation(EPAttribute.class);
 		}
 	}
 
@@ -570,36 +565,15 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			writeln("{");
 
 			for (String oneDependency : dependencyManager.getDependency()) {
-				switch (attrType) {
-				case Static:
-					if (dependencyManager
-							.existsInCurrentContainer(oneDependency)) {
-						writeln("addDependency((StaticAttribute)new "
-								+ oneDependency + "());");
-					} else {
-						writeln("addDependency(new StaticLeafAttribute(\""
-								+ oneDependency + "\"));");
-					}
-					break;
-				default:
-					if (dependencyManager
-							.existsInCurrentContainer(oneDependency)) {
-						// TODO check for non statelessness
-						if (checkDependency(epAttribute,
-								dependencyManager.getEPAttribute(oneDependency))) {
-							writeln("addDependency(new " + oneDependency
-									+ "());");
-						} else {
-							throw new RuntimeException(
-									"Non Permissible dependency encountered. Member "
-											+ name + " can not depend on "
-											+ oneDependency);
-						}
-					} else {
-						writeln("addDependency(new LeafAttribute(\""
-								+ oneDependency + "\"));");
-					}
-					break;
+				if (checkDependency(epAttribute,
+						dependencyManager.getEPAttribute(oneDependency))) {
+					writeln("addDependency(new " + oneDependency
+							+ "());");
+				} else {
+					throw new RuntimeException(
+							"Non Permissible dependency encountered. Member "
+									+ name + " can not depend on "
+									+ oneDependency);
 				}
 			}
 
