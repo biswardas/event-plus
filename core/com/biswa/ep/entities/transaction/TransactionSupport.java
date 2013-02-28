@@ -35,9 +35,4 @@ public interface TransactionSupport {
 	 * @return long
 	 */
 	long getTimeOutPeriodInMillis();
-	
-	/**
-	 * 
-	 */
-	String[] getKnownTransactionOrigins();
 }
