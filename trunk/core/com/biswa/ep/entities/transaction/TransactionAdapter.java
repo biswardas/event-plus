@@ -141,9 +141,9 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	 * @param sourceName
 	 * @param transactionGroup
 	 */
-	protected void addTransactionSource(String sourceName,int transactionGroup){
+	protected void addTransactionSource(String sourceName,String[] transactionOrigin){
 		assert cl.ensureExecutingInRightThread();
-		transactionTracker.addSource(sourceName,transactionGroup);
+		transactionTracker.addSource(sourceName,transactionOrigin);
 	}
 	
 	@Override
@@ -322,9 +322,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
-				final int transactionId = te.getTransactionId();
-				final String transactionSource=te.getSource();
-				transactionTracker.trackBeginTransaction(transactionId,transactionSource);
+				transactionTracker.trackBeginTransaction(te);
 			}
 		};
 		executeInListenerThread(outer);
@@ -336,9 +334,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
-				final int transactionId = te.getTransactionId();
-				final String transactionSource=te.getSource();
-				transactionTracker.trackCommitTransaction(transactionId, transactionSource);
+				transactionTracker.trackCommitTransaction(te);
 			}
 		};
 		executeInListenerThread(outer);
@@ -350,9 +346,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
-				final int transactionId = te.getTransactionId();
-				final String transactionSource=te.getSource();
-				transactionTracker.trackRollbackTransaction(transactionId, transactionSource);
+				transactionTracker.trackRollbackTransaction(te);
 			}
 		};
 		executeInListenerThread(outer);
@@ -363,7 +357,8 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	 * by the underlying container.
 	 */
 	public void beginDefaultTran(){
-		beginTran(getNextTransactionID());
+		transactionTracker.setCurrentTransactionID(cl.getName(),getNextTransactionID());
+		beginTran();
 	}
 	
 	/**
@@ -384,10 +379,9 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	}
 
 	@Override
-	public void beginTran(int transactionID){		
+	public void beginTran(){		
 		assert cl.ensureExecutingInRightThread();
-		transactionTracker.setCurrentTransactionID(transactionID);
-		cl.beginTran(transactionID);
+		cl.beginTran();
 		checkQueuedTransaction();
 	}
 	
@@ -514,6 +508,18 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	 */
 	public int getCurrentTransactionID(){
 		return transactionTracker.getCurrentTransactionID();
+	}
+
+	/**Return the current transaction origin
+	 * 
+	 * @return String
+	 */
+	public String getCurrentTransactionOrigin(){
+		return transactionTracker.getCurrentTransactionOrigin();
+	}
+	
+	public String[] getKnownTransactionOrigins(){
+		return transactionTracker.getKnownTransactionOrigins();		
 	}
 	
 	/**Returns the next task to be executed.

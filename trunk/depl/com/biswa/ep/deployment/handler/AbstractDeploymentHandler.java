@@ -25,7 +25,7 @@ public abstract class AbstractDeploymentHandler implements IDeployerHandler {
 			cs.agent().connected(new ConnectionEvent(EPEvent.DEF_SRC,EPEvent.DEF_SRC));
 		}else{
 			for(Listen listen:container.getListen()){
-				cs.agent().addSource(new ConnectionEvent(listen.getContext()+"."+listen.getContainer(),cs.getName(),listen.getTransactionGroup()));	
+				cs.agent().addSource(new ConnectionEvent(listen.getContext()+"."+listen.getContainer(),cs.getName()));	
 			}
 		}
 	}

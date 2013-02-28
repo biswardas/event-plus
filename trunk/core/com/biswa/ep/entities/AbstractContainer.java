@@ -179,7 +179,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 			}
 		}
 		//2. Send the connected event
-		dispatchConnected(dcl,new ConnectionEvent(connectionEvent.getSource(),connectionEvent.getSink()));
+		dispatchConnected(dcl,new ConnectionEvent(connectionEvent.getSource(),connectionEvent.getSink(),agent().getKnownTransactionOrigins()));
 		
 		//3. Add the target container to the listener list
 		listenerMap.put(connectionEvent.getSink(),buildFilterAgent(connectionEvent.getSink(),dcl));
@@ -249,24 +249,24 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	}
 	
 	@Override
-	public void beginTran(int transactionID){
-		assert log("Begin Transaction: "+transactionID);
-		dispatchBeginTransaction(transactionID);
+	public void beginTran(){
+		assert log("Begin Transaction: "+getCurrentTransactionID());
+		dispatchBeginTransaction();
 	}
 
 	/**
 	 * Method which delegates the begin transaction to the dispatcher thread.
 	 * @param transactionID int
 	 */
-	protected void dispatchBeginTransaction(int transactionID){
+	protected void dispatchBeginTransaction(){
 		for(FilterAgent dcl : listenerMap.values()){
-			assert log("Dispatch Begin Transaction: "+transactionID +" to "+dcl.primeIdentity);
-			dispatchBeginTransaction(dcl.agent,transactionID);
+			assert log("Dispatch Begin Transaction: "+getCurrentTransactionID() +" to "+dcl.primeIdentity);
+			dispatchBeginTransaction(dcl.agent);
 		}
 	}
 		
-	private void dispatchBeginTransaction(final Agent dcl,int transactionID){
-		final TransactionEvent te = new TransactionEvent(this.name,transactionID);
+	private void dispatchBeginTransaction(final Agent dcl){
+		final TransactionEvent te = new TransactionEvent(this.name,getCurrentTransactionOrigin(),getCurrentTransactionID());
 		getEventDispatcher().submit(new Runnable(){
 			public void run(){
 				dcl.beginTran(te);
@@ -287,12 +287,12 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	protected void dispatchCommitTransaction(){
 		for(FilterAgent dcl : listenerMap.values()){
 			assert log("Dispatch Commit Transaction: "+getCurrentTransactionID() +" to "+dcl.primeIdentity);
-			dispatchCommitTransaction(dcl.agent,getCurrentTransactionID());
+			dispatchCommitTransaction(dcl.agent);
 		}
 	}
 		
-	private void dispatchCommitTransaction(final Agent dcl,int transactionID){
-		final TransactionEvent te = new TransactionEvent(this.name,transactionID);
+	private void dispatchCommitTransaction(final Agent dcl){
+		final TransactionEvent te = new TransactionEvent(this.name,getCurrentTransactionOrigin(),getCurrentTransactionID());
 		getEventDispatcher().submit(new Runnable(){
 			public void run(){
 				dcl.commitTran(te);
@@ -310,12 +310,12 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 */
 	protected void dispatchRollbackTransaction(){
 		for(FilterAgent dcl : listenerMap.values()){
-			dispatchRollbackTransaction(dcl.agent,getCurrentTransactionID());
+			dispatchRollbackTransaction(dcl.agent);
 		}
 	}
 		
-	private void dispatchRollbackTransaction(final Agent dcl,int transactionID){
-		final TransactionEvent te = new TransactionEvent(this.name,transactionID);
+	private void dispatchRollbackTransaction(final Agent dcl){
+		final TransactionEvent te = new TransactionEvent(this.name,getCurrentTransactionOrigin(),getCurrentTransactionID());
 		getEventDispatcher().submit(new Runnable(){
 			public void run(){
 				dcl.rollbackTran(te);
@@ -653,13 +653,21 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	public Transmitter getEventDispatcher() {
 		return transmitter;
 	}
-	
+
 	/**Returns the current activities transaction id.
 	 * 
 	 * @return int
 	 */
 	public int getCurrentTransactionID(){
 		return containerAgent.getCurrentTransactionID();
+	}
+	
+	/**Returns the current activities transaction id.
+	 * 
+	 * @return int
+	 */
+	public String getCurrentTransactionOrigin(){
+		return containerAgent.getCurrentTransactionOrigin();
 	}
 	
 	@Override

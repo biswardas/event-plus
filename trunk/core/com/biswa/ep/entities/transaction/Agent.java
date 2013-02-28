@@ -77,7 +77,6 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 							//Turn off connected status if it was already connected.
 							cl.disconnected(ce);
 						}
-						addTransactionSource(ce.getSource(),ce.getTransactionGroup());
 					}
 				};
 				executeOrEnque(r);
@@ -206,7 +205,8 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 			@Override
 			public void runouter() {
 				assert Boolean.FALSE.equals(expectationsMap.get(ce.getSource())):"This source was already connected but received connected message";
-				expectationsMap.put(ce.getSource(),true);		
+				expectationsMap.put(ce.getSource(),true);
+				addTransactionSource(ce.getSource(),ce.getTransactionGroup());
 				//Not yet Connected return
 				if(expectationsMap.containsValue(false)) return;
 				cl.connected(ce);

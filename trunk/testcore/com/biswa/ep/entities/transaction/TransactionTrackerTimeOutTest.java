@@ -39,11 +39,11 @@ public class TransactionTrackerTimeOutTest {
 		transactionTracker.transactionAdapter.getEventCollector().execute(new Runnable(){
 			@Override
 			public void run() {
-				transactionTracker.addSource("A",2);
-				transactionTracker.addSource("X",1);
-				transactionTracker.trackBeginTransaction(100, "A");
-				assertEquals(100, transactionTracker.getCurrentTransactionID());
-				transactionTracker.trackBeginTransaction(101, "X");
+//				transactionTracker.addSource("A",2);
+//				transactionTracker.addSource("X",1);
+//				transactionTracker.trackBeginTransaction(100, "A");
+//				assertEquals(100, transactionTracker.getCurrentTransactionID());
+//				transactionTracker.trackBeginTransaction(101, "X");
 				transactionTracker.addOperation(100, new ContainerTask(){
 					@Override
 					public void runtask() {
@@ -67,7 +67,7 @@ public class TransactionTrackerTimeOutTest {
 						s.release();
 					}
 				});
-				transactionTracker.trackCommitTransaction(101, "X");
+				//transactionTracker.trackCommitTransaction(101, "X");
 				try {
 					Thread.sleep(transactionTracker.transactionAdapter.getTimeOutPeriodInMillis());
 				} catch (InterruptedException e) {
@@ -87,10 +87,10 @@ public class TransactionTrackerTimeOutTest {
 		transactionTracker.transactionAdapter.getEventCollector().execute(new Runnable(){
 			@Override
 			public void run() {
-				transactionTracker.addSource("A",2);
-				transactionTracker.addSource("X",1);
-				transactionTracker.trackBeginTransaction(100, "A");
-				transactionTracker.trackBeginTransaction(101, "X");
+//				transactionTracker.addSource("A",2);
+//				transactionTracker.addSource("X",1);
+//				transactionTracker.trackBeginTransaction(100, "A");
+//				transactionTracker.trackBeginTransaction(101, "X");
 				transactionTracker.addOperation(100, new ContainerTask(){
 					@Override
 					public void runtask() {
@@ -106,7 +106,7 @@ public class TransactionTrackerTimeOutTest {
 						
 					}
 				});
-				transactionTracker.trackCommitTransaction(101, "X");
+				//transactionTracker.trackCommitTransaction(101, "X");
 				transactionTracker.addOperation(101, new ContainerTask(){
 					@Override
 					public void runtask() {

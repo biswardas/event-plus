@@ -147,10 +147,10 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 	}
 
 	@Override
-	public void beginTran(int transactionID) {
+	public void beginTran() {
 		if(coalescingTran){
 			//Only continue the transaction if it is a throttled dispatch.
-			super.beginTran(transactionID);
+			super.beginTran();
 		}
 	}
 	@Override

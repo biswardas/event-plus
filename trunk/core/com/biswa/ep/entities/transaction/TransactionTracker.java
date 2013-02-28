@@ -1,5 +1,6 @@
 package com.biswa.ep.entities.transaction;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -7,6 +8,7 @@ import java.util.Queue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.biswa.ep.EPEvent;
 import com.biswa.ep.entities.ContainerTask;
 /**Class responsible to manage each block transactions.
  * 
@@ -14,41 +16,37 @@ import com.biswa.ep.entities.ContainerTask;
  *
  */
 public final class TransactionTracker {
+	enum State{
+		INIT,READY,COMMIT;
+	}
 	/**
 	 * Each transaction is managed in this class. 
 	 */
 	private static final class TransactionState{
-		//Transaction State
-		enum State{INIT,READY,COMMIT}
-		private State currentState=State.INIT;
 		//This flag makes it enable to begin processing 
 		//when all sources commit.
 		private boolean beginOnCommit=false;
-		private int allocationState = Integer.MAX_VALUE;
-		private Map<String,Integer> sourceToGroupBeginMap = new HashMap<String,Integer>();
-		private Map<String,Integer> sourceToGroupCommitMap = new HashMap<String,Integer>();
+		private int transactionID;
+		private Map<String,State> currentStateMap = new HashMap<String,State>();
 		//Operations which has been queued in this transaction
 		private Queue<ContainerTask> operationQueueMap = new LinkedList<ContainerTask>();
+		private State currentState;
 		//Constructor to start a transaction state
-		TransactionState(SourceGroupMap sourceGroupMap){
-			this.allocationState=sourceGroupMap.allocationState;
-			this.sourceToGroupBeginMap.putAll(sourceGroupMap.sourceToGroup);
-			this.sourceToGroupCommitMap.putAll(sourceGroupMap.sourceToGroup);
+		TransactionState(int transactionID, Map<String,State> initialState){
+			this.transactionID=transactionID;
+			this.currentStateMap.putAll(initialState);
 		}
 		
 		//Checks if every one reported
 		boolean didEveryOneBegin(String includingSource){
-			boolean toBegin = false;
-			if(sourceToGroupBeginMap.put(includingSource,0)!=null){
-				int presentStatus =0;
-				for(int oneSourceVal:sourceToGroupBeginMap.values()){
-					presentStatus = presentStatus|oneSourceVal;
-				}
-				if((allocationState|presentStatus)<Integer.MAX_VALUE){
-					currentState=State.READY;
-					toBegin=true;
-				}
+			State stateForThisSource = null;
+			if((stateForThisSource=currentStateMap.get(includingSource)) !=State.INIT){
+				throw new TransactionException("Transaction Begin already Received transaction:="+transactionID +" souce=" +includingSource+" Current state:"+stateForThisSource);
 			}else{
+				currentStateMap.put(includingSource, State.READY);
+			}
+			boolean toBegin = false;
+			if(!currentStateMap.containsValue(State.INIT)){
 				currentState=State.READY;
 				toBegin=true;
 			}
@@ -57,17 +55,14 @@ public final class TransactionTracker {
 		
 		//Checks if every one commit
 		boolean didEveryOneCommit(String includingSource){
-			boolean toCommit = false;
-			if(sourceToGroupCommitMap.put(includingSource,0)!=null){
-				int presentStatus =0;
-				for(int oneSourceVal:sourceToGroupCommitMap.values()){
-					presentStatus = presentStatus|oneSourceVal;
-				}
-				if((allocationState|presentStatus)<Integer.MAX_VALUE){
-					currentState=State.COMMIT;
-					toCommit=true;
-				}
+			State stateForThisSource = null;
+			if((stateForThisSource=currentStateMap.get(includingSource)) !=State.READY){
+				throw new TransactionException("Transaction attmpted to be committed without corresponding begin transaction:="+transactionID +" souce=" +includingSource+" Current state:"+stateForThisSource);
 			}else{
+				currentStateMap.put(includingSource, State.COMMIT);
+			}
+			boolean toCommit = false;
+			if(currentState==State.READY && !currentStateMap.containsValue(State.READY)){
 				currentState=State.COMMIT;
 				toCommit=true;
 			}
@@ -94,16 +89,40 @@ public final class TransactionTracker {
 		}
 	}
 	private static final class SourceGroupMap{
-		private int allocationState=Integer.MAX_VALUE;
-		private Map<String,Integer> sourceToGroup = new HashMap<String,Integer>();
-		private void buildCircuit(String key,Integer value){
-			sourceToGroup.put(key, value);
-			int usedState =0;
-			for(int oneSourceVal:sourceToGroup.values()){
-				usedState = usedState|oneSourceVal;
+		private Map<String,Map<String,State>> originToSourcesMap = new HashMap<String,Map<String,State>>();
+		private SourceGroupMap(){
+			buildCircuit(EPEvent.DEF_SRC,EPEvent.DEF_SRC);
+		}
+		private void buildCircuit(String source,String[] transactionOrigin){
+			for(String oneOrigin:transactionOrigin){
+				if(!EPEvent.DEF_SRC.equals(oneOrigin)){
+					Map<String,State> sourceMap=originToSourcesMap.get(oneOrigin);
+					if(sourceMap==null){
+						sourceMap = new HashMap<String,State>();
+						originToSourcesMap.put(oneOrigin, sourceMap);
+					}
+					sourceMap.put(source, State.INIT);
+				}
 			}
-			allocationState=Integer.MAX_VALUE^usedState;
-		};		
+		};
+
+		private void buildCircuit(String source,String transactionOrigin){
+			Map<String,State> sourceMap = new HashMap<String,State>();
+			sourceMap.put(source, State.INIT);
+			originToSourcesMap.put(transactionOrigin, sourceMap);
+		}
+
+		public Map<String,State> getSourceStateMap(String origin){
+			return originToSourcesMap.get(origin);
+		}
+		
+		public boolean knownOrigin(String origin){
+			return originToSourcesMap.containsKey(origin);
+		}
+		
+		public String[] getOrigins() {
+			return originToSourcesMap.keySet().toArray(new String[0]);
+		}
 	}
 	//Source Group Map managing source grouping
 	private final SourceGroupMap sourceGroupMap = new SourceGroupMap();
@@ -117,6 +136,9 @@ public final class TransactionTracker {
 	//Transaction currently in progress
 	private int currentTransactionID=0;
 	
+	//Current Transaction origin
+	private String transactionOrigin;
+	
 	private long currentTransactionStartedAt=-1;
 	
 	
@@ -127,6 +149,7 @@ public final class TransactionTracker {
 	protected TransactionTracker(TransactionAdapter transactionAdapter) {
 		assert transactionAdapter!=null;
 		this.transactionAdapter=transactionAdapter;
+		sourceGroupMap.buildCircuit(transactionAdapter.cl.getName(),transactionAdapter.cl.getName());
 		initializeTimeOut();
 	}
 	
@@ -160,21 +183,26 @@ public final class TransactionTracker {
 	 * @param transactionId
 	 * @param sourceName
 	 */
-	protected void trackBeginTransaction(final int transactionId,String sourceName){
-		assert transactionAdapter.log("Track Begin Transaction: "+sourceName+ " "+transactionId);
-		TransactionState ts = transactionStateMap.get(transactionId);
-		if(ts==null){
-			ts=new TransactionState(sourceGroupMap);
-			transactionStateMap.put(transactionId, ts);
-		}
-		if(ts.didEveryOneBegin(sourceName)){
-			assert transactionAdapter.log("Every one begin for Transaction: "+transactionId);
-			//All sources have reported
-			if(!transactionAdapter.cl.beginOnCommit()){
-				beginTransaction(transactionId);
-			}else{
-				ts.beginOnCommit=true;
+	protected void trackBeginTransaction(TransactionEvent te){
+		assert transactionAdapter.log("Track Begin Transaction: "+te);
+		if(sourceGroupMap.knownOrigin(te.getOrigin())){
+			TransactionState ts = transactionStateMap.get(te.getTransactionId());
+			if(ts==null){
+				ts=new TransactionState(te.getTransactionId(),sourceGroupMap.getSourceStateMap(te.getOrigin()));
+				transactionStateMap.put(te.getTransactionId(), ts);
 			}
+			if(ts.didEveryOneBegin(te.getSource())){
+				assert transactionAdapter.log("Every one begin for Transaction: "+te.getTransactionId());
+				//All sources have reported
+				if(!transactionAdapter.cl.beginOnCommit()){
+					beginTransaction(te.getOrigin(),te.getTransactionId());
+				}else{
+					ts.beginOnCommit=true;
+				}
+			}
+		
+		}else{
+			throw new TransactionException("Unknown source in transaction:"+te);
 		}
 	}
 	/**Transaction can begin with as soon as all sources begin transaction 
@@ -184,7 +212,7 @@ public final class TransactionTracker {
 	 * @param sourceName
 	 * @param ts
 	 */
-	private void beginTransaction(final int transactionId) { 
+	private void beginTransaction(final String origin,final int transactionId) { 
 		ContainerTask r = new ContainerTask(){
 			/**
 			 * 
@@ -193,7 +221,8 @@ public final class TransactionTracker {
 
 			@Override
 			public void runtask() {
-				transactionAdapter.beginTran(transactionId);
+				setCurrentTransactionID(origin,transactionId);
+				transactionAdapter.beginTran();
 			}
 		};
 		transactionAdapter.executeOrEnquePostConnected(r);
@@ -204,29 +233,36 @@ public final class TransactionTracker {
 	 * @param transactionId
 	 * @param sourceName
 	 */
-	protected void trackCommitTransaction(int transactionId,String sourceName){
-		assert transactionAdapter.log("Track Commit Transaction: "+sourceName+ " "+transactionId);
-		TransactionState ts = transactionStateMap.get(transactionId);
-		if(ts!=null){
-			if(ts.didEveryOneCommit(sourceName)){
-				assert transactionAdapter.log("Every one committed for Transaction: "+transactionId);
-				ContainerTask r = new ContainerTask() {
-					/**
-					 * 
-					 */
-					private static final long serialVersionUID = -5106553872435964358L;
-
-					public void runtask() {
-						transactionAdapter.commitTran();
+	protected void trackCommitTransaction(TransactionEvent te){
+		assert transactionAdapter.log("Track Commit Transaction: "+te);
+		if(sourceGroupMap.knownOrigin(te.getOrigin())){
+			TransactionState ts = transactionStateMap.get(te.getTransactionId());
+			if(ts!=null){
+				if(ts.didEveryOneCommit(te.getSource())){
+					assert transactionAdapter.log("Every one committed for Transaction: "+te.getTransactionId());
+					ContainerTask r = new ContainerTask() {
+						/**
+						 * 
+						 */
+						private static final long serialVersionUID = -5106553872435964358L;
+	
+						public void runtask() {
+							transactionAdapter.commitTran();
+						}
+					};
+					addOperation(te.getTransactionId(), r);
+					if(ts.beginOnCommit){
+						beginTransaction(te.getOrigin(),te.getTransactionId());
 					}
-				};
-				addOperation(transactionId, r);
-				if(ts.beginOnCommit){
-					beginTransaction(transactionId);
+				}else{
+					assert transactionAdapter.log("Not Every one committed for Transaction: "+te.getTransactionId());
 				}
-			}else{
-				assert transactionAdapter.log("Not Every one committed for Transaction: "+transactionId);
+			} else {
+				throw new TransactionException("Transaction attmpted to be committed without corresponding begin transaction:="+te.getTransactionId());
 			}
+		
+		}else{
+			throw new TransactionException("Unknown source in transaction:"+te);
 		}
 	} 
 	
@@ -235,28 +271,33 @@ public final class TransactionTracker {
 	 * @param transactionId
 	 * @param sourceName
 	 */
-	protected void trackRollbackTransaction(int transactionId,String sourceName){
-		TransactionState ts = transactionStateMap.get(transactionId);
-		if(ts!=null){
-			if(ts.isNotAlreadyCommitted()){
-				if(currentTransactionID==transactionId){
-					transactionAdapter.rollbackTran();
-				}else{
-					ts.emptyTaskQueue();
-					ContainerTask transactionAwareOperation = new ContainerTask(){
-						/**
-						 * 
-						 */
-						private static final long serialVersionUID = 48624528355863414L;
-
-						@Override
-						public void runtask() {
-							transactionAdapter.rollbackTran();
-						}
-					};
-					ts.enque(transactionAwareOperation);
+	protected void trackRollbackTransaction(TransactionEvent te){
+		assert transactionAdapter.log("Track Rollback Transaction: "+te);
+		if(sourceGroupMap.knownOrigin(te.getOrigin())){
+			TransactionState ts = transactionStateMap.get(te.getTransactionId());
+			if(ts!=null){
+				if(ts.isNotAlreadyCommitted()){
+					if(currentTransactionID==te.getTransactionId()){
+						transactionAdapter.rollbackTran();
+					}else{
+						ts.emptyTaskQueue();
+						ContainerTask transactionAwareOperation = new ContainerTask(){
+							/**
+							 * 
+							 */
+							private static final long serialVersionUID = 48624528355863414L;
+	
+							@Override
+							public void runtask() {
+								transactionAdapter.rollbackTran();
+							}
+						};
+						ts.enque(transactionAwareOperation);
+					}
 				}
 			}
+		}else{
+			throw new TransactionException("Unknown source in transaction:"+te);
 		}
 	}
 	
@@ -266,6 +307,7 @@ public final class TransactionTracker {
 	protected void completeTransaction(){
 		transactionStateMap.remove(currentTransactionID);
 		currentTransactionID=0;
+		transactionOrigin=null;
 	}
 	
 	/**Is any transaction in progress?
@@ -302,8 +344,9 @@ public final class TransactionTracker {
 	 * @param sourceName
 	 * @param transactionGroup
 	 */
-	protected void addSource(String sourceName, int transactionGroup) {
-		sourceGroupMap.buildCircuit(sourceName,transactionGroup);
+	protected void addSource(String sourceName,String[] transactionOrigin) {
+		System.out.println("#############"+Thread.currentThread().getName()+":"+ sourceName +" origins"+Arrays.toString(transactionOrigin));
+		sourceGroupMap.buildCircuit(sourceName,transactionOrigin);
 	}
 
 	/**Returns the current transaction
@@ -313,13 +356,22 @@ public final class TransactionTracker {
 	int getCurrentTransactionID() {
 		return currentTransactionID;
 	}
+
+
+	String getCurrentTransactionOrigin() {
+		return transactionOrigin;
+	}
 	
+	public String[] getKnownTransactionOrigins() {
+		return sourceGroupMap.getOrigins();
+	}
 	/**Marks the current transaction in progress
 	 * 
 	 * @param currentTransactionID
 	 */
-	void setCurrentTransactionID(int currentTransactionID) {
+	void setCurrentTransactionID(String transactionOrigin,int currentTransactionID) {
 		this.currentTransactionStartedAt=System.currentTimeMillis();
+		this.transactionOrigin=transactionOrigin;
 		this.currentTransactionID = currentTransactionID;
 	}
 
@@ -341,4 +393,5 @@ public final class TransactionTracker {
 			transactionAdapter.executeOrEnquePostConnected(transactionAwareOperation);
 		}
 	}
+
 }
