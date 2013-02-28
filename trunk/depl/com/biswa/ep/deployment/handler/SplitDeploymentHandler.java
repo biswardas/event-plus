@@ -10,9 +10,7 @@ public class SplitDeploymentHandler extends DeploymentHandler {
 	@Override
 	public ConcreteContainer deploy(Container container,Context context,ContainerManager containerManager) {
 		SplitContainer cs = new SplitContainer(getQualifiedName(container, context),getProperties(container.getParam()));
-		deployCommon(container, cs,containerManager);
-		expectConnected(container, cs);
-		attachSources(container, cs,containerManager);
+		super.deploy(cs, container, context, containerManager);
 		return cs;
 	}
 }
