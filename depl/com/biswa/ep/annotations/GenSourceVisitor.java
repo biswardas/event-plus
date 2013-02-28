@@ -5,6 +5,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
@@ -13,7 +14,6 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleElementVisitor6;
 
-import com.biswa.ep.annotations.EPContainer.Transaction;
 import com.sun.tools.javac.code.Symbol;
 
 public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
@@ -50,8 +50,7 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 			if (containerAnnot != null) {
 				TypeElement epContainer = (TypeElement) innerElement;
 				String containerName = epContainer.getSimpleName().toString();
-				TransactionGrouper tranGrouper = new TransactionGrouper(
-						epContainer);
+				UpstreamContainerManager upStreamContainers = new UpstreamContainerManager();
 				write("<Container type='" + containerAnnot.type() + "' name='"
 						+ containerName + "'>");
 				write("<Publish method='" + containerAnnot.publish() + "'/>");
@@ -60,8 +59,8 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 				switch (containerAnnot.type()) {
 				case Proxy:
 					proxyManager.registerProxy(epContainer);
-
-					writeListener(tranGrouper.genRegTranGrp(containerName),
+					upStreamContainers.register(containerName);
+					writeListener(
 							containerAnnot.publish(),
 							containerAnnot.container(), contextToListen);
 
@@ -74,21 +73,21 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 						Element classElement = ((DeclaredType) epContainer
 								.getSuperclass()).asElement();
 						if (classElement.getAnnotation(EPContainer.class) != null) {
+							upStreamContainers.register(classElement);
 							generateListener(epContext, epContainer,
-									classElement,
-									tranGrouper.genRegTranGrp(classElement));
+									classElement);
 						}
 					}
 					for (TypeMirror typeMirror : epContainer.getInterfaces()) {
 						Element interfaceElement = ((DeclaredType) typeMirror)
 								.asElement();
 						if (interfaceElement.getAnnotation(EPContainer.class) != null) {
+							upStreamContainers.register(interfaceElement);
 							generateListener(epContext, epContainer,
-									interfaceElement,
-									tranGrouper.genRegTranGrp(interfaceElement));
+									interfaceElement);
 						}
 					}
-					visitAttributes(epContainer, tranGrouper);
+					visitAttributes(epContainer, upStreamContainers);
 
 				}
 				if (!containerAnnot.generator().isEmpty()) {
@@ -104,7 +103,7 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 	}
 
 	private void visitAttributes(Element epContainer,
-			TransactionGrouper tranGrouper) {
+			UpstreamContainerManager upStreamContainers) {
 		for (Element innerElement : epContainer.getEnclosedElements()) {
 			EPAttribute epAttribute = innerElement
 					.getAnnotation(EPAttribute.class);
@@ -119,7 +118,7 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 									.publish();
 					// What about listening same container multiple times from
 					// same entry
-					if (!tranGrouper.isRegistered(epAttribute.container())) {
+					if (!upStreamContainers.isRegistered(epAttribute.container())) {
 						if (sourceContext == context
 								&& proxyManager.isProxy(epAttribute.container())) {
 							TypeElement proxyContainer = proxyManager
@@ -128,18 +127,21 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 									.getAnnotation(EPContainer.class);
 							String actualContext = proxyAnnotation.context().isEmpty() ? context
 									: proxyAnnotation.context();
-							if(!tranGrouper.isRegistered(proxyAnnotation.container())){
-								writeListener(tranGrouper.genRegTranGrp(proxyAnnotation.container()), listenMethod,
+							if(!upStreamContainers.isRegistered(proxyAnnotation.container())){
+								upStreamContainers.register(proxyAnnotation.container());
+								writeListener(listenMethod,
 										epAttribute.container(), sourceContext);	
 								writeFeedback(proxyAnnotation.publish(), proxyAnnotation.container(),
 										actualContext);
 							}else{
-								writeListener(tranGrouper.genRegTranGrp(proxyAnnotation.container()), listenMethod,
+								upStreamContainers.register(proxyAnnotation.container());
+								writeListener(listenMethod,
 										epAttribute.container(), sourceContext);
 							}
 						}else{
-							writeListener(tranGrouper.genRegTranGrp(epAttribute
-									.container()), listenMethod,
+							upStreamContainers.register(epAttribute
+								.container());
+							writeListener(listenMethod,
 									epAttribute.container(), sourceContext);	
 							writeFeedback(listenMethod, epAttribute.container(),
 									sourceContext);						
@@ -163,7 +165,7 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 	}
 
 	private void generateListener(Element epContext, Element epContainer,
-			Element inheritedContainer, int tranGroup) {
+			Element inheritedContainer) {
 		boolean supportsFeedback = false;
 		EPContainer containerAnnot = inheritedContainer
 				.getAnnotation(EPContainer.class);
@@ -176,18 +178,18 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 				.toString();
 		String contextToListen = inheritedContainer.getEnclosingElement()
 				.getSimpleName().toString();
-		writeListener(tranGroup, listenMethod, containerToListen,
+		writeListener(listenMethod, containerToListen,
 				contextToListen);
 		if (supportsFeedback) {
 			writeFeedback(listenMethod, containerToListen, contextToListen);
 		}
 	}
 
-	private void writeListener(int tranGroup, EPPublish listenMethod,
+	private void writeListener(EPPublish listenMethod,
 			String containerToListen, String contextToListen) {
 		write("<Listen container='" + containerToListen + "' context='"
 				+ contextToListen + "' method='" + listenMethod
-				+ "' transactionGroup='" + tranGroup + "'/>");
+				+ "'/>");
 	}
 
 	private void writeAttribute(String string) {
@@ -219,52 +221,24 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 	}
 }
 
-class TransactionGrouper {
-	private Transaction[] tran;
-	private int count;
-	private HashMap<String, Integer> containerTrangroupMap = new HashMap<String, Integer>();
-
-	public TransactionGrouper(TypeElement epContainer) {
-		EPContainer epContainerAnn = epContainer
-				.getAnnotation(EPContainer.class);
-		tran = epContainerAnn.transaction();
+class UpstreamContainerManager {
+	private HashSet<String> registrations = new HashSet<String>();
+	public void register(Element inheritedContainer) {
+		register(inheritedContainer.getSimpleName().toString());
 	}
-
-	public int genRegTranGrp(Element inheritedContainer) {
-		String containerName = inheritedContainer.getSimpleName().toString();
-		if (!containerTrangroupMap.containsKey(containerName)) {
-			int tranGroup = 0;
-			for (int i = 0; i < tran.length; i++) {
-				for (String oneContainer : tran[i].group()) {
-					if (oneContainer.equals(containerName)) {
-						tranGroup = tranGroup | (1 << i);
-					}
-				}
-			}
-			containerTrangroupMap.put(containerName, tranGroup == 0 ? 1
-					: tranGroup);
-		}
-		return containerTrangroupMap.get(containerName);
-	}
-
 	/**
 	 * Used by the subscribers.
 	 * 
 	 * @return
 	 */
-	public int genRegTranGrp(String containerName) {
-		if (!containerTrangroupMap.containsKey(containerName)) {
-			containerTrangroupMap.put(containerName,
-					1 << (tran.length + ++count));
-		}
-		return containerTrangroupMap.get(containerName);
+	public void register(String containerName) {
+		registrations.add(containerName);
 	}
-
 	/*
 	 * Check if transaction group already generated for this
 	 */
 	public boolean isRegistered(String containerName) {
-		return containerTrangroupMap.containsKey(containerName);
+		return registrations.contains(containerName);
 	}
 }
 
