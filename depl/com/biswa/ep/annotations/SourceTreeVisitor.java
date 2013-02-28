@@ -76,12 +76,13 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 					}
 				} else {
 					switch (element.getKind()) {
-					case FIELD:
-						VariableElement vael = (VariableElement) element;
-						return vael.asType().toString();
-					case METHOD:
-						ExecutableElement meth = (ExecutableElement) element;
-						return meth.asType().toString();
+						case FIELD:
+							VariableElement vael = (VariableElement) element;
+							return vael.asType().toString();
+						case METHOD:
+							ExecutableElement meth = (ExecutableElement) element;
+							return meth.asType().toString();
+						default: break;
 					}
 				}
 				return type;
@@ -110,16 +111,16 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			}
 		}
 
-		private int nestedDependencyDepth = 0;
+		private boolean collectDependencies = false;
 		private final TypeManager typeManager = new TypeManager();
 		private Set<String> dependencySet = new HashSet<String>();
 
 		public boolean isInjectDependency() {
-			return nestedDependencyDepth > 0;
+			return collectDependencies;
 		}
 
 		public void begin() {
-			nestedDependencyDepth = nestedDependencyDepth + 1;
+			collectDependencies = true;
 		}
 
 		public void add(String attribute) {
@@ -137,10 +138,8 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		}
 
 		public void reset() {
-			nestedDependencyDepth = nestedDependencyDepth - 1;
-			if (nestedDependencyDepth == 0) {
-				dependencySet.clear();
-			}
+			collectDependencies = false;
+			dependencySet.clear();
 		}
 
 		public Set<String> getDependency() {
