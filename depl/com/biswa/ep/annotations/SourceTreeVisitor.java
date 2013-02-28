@@ -616,9 +616,15 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			writeln("public Substance evaluate(Attribute att,ContainerEntry ce){");
 			for (String oneDependency : dependencyManager.getDependency()) {
 				String type = dependencyManager.lookUpType(oneDependency);
-				writeln(type + " " + oneDependency + " =(" + type
-						+ ") super.getValue(ce,\"" + oneDependency + ""
-						+ "\");");
+				EPAttribute dependee = dependencyManager.getEPAttribute(oneDependency);
+				if(dependee!=null && dependee.type()==EPAttrType.Static){
+					writeln(type + " " + oneDependency + " =(" + type
+							+ ") super.getStatic(\"" + oneDependency + "" + "\");");
+				}else{
+					writeln(type + " " + oneDependency + " =(" + type
+							+ ") super.getValue(ce,\"" + oneDependency + ""
+							+ "\");");					
+				}
 			}
 		}
 		dependencyManager.reset();
