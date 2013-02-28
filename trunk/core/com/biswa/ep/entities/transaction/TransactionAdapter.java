@@ -449,6 +449,24 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		}	
 	}
 	
+	/**Flush any messages left in pre connected queue before marking container connected.
+	 * 
+	 */
+	protected void flushPreconnectedQueue(){
+		ContainerTask r = null;
+		while((r=preConnectedQueue.poll())!=null){
+			r.run();
+		}
+	}
+
+	/**Enqueue the container tasks in pre connected queue.
+	 * 
+	 * @param outer OuterTask
+	 */
+	protected void enqueueInPreConnectedQueue(ContainerTask r) {
+		preConnectedQueue.add(r);
+	}
+
 	/**The tasks which are supposed to be dispatched even before connected
 	 * are submitted to this method.
 	 * @param r Runnable

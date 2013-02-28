@@ -102,7 +102,17 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 						cl.attributeAdded(ce);
 					}
 				};
-				executeOrEnque(r);
+				//Following to make sure cascading attributes gets into the system before
+				//directly added attributes
+				if(isConnected()){
+					executeOrEnque(r);					
+				}else{
+					if(ce.getSource().equalsIgnoreCase(cl.getName())){
+						enqueueInPreConnectedQueue(r);
+					}else{
+						executeOrEnque(r);	
+					}
+				}
 			}
 		};
 		executeInListenerThread(outer);
@@ -209,6 +219,7 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 				addTransactionSource(ce.getSource(),ce.getTransactionGroup());
 				//Not yet Connected return
 				if(expectationsMap.containsValue(false)) return;
+				flushPreconnectedQueue();
 				cl.connected(ce);
 
 				checkQueuedTransaction();				
