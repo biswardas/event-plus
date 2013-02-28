@@ -18,12 +18,6 @@ public @interface EPContainer {
 	String container() default "";
 	
 	String generator() default "";
-	
-	Transaction[] transaction() default {}; 
-	
-	public @interface Transaction {
-		String[] group() default {};
-	}
 
 	String[] params() default {};
 }
