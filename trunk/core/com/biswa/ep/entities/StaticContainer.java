@@ -35,7 +35,7 @@ public class StaticContainer extends CascadeContainer {
 			});
 		}
 		
-		final ConnectionEvent connectedEvent = new ConnectionEvent(connectionEvent.getSource(),connectionEvent.getSink(),agent().getKnownTransactionOrigins());
+		final ConnectionEvent connectedEvent = new ConnectionEvent(connectionEvent.getSource(),connectionEvent.getSink(),getKnownTransactionOrigins());
 		
 		//2. Send connected event
 		getEventDispatcher().submit(new Runnable(){

@@ -179,7 +179,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 			}
 		}
 		//2. Send the connected event
-		dispatchConnected(dcl,new ConnectionEvent(connectionEvent.getSource(),connectionEvent.getSink(),agent().getKnownTransactionOrigins()));
+		dispatchConnected(dcl,new ConnectionEvent(connectionEvent.getSource(),connectionEvent.getSink(),getKnownTransactionOrigins()));
 		
 		//3. Add the target container to the listener list
 		listenerMap.put(connectionEvent.getSink(),buildFilterAgent(connectionEvent.getSink(),dcl));
@@ -658,16 +658,19 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 * 
 	 * @return int
 	 */
+	@Override
 	public int getCurrentTransactionID(){
 		return containerAgent.getCurrentTransactionID();
 	}
 	
-	/**Returns the current activities transaction id.
-	 * 
-	 * @return int
-	 */
+	@Override
 	public String getCurrentTransactionOrigin(){
 		return containerAgent.getCurrentTransactionOrigin();
+	}
+	
+	@Override
+	public String[] getKnownTransactionOrigins(){
+		return containerAgent.getKnownTransactionOrigins();
 	}
 	
 	@Override

@@ -32,4 +32,22 @@ public interface TransactionRelay {
 	 * container interested in listening the feedback.
 	 */
 	void addFeedbackAgent(FeedbackAgent feedBackAgent);
+	
+	/**
+	 * Method returns all known transaction origins known to this container.
+	 * @return String[]
+	 */
+	String[] getKnownTransactionOrigins();
+	
+	/**
+	 * Method returns current transactionID in effect.
+	 * @return int
+	 */
+	int getCurrentTransactionID();
+
+	/**
+	 * Method returns origin of current transaction.
+	 * @return String
+	 */
+	String getCurrentTransactionOrigin();
 }
