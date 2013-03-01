@@ -346,7 +346,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		}
 		writeln("import java.util.concurrent.*;");
 		writeln("import java.util.*;");
-
+		writeln("import javax.annotation.*;");
 		writeln("import com.biswa.ep.annotations.*;");
 		writeln("import com.biswa.ep.entities.transaction.*;");		
 		writeln("import com.biswa.ep.entities.*;");
@@ -435,8 +435,8 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 	}
 
 	private void generateEPContext(ClassTree arg0, Element arg1) {
-		writeln("@Generated(on=\"" + new java.util.Date().toString()
-				+ "\",by=\"" + System.getProperty("user.name") + "\")");
+		writeln("@Generated(date=\"" + new java.util.Date().toString()
+				+ "\",value={\"" + System.getProperty("user.name") + "\"})");
 		write(arg0.getModifiers() + " " + arg0.getSimpleName());
 		if (arg0.getExtendsClause() != null) {
 			arg0.getExtendsClause().accept(this, arg1);

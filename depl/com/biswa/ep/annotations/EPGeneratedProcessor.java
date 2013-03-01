@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Set;
 
+import javax.annotation.Generated;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -15,7 +16,7 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 
-@SupportedAnnotationTypes( {"com.biswa.ep.annotations.Generated" })
+@SupportedAnnotationTypes( {"javax.annotation.Generated" })
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class EPGeneratedProcessor extends AbstractProcessor {
 	@Override
@@ -27,7 +28,7 @@ public class EPGeneratedProcessor extends AbstractProcessor {
 	public boolean process(Set<? extends TypeElement> annotations,
 			RoundEnvironment roundEnv) {
 		for (Element element : roundEnv.getRootElements()) {
-			if(element.getAnnotation(Generated.class)!=null){
+			if(element.getAnnotation(Generated.class)!=null && element.getAnnotation(EPContext.class)!=null){
 				try {
 					FileObject fob = processingEnv.getFiler().createResource(
 							StandardLocation.SOURCE_OUTPUT, "",
