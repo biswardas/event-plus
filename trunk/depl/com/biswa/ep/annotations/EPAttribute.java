@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target( { ElementType.FIELD, ElementType.TYPE })
+@Target( { ElementType.FIELD,ElementType.METHOD, ElementType.TYPE })
 public @interface EPAttribute {
 	EPAttrType type() default EPAttrType.Member;
 
