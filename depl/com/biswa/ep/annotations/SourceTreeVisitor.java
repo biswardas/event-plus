@@ -21,6 +21,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 
+import com.biswa.ep.annotations.EPCompilationException.ErrorCode;
 import com.sun.source.tree.AnnotationTree;
 import com.sun.source.tree.ArrayAccessTree;
 import com.sun.source.tree.BinaryTree;
@@ -160,8 +161,15 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			return type;
 		}
 
-		public EPAttribute getEPAttribute(String memberName) {
-			return typeManager.lookUpType(currentContainerName, memberName).getAnnotation(EPAttribute.class);
+		public EPAttribute getEPAttribute(String memberName) {			
+			Element element = typeManager.lookUpType(currentContainerName, memberName);
+			EPAttribute epAttribute=element.getAnnotation(EPAttribute.class);
+			if(!currentContainerName.equals(element.getEnclosingElement().asType().toString())){
+				if(element.getModifiers().contains(Modifier.PRIVATE)){
+					throw new EPCompilationException("Access privilage violation in container :"+currentContainerName+" member:"+memberName,ErrorCode.ACCESS);
+				}
+			}
+			return epAttribute;
 		}
 	}
 
