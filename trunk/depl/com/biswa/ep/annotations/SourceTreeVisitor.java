@@ -1,12 +1,16 @@
 package com.biswa.ep.annotations;
 
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.JarURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.jar.Attributes;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -436,7 +440,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 
 	private void generateEPContext(ClassTree arg0, Element arg1) {
 		writeln("@Generated(date=\"" + new java.util.Date().toString()
-				+ "\",value={\"" + System.getProperty("user.name") + "\"})");
+				+ "\",comments=\""+getVersion()+"\",value={\"" + System.getProperty("user.name") + "\"})");
 		write(arg0.getModifiers() + " " + arg0.getSimpleName());
 		if (arg0.getExtendsClause() != null) {
 			arg0.getExtendsClause().accept(this, arg1);
@@ -675,5 +679,22 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 
 	private boolean isEPContainer(Element e) {
 		return e.getAnnotation(EPContainer.class) != null;
+	}
+
+	private static String getVersion(){
+		Class<EPContext> klass = EPContext.class;
+		URL location = klass.getResource('/'
+				+ klass.getName().replace('.', '/') + ".class");
+		JarURLConnection uc;
+		String version = "";
+		try {
+			uc = (JarURLConnection) location.openConnection();
+			Attributes attr = uc.getMainAttributes();
+			version = (attr != null ? attr
+					.getValue(Attributes.Name.IMPLEMENTATION_VERSION) : null);
+		} catch (Exception e) {
+			version="0.0";
+		}
+		return version;
 	}
 }
