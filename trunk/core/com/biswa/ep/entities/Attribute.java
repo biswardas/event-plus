@@ -6,6 +6,7 @@ import java.util.HashSet;
 
 import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.substance.InvalidSubstance;
+import com.biswa.ep.entities.substance.NullSubstance;
 import com.biswa.ep.entities.substance.Substance;
 
 /**
@@ -339,7 +340,7 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 		try {
 			return evaluate(attribute, containerEntry);
 		} catch (Throwable throwable) {
-			return InvalidSubstance.INVALID_SUBSTANCE;
+			return NullSubstance.NULL_SUBSTANCE;
 		}
 	}
 

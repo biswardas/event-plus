@@ -9,7 +9,7 @@ public class NullSubstance extends AbstractSubstance {
 	public static final NullSubstance NULL_SUBSTANCE = new NullSubstance();
 	private NullSubstance(){}
 	@Override
-	public String getValue() {
-		return "#NULL";
+	public Object getValue() {
+		return null;
 	}	
 }

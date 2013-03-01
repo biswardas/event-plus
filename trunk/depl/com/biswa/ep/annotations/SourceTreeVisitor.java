@@ -525,7 +525,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			beginClass(arg0.getName(), arg0.getModifiers().getAnnotations(),
 					arg1);
 			if (!arg0.getReturnType().toString().equals("void")) {
-				write(arg0.getReturnType() + " " + arg0.getName() + " = "
+				write(arg0.getReturnType() + " epval_" + arg0.getName() + " = "
 						+ arg0.getName() + "(");
 			} else {
 				write(arg0.getName() + "(");
@@ -540,7 +540,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			}
 			writeln(");");
 			if (!arg0.getReturnType().toString().equals("void")) {
-				writeln("return new ObjectSubstance(" + arg0.getName() + ");");
+				writeln("return new ObjectSubstance( epval_" + arg0.getName() + ");");
 			} else {
 				writeln("return InvalidSubstance.INVALID_SUBSTANCE;");
 			}
@@ -587,8 +587,10 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			for (String oneDependency : dependencyManager.getDependency()) {
 				if (checkDependency(epAttribute,
 						dependencyManager.getEPAttribute(oneDependency))) {
-					writeln("addDependency(new " + oneDependency
-							+ "());");
+					if(!name.toString().equalsIgnoreCase(oneDependency)){
+						writeln("addDependency(new " + oneDependency
+								+ "());");
+					}
 				} else {
 					throw new RuntimeException(
 							"Non Permissible dependency encountered. Member "
