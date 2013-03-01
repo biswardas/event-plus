@@ -1,6 +1,5 @@
 package com.biswa.ep.annotations;
 
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.JarURLConnection;
