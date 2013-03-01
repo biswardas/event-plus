@@ -18,6 +18,10 @@
 			</service>
 		    <manifest>
 		      <attribute name="Main-Class"  value="com.biswa.ep.discovery.RMIDiscoveryManager"/>
+		      <attribute name="Specification-Title"  value="https://event-plus.googlecode.com/1.0"/>
+		      <attribute name="Specification-Version"  value="1.0"/>
+		      <attribute name="Implementation-Title"  value="https://event-plus.googlecode.com/1.0"/>
+		      <attribute name="Implementation-Version"  value="1.0"/>
 		    </manifest>
 		</jar>
 	</target>
