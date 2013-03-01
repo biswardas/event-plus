@@ -34,7 +34,7 @@ public abstract class StaticAttribute extends Attribute{
 	}
 	
 	@Override
-	final public boolean propagate(){
+	public boolean propagate(){
 		return false;
 	}
 
