@@ -451,7 +451,9 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 			for (Attribute notifiedAttribute : statelessAttributes) {
 				Substance substance = notifiedAttribute.failSafeEvaluate(notifiedAttribute, slc); 
 				slc.silentUpdate(notifiedAttribute, substance);
-				dispatchEntryUpdated(receiver,notifiedAttribute, substance, containerEntry);
+				if(notifiedAttribute.propagate()){
+					dispatchEntryUpdated(receiver,notifiedAttribute, substance, containerEntry);
+				}
 			}
 		}
 	}
@@ -481,10 +483,12 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 			for (Attribute notifiedAttribute : queue) {
 				Substance substance = notifiedAttribute.failSafeEvaluate(notifiedAttribute, slcEntry); 
 				substance = slcEntry.silentUpdate(notifiedAttribute, substance);
-				for(FilterAgent dcl : listenerMap.values()){
-					if(containerEntry.isFiltered(dcl.primeIdentity)){
-						//Not participating in filter direct dispatch
-						dispatchEntryUpdated(dcl.agent,notifiedAttribute,substance,containerEntry);
+				if(notifiedAttribute.propagate()){
+					for(FilterAgent dcl : listenerMap.values()){
+						if(containerEntry.isFiltered(dcl.primeIdentity)){
+							//Not participating in filter direct dispatch
+							dispatchEntryUpdated(dcl.agent,notifiedAttribute,substance,containerEntry);
+						}
 					}
 				}
 			}
