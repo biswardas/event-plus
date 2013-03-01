@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Categories.ExcludeCategory;
 
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ContainerEntry;
