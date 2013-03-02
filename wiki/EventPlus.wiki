@@ -209,7 +209,14 @@ C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer>
 * Start the demo Swing Client *
 {{{
 C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer>start ant run-client
+Buildfile: C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer\build.xml
 
+run-client:
+     [java] #############PPL-Viewer-StockQuoteAnalyzer.Portfolio (Fri Mar 01 23:45:52 EST 2013)-1:StockQuoteAnalyzer.Portfolio ori
+gins[StockQuoteAnalyzer.NYSE, StockQuoteAnalyzer.Portfolio, StockQuoteAnalyzer.InputStocks, StockQuoteAnalyzer.NASDAQ, EPANONYMOUS
+]
 C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer>
 }}}
 http://event-plus.googlecode.com/svn/trunk/examples/StockQuoteAnalyzer/epclient.png
+
+* Congratulations * Now its time to get hands dirty lets get into some details [EPLanguage here].
