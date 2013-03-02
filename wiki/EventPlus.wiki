@@ -1,7 +1,7 @@
 = Stock Quote Analyzer =
 
 Lets win half the battle by running through the use case below. Below example analyzes quotes from two stock exchanges and merges the quotes to figure out best bid and ask and computes PNL in realtime.
-Below code is in lined from [http://event-plus.googlecode.com/svn/trunk/examples/StockQuoteAnalyzer/src/schema/StockQuoteAnalyzer.java StockQuoteAnalyzer].
+Below code is in lined from [http://event-plus.googlecode.com/svn/trunk/examples/StockQuoteAnalyzer StockQuoteAnalyzer].
 So we begin by coding few interfaces as simple as below. 
 
 {{{
