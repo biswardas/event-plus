@@ -62,7 +62,7 @@ During compilation phase Java compiler will delegate all java files annotated wi
 
 {{{
 See StockQuoteAnalyzer.xml below.
-
+<code language="xml">
 <?xml version='1.0'?>
 <Context name='StockQuoteAnalyzer' xmlns='https://code.google.com/p/event-plus'>
 	<Container type='Subscription' name='NYSE'>
@@ -97,4 +97,5 @@ See StockQuoteAnalyzer.xml below.
 		<Attribute className='epimpl.schema.StockQuoteAnalyzer$Portfolio$PNL' />
 	</Container>
 </Context>
+</code>
 }}}
