@@ -30,7 +30,7 @@ public interface AdvancedQuoteAnalyzer {
 
   * *Required* YES
 
-In above hardware analogy one container is a chip on a pci card. Does specific processing as programmed to do so. In the example below InputStocks is a container which takes input from a hand coded java program "generator.Portfolio".
+In above hardware analogy one container is a chip on a pci card. Does specific processing as programmed to do so. In the example below "InputStocks" is a container which takes input from a hand coded java program "generator.Portfolio".
 
 {{{
 @EPContext()
