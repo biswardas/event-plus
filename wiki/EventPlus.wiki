@@ -56,4 +56,4 @@ public interface StockQuoteAnalyzer {
 
 }}}
 
-You must have noticed special annotations @EPContext and @EPContainer around the interfaces right? Yes that's where the magic begins. As we compile this interface just like as if any other standard java program Java complier will generate special code wiring all the dependencies and deployment descriptors required to forward propagate the dependencies.
+You must have noticed special annotations @EPContext and @EPContainer around the interfaces right? Yes that's where the magic begins. As we compile this interface just like as if any other standard java program Java compiler will generate special code wiring all the dependencies and deployment descriptors required to forward propagate the dependencies.
