@@ -1,7 +1,7 @@
 = Stock Quote Analyzer =
 
 == Step 1 Compile ==
-Lets win half the battle by running through the use case below. Below example analyzes quotes from two stock exchanges and merges the quotes to figure out best bid and ask and computes PNL in realtime.
+Lets win half the battle by running through the use case below. Below example analyzes quotes from two demo stock exchanges and merges the quotes to figure out best bid and ask and computes PNL in realtime.
 Below code is in lined from [http://event-plus.googlecode.com/svn/trunk/examples/StockQuoteAnalyzer StockQuoteAnalyzer].
 So we begin by coding few interfaces as simple as below. 
 
@@ -103,7 +103,8 @@ During compilation phase Java compiler will delegate all java files annotated wi
 
 
 Check out event plus package from [http://event-plus.googlecode.com/svn/trunk/ Event Plus] to your preferred directory and build with 
-[http://ant.apache.org/ Ant]. We are compiling the event plus binary below not the example here. This will be once before we move to example compilation.
+[http://ant.apache.org/ Ant]. We are compiling the event plus binary first (this will be once) followed by the example here. 
+
 {{{
 C:\Users\Biswa\workspace\EventPlus>ant
 Buildfile: C:\Users\Biswa\workspace\EventPlus\build.xml
@@ -154,10 +155,7 @@ build:
 BUILD SUCCESSFUL
 Total time: 3 seconds
 
-C:\Users\Biswa\workspace\EventPlus>
-}}}
-
-{{{
+C:\Users\Biswa\workspace\EventPlus>cd examples\StockQuoteAnalyzer
 
 C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer>ant
 Buildfile: C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer\build.xml
