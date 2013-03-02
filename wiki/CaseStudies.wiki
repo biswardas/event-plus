@@ -11,3 +11,11 @@ This examples demonstrates computing certain attributes which is dependent on so
 * [Greeks Option Valuations] 
 
 This examples illustrates how to compute complex financial parameters dependent on multiple moving parameters in a consistent manner.
+
+* [Basket Basket/ETF Price calculation]
+
+Computes basket price in real time fashion.
+
+* [Barrier Barrier breach detection]
+
+Detects barrier breaches for barrier options. 
