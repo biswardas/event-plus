@@ -157,6 +157,30 @@ Total time: 3 seconds
 C:\Users\Biswa\workspace\EventPlus>
 }}}
 
+{{{
+
+C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer>ant
+Buildfile: C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer\build.xml
+
+clean:
+   [delete] Deleting directory C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer\build\sources
+   [delete] Deleting directory C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer\dist
+    [mkdir] Created dir: C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer\build\sources
+    [mkdir] Created dir: C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer\dist
+
+compile:
+    [javac] Compiling 6 source files to C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer\build\sources
+    [javac] Invoking on:StockQuoteAnalyzer
+    [javac] Processing Completed on:StockQuoteAnalyzer
+
+build:
+      [jar] Building jar: C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer\dist\stk_quote.jar
+
+BUILD SUCCESSFUL
+Total time: 0 seconds
+
+C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer>
+}}}
 
 
 
