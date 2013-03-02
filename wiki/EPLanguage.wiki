@@ -1,7 +1,7 @@
 = Syntax =
 
 ===Structure===
-Top level element in Event Plus is an interface. It defines one technical / business component module. Not necessarily has to be the complete business solution. Remember multiple Context can interact with each other for parallel development not necessarily waiting for each other. Context provides a name space to the components.
+Top level element in Event Plus is an interface. It defines one technical / business module. Not necessarily has to be the complete business solution. Remember multiple Context can interact with each other for parallel development to build the entire solution. Context provides a name space to the module.
 
 {{{
 
