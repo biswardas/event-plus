@@ -14,7 +14,7 @@ This examples illustrates how to compute complex financial parameters dependent 
 
 * [Basket Basket/ETF Price calculation]
 
-Computes basket price in real time fashion.
+Computes basket price in real time fashion. Pivot & Summarize information.
 
 * [Barrier Barrier breach detection]
 
