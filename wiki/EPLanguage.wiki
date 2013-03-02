@@ -17,7 +17,7 @@ public interface StockQuoteAnalyzer {
 }}}
 
 
-Below is one advanced component taking advantage of processing already done in component above.
+Below is one advanced component taking advantage of processing already done in component above. See the {{{schemas}}} attribute depicitng its dependency on {{{StockQuoteAnalyzer}}} context.
 {{{
 
 @EPContext(schemas={"StockQuoteAnalyzer"})
@@ -30,7 +30,7 @@ public interface AdvancedQuoteAnalyzer {
 
   * *Required* YES
 
-In above hardware analogy one container is a chip on a pci card. Does specific processing as programmed to do so. In the example below "InputStocks" is a container which takes input from a hand coded java program "generator.Portfolio".
+In above hardware analogy one container is a chip on a pci card. Does specific processing as programmed to do so. In the example below {{{InputStocks}}} is a container which takes input from a hand coded java program {{{generator.Portfolio}}}. The container below can also be written as {{{class InputStocks}}} to get hold of more features(will be discussed later).
 
 {{{
 @EPContext()
@@ -54,7 +54,7 @@ public interface StockQuoteAnalyzer {
   * *@EPAttribute*
   * *Required* NO Default: @EPAttribute(type=EPAttrType.Member)
 
-In the analogy to hardware one attribute is one bit of information entering into the chip through its data bus. Attribute defines the behavior of the the host Container. Unless specified all members in the Containers annotated with EPContainer are treated as the default attribute.
+In the analogy to hardware one attribute processes one bit of information entering into the chip through its data bus. Attribute defines the behavior of the the host Container. Unless specified all members in the Containers annotated with @EPContainer are treated as the default Member attribute.
 
 {{{
 @EPContext()
@@ -79,9 +79,27 @@ public interface StockQuoteAnalyzer {
 }}}
 
 
-= Behaviour =
+=== Behaviour ===
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+  * *Container Relationships* 
+   # Inheritance
+   # Union
+   # Join
+   # Subscription
+
+  * *Container Entry* 
+  
+  * *Attribute dependencies*
+
+  * *Access Privileges*
+   # *Static* Just as {{{static}}} keyword in Java Language Static Attributes live in the container memory space not in each Entry. They can drive changes to all entries in the host container in case of dependencies. These attributes in short save memory other wise we would have end up spending some memory for each entry in the container.
+   # *Private* Just as {{{private}}} keyword in Java Language Private Attributes are only visible in the same container and they do not propagate the information updates to listening containers. 
+   # *Member* All attributes unless otherwise specified are treated as member attribute in the container. These attributes flow to down stream containers unless declared with private java keyword.
+   # *Subscription* These are special purpose attributes where some external world information need to be injected into the system based on certain conditions. Such as Stock market prices, Volatility curves. These attributes are always dependent on other attribute but can NOT depend on Static Attribute. These attributes flow to down stream containers unless declared with private java keyword.
+   # *Stateless* Stateless attributes live in the space of container entries how ever do not consume any memory. Every time a down stream container requests connection these attributes are recomputed.  Remember to not putting any business logic where you do not wish to perform same activity multiple times like sending an email. *If the container is the terminal container and no one listens to this container these attributes will have no effect.* These attributes flow to down stream containers unless declared with private java keyword.
+
+  * *Transport*
+   #Serialization
+
+===Container Types===
+===Attribute Types===
