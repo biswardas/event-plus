@@ -136,8 +136,8 @@ public interface StockQuoteAnalyzer {
 		public interface Portfolio extends InputStocks {
 			@EPAttribute(type = EPAttrType.Subscriber, depends = "symbol", container = "NYSE")
 			public Quote nysePrice = null;
-        	.................
-      		.................
+                }
+        }
 }}}
 
 
