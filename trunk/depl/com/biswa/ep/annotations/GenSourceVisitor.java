@@ -36,7 +36,7 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 			context = e.getSimpleName().toString();
 			write("<?xml version='1.0'?>");
 			write("<Context name='" + context
-					+ "' xmlns='http://www.biswadas.com/pp/deployment-desc'>");
+					+ "' xmlns='http://code.google.com/p/event-plus'>");
 			visitContainers(e);
 			write("</Context>");
 		}
