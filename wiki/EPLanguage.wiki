@@ -90,7 +90,7 @@ public interface StockQuoteAnalyzer {
   * *Container Entry* 
   
   * *Attribute dependencies*
-If you look at the container below fahrenheit attribute is dependent on celsius  and is re-evaluated as and whenever celsius changes.
+If you look at the container below fahrenheit attribute is dependent on celsius  and is re-evaluated whenever celsius changes.
 {{{
 	@EPContainer()
 	public interface Weather{
@@ -108,7 +108,7 @@ How do I introduce dependencies where exists a self dependency. Let say I want t
 	}
 }}}
 
-Remember we spoke about we can use class instead of interface to take advantage of interface. Now its the time to look into class. Also we need to use class when exists a complex calculation which can not be in lined with a single initialization expression. If you look at the method below we are taking all inputs we care about in the formal arguments. And the name of the formal argument must be same as actual argument in order compiler to succeed. Else compilation will fail though you may be seeing it all good in Eclipse. Oh Yes we yet have to talk about [IDE development environment].
+Remember we spoke about we can use class instead of interface to take advantage of interface. Now its the time to look into class. Also we need to use class when exists a complex calculation which can not be in lined with a single initialization expression. If you look at the method below we are taking all inputs we care about in the formal arguments. And the name of the formal argument must be same as member argument in order compiler to succeed. Else compilation will fail though you may be seeing it all good in Eclipse. Oh Yes we yet have to talk about [IDE development environment].
 
 {{{
 	@EPContainer()
@@ -132,7 +132,21 @@ Remember we spoke about we can use class instead of interface to take advantage 
 	}
 }}}
 
-Can I depend on static attributes? Lets take a step back Before I answer this lets understand why do we even care about static attributes. Lets introduce a term called fairly static. Like our federal tax rates. Which do change and when changes nearly applicable to all of us. Lets look at the example below we could have simply created an interface and done with it. Although it works but not optimal and can lead to inconsistency.
+All good till now how ever I do not want to rewrite my business logic again its all coded already. Fair enough lets rewrite the example above
+with your already existing business code.
+
+{{{
+	@EPContainer()
+	public class Weather{
+                //Lets mark it static so we do not end up creating converter object for every entry.
+                //Thread safety of any helper object if onto you.
+                @EPAttribute(type=AttrType.Static)
+		public Converted myConverter = new Converter();
+		public Double celsius = null;
+		public Double fahrenheit= myConverter.conert(celsius);
+	}
+}}}
+*Can I depend on static attributes?* Lets take a step back Before we talk about this lets understand why do we even care about static attributes. Lets introduce a term called fairly static. Like our federal tax rates. Which do change and when changes nearly applicable to all of us. Lets look at the example below we could have simply created an interface and done with it. Although it works but not optimal and can lead to inconsistency.
 {{{
 	@EPContainer()
 	public interface ComputeTax{
@@ -152,7 +166,7 @@ By defining like below whenever taxRate is changed its applied universally to al
 		public Double tax= income*taxRate/100;
 	}
 }}}
-Cant we have done this? Yes and NO. You can inherit any interfaces/classes as Java language allows without marked with @EPContainer the members and attributes will just behave as helper members and can not propel any forward dependencies. In the sample example below there is no way taxRate can be changed with out rebuilding code. OK you can argue "I can code in certain way so that i can change the value of it without rebuilding. Let say changing Integer with AtomicInteger." Still NO yes you can change the value of it but it will just introduce inconsistencies.
+Cant we have done this? Yes and NO. You can inherit any interfaces/classes as Java language allows without marked with @EPContainer the members and attributes will just behave as helper members and can not propel any forward dependencies. In the sample example below there is no way taxRate can be changed without rebuilding code. OK you can argue "I can code in certain way so that i can change the value of it without rebuilding. Let say changing Integer with AtomicInteger." Still NO yes you can change the value of it but it will just introduce inconsistencies.
 {{{
 	public interface Constant{
 		public Integer taxRate= 10.0;
@@ -174,7 +188,8 @@ Cant we have done this? Yes and NO. You can inherit any interfaces/classes as Ja
    # *Stateless* Stateless attributes live in the space of container entries how ever do not consume any memory. Every time a down stream container requests connection these attributes are recomputed.  Remember to not putting any business logic where you do not wish to perform same activity multiple times like sending an email. *If the container is the terminal container and no one listens to this container these attributes will have no effect.* These attributes flow to down stream containers unless declared with private java keyword.
 
   * *Transport*
-   #Serialization
+   # Serialization
 
 ===Container Types===
 ===Attribute Types===
+===Documentation In Progress===
