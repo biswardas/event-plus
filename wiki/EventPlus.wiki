@@ -58,12 +58,12 @@ public interface StockQuoteAnalyzer {
 
 You must have noticed special annotations @EPContext and @EPContainer around the interfaces right? Yes that's where the magic begins. As we compile this interface just like as if any other standard java program Java compiler will generate special code wiring all the dependencies and deployment descriptors required to forward propagate the dependencies.
 
-During compilation phase Java compiler will delegate all java files annotated with @EPContext to event plus library for special purpose processing and will go through further code generation and sub sequential compilation phases behind the curtain. During compilation compiler will also generate deployment descriptors to deploy the generated code.
+During compilation phase Java compiler will delegate all java files annotated with @EPContext to event plus library for special purpose processing and will go through further code generation and sub sequential compilation phases behind the curtain. During compilation compiler will also generate deployment descriptors to deploy the generated code. Below is the generated deployment descriptor generated post compilation phase.
 
 <code language="xml">
 {{{
 <?xml version='1.0'?>
-<Context name='StockQuoteAnalyzer' xmlns='https://code.google.com/p/event-plus'>
+<Context name='StockQuoteAnalyzer' xmlns='http://code.google.com/p/event-plus'>
 	<Container type='Subscription' name='NYSE'>
 		<Publish method='LOCAL' />
 		<Attribute className='epimpl.schema.StockQuoteAnalyzer$NYSE$marketData' />
