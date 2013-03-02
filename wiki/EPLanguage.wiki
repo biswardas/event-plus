@@ -1,6 +1,47 @@
 = Syntax =
 
-Add your content here.
+===Structure===
+Top level element in Event Plus is an interface. It defines one technical / business component module. Not necessarily has to be the complete business solution. Remember multiple Context can interact with each other for parallel development not necessarily waiting for each other. Context provides a name space to the components.
+
+{{{
+
+@EPContext()
+public interface StockQuoteAnalyzer {
+}
+
+}}}
+
+
+Below is one advanced component taking advantage of processing already done in component above.
+{{{
+
+@EPContext(schemas={"StockQuoteAnalyzer"})
+public interface AdvancedQuoteAnalyzer {
+}
+
+}}}
+
+
+{{{
+@EPContext()
+public interface StockQuoteAnalyzer {
+        ................
+        ................
+        ................
+
+        @EPContainer(generator = "generator.Portfolio")
+        interface InputStocks {
+                String symbol = null;
+                Double quantity = null;
+                Double tranPrice = null;
+        }
+        ................
+        ................
+        ................
+
+}}}
+
+
 
 
 = Behaviour =
