@@ -94,9 +94,7 @@ public interface StockQuoteAnalyzer {
 		}
 	}
 }}}
-
    # *Union* Container merges all attributes and values both vertically and horizontally. Let take example below. Container AB inherits both A and B. AB has now 4 attributes {{{a1,a2,b1,b2}}} and assume A has 4 entries and B has 5 entries then AB will have 9 entries all together. Value of attributes from other containers will be defaulted in AB container. *If container A and B hosting entries with same identity then records will be merged ending with only 5 entries.* Mode of union can be configured to Substitute(default),Merge,Ignore.
-
 {{{
 	@EPContext
 	public interface UnionDemo {
@@ -116,8 +114,32 @@ public interface StockQuoteAnalyzer {
 	}
 }}}
    # *Join* Relational Join allows to join only 2 containers on certain key. Merge mode Union is a very restrictive form of Join  and can join more than 2 containers. Its recommended to use Union in place of Join where ever possible.
+   # *Subscription* This is a special form of relation ship between containers. Entries of one container create on demand subscription on other container and the server container fulfills the obligation based on the sink container request. If you look at the code snippet below here Portfolio is Sink container requesting to container NYSE through a Subscriber attribute named nysePrice.
 
-   # *Subscription* This is a special form of relation ship between containers. Entries of one container create on demand subscription on other container and the server container fulfills the obligation based on the sink container request.
+{{{
+@EPContext()
+public interface StockQuoteAnalyzer {
+	@EPContainer(type = EPConType.Subscription)
+	public interface NYSE {
+		@EPAttribute(type = EPAttrType.SubProcessor, processor = "processor.NYSEMarketData")
+		Quote marketData = null; 
+	}
+
+	@EPContainer(generator = "generator.Portfolio")
+	interface InputStocks {
+		String symbol = null;
+		Double quantity = null;
+		Double tranPrice = null;
+	}
+
+	@EPContainer(publish=EPPublish.RMI)
+	public interface Portfolio extends InputStocks {
+		@EPAttribute(type = EPAttrType.Subscriber, depends = "symbol", container = "NYSE")
+		public Quote nysePrice = null;
+.................
+.................
+}}}
+
 
   * *Container Entry* 
    # *Entry Identity*
