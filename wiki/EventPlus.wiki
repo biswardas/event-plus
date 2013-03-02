@@ -57,3 +57,44 @@ public interface StockQuoteAnalyzer {
 }}}
 
 You must have noticed special annotations @EPContext and @EPContainer around the interfaces right? Yes that's where the magic begins. As we compile this interface just like as if any other standard java program Java compiler will generate special code wiring all the dependencies and deployment descriptors required to forward propagate the dependencies.
+
+During compilation phase Java compiler will delegate all java files annotated with @EPContext to event plus library for special purpose processing and will go through further code generation and sub sequential compilation phases behind the curtain. During compilation compiler will also generate deployment descriptors to deploy the generated code.
+{{{
+
+StockQuoteAnalyzer.xml
+
+<?xml version='1.0'?>
+<Context name='StockQuoteAnalyzer' xmlns='http://www.biswadas.com/pp/deployment-desc'>
+	<Container type='Subscription' name='NYSE'>
+		<Publish method='LOCAL' />
+		<Attribute className='epimpl.schema.StockQuoteAnalyzer$NYSE$marketData' />
+	</Container>
+	<Container type='Subscription' name='NASDAQ'>
+		<Publish method='LOCAL' />
+		<Attribute className='epimpl.schema.StockQuoteAnalyzer$NASDAQ$marketData' />
+	</Container>
+	<Container type='Simple' name='InputStocks'>
+		<Publish method='LOCAL' />
+		<Attribute className='epimpl.schema.StockQuoteAnalyzer$InputStocks$symbol' />
+		<Attribute className='epimpl.schema.StockQuoteAnalyzer$InputStocks$quantity' />
+		<Attribute className='epimpl.schema.StockQuoteAnalyzer$InputStocks$tranPrice' />
+		<Source className='epimpl.schema.StockQuoteAnalyzer$InputStocks$Inlet' />
+	</Container>
+	<Container type='Simple' name='Portfolio'>
+		<Publish method='RMI' />
+		<Listen container='InputStocks' context='StockQuoteAnalyzer' method='LOCAL' transactionGroup='1' />
+		<Attribute className='epimpl.schema.StockQuoteAnalyzer$Portfolio$nysePrice' />
+		<Listen container='NYSE' context='StockQuoteAnalyzer' method='LOCAL' transactionGroup='2' />
+		<Feedback container='NYSE' context='StockQuoteAnalyzer' method='LOCAL' />
+		<Subscribe container='NYSE' context='StockQuoteAnalyzer' method='LOCAL' depends='symbol' response='nysePrice' />
+		<Attribute className='epimpl.schema.StockQuoteAnalyzer$Portfolio$nasdaqPrice' />
+		<Listen container='NASDAQ' context='StockQuoteAnalyzer' method='LOCAL' transactionGroup='4' />
+		<Feedback container='NASDAQ' context='StockQuoteAnalyzer' method='LOCAL' />
+		<Subscribe container='NASDAQ' context='StockQuoteAnalyzer' method='LOCAL' depends='symbol' response='nasdaqPrice' />
+		<Attribute className='epimpl.schema.StockQuoteAnalyzer$Portfolio$bestBid' />
+		<Attribute className='epimpl.schema.StockQuoteAnalyzer$Portfolio$bestAsk' />
+		<Attribute className='epimpl.schema.StockQuoteAnalyzer$Portfolio$stockWorth' />
+		<Attribute className='epimpl.schema.StockQuoteAnalyzer$Portfolio$PNL' />
+	</Container>
+</Context>
+}}}
