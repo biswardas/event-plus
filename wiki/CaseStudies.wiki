@@ -1,5 +1,7 @@
 = Case Studies =
 
-* [EventPlus Stock Quote Analyzer]
-* [DayLowHigh]
-* [Greeks Option Valuations]
+* [EventPlus Best Bid Ask] This simple example demonstrates merging quotes from different market and providing best quote to client and calculating simple profit and loss.
+
+* [HighLow Day high and Low bid] This examples demonstrates computing certain attributes which is dependent on some other value along with it self.
+
+* [Greeks Option Valuations] 
