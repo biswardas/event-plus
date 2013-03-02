@@ -1,15 +1,3 @@
 == Getting Started ==
 
-Event-Plus is a complex event processing middle-ware library based on Java. Can run inside in any JVM / Application container or run in its standalone JVM or distributed 
-across multiple hardware.
-
 == Terminology ==
-  * *[Substance]* is the smallest piece of information.
-  * *[Attribute]* is the definition of information.
-  * *[ContainerEntry]* is one record of {Attribute,Substance} pair.
-  * *[Container]* is the container of container entries. 
-  * *[Subscription]* one container entry subscribes information from another container.
-  * *[Transaction]* unit of work performed on a container.
-  * *Transaction Group* classifying the operation as part of a named transaction.
-  * *[Feedback]* sink container acknowledging source on completion of transaction.
-  * *[Filter]* conditional flow of information from source to sink.
