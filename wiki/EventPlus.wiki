@@ -101,4 +101,63 @@ During compilation phase Java compiler will delegate all java files annotated wi
 }}}
 </code>
 
+
+Check out event plus package from [http://event-plus.googlecode.com/svn/trunk/ Event Plus] to your preferred directory and build with 
+[http://ant.apache.org/ Ant]. We are compiling the event plus binary below not the example here. This will be once before we move to example compilation.
+{{{
+C:\Users\Biswa\workspace\EventPlus>ant
+Buildfile: C:\Users\Biswa\workspace\EventPlus\build.xml
+
+clean:
+   [delete] Deleting directory C:\Users\Biswa\workspace\EventPlus\build\test
+   [delete] Deleting directory C:\Users\Biswa\workspace\EventPlus\build\sources
+   [delete] Deleting directory C:\Users\Biswa\workspace\EventPlus\dist
+    [mkdir] Created dir: C:\Users\Biswa\workspace\EventPlus\build\test
+    [mkdir] Created dir: C:\Users\Biswa\workspace\EventPlus\build\sources
+    [mkdir] Created dir: C:\Users\Biswa\workspace\EventPlus\dist
+
+download-dependency:
+      [get] Getting: http://repo1.maven.org/maven2/pcj/pcj/1.2/pcj-1.2.jar
+      [get] To: C:\Users\Biswa\workspace\EventPlus\lib\pcj-1.2.jar
+      [get] Not modified - so not downloaded
+      [get] Getting: http://repo1.maven.org/maven2/junit/junit/4.11/junit-4.11.jar
+      [get] To: C:\Users\Biswa\workspace\EventPlus\lib\junit-4.11.jar
+      [get] Not modified - so not downloaded
+
+generate:
+     [java] parsing a schema...
+     [java] compiling a schema...
+     [java] com\biswa\ep\deployment\util\Attribute.java
+     [java] com\biswa\ep\deployment\util\Container.java
+     [java] com\biswa\ep\deployment\util\Context.java
+     [java] com\biswa\ep\deployment\util\Feedback.java
+     [java] com\biswa\ep\deployment\util\Filter.java
+     [java] com\biswa\ep\deployment\util\Handler.java
+     [java] com\biswa\ep\deployment\util\JoinPolicy.java
+     [java] com\biswa\ep\deployment\util\Listen.java
+     [java] com\biswa\ep\deployment\util\ObjectFactory.java
+     [java] com\biswa\ep\deployment\util\Param.java
+     [java] com\biswa\ep\deployment\util\Pivot.java
+     [java] com\biswa\ep\deployment\util\Publish.java
+     [java] com\biswa\ep\deployment\util\Sort.java
+     [java] com\biswa\ep\deployment\util\Source.java
+     [java] com\biswa\ep\deployment\util\Subscribe.java
+     [java] com\biswa\ep\deployment\util\Summary.java
+     [java] com\biswa\ep\deployment\util\package-info.java
+
+compile:
+    [javac] Compiling 247 source files to C:\Users\Biswa\workspace\EventPlus\build\sources
+
+build:
+      [jar] Building jar: C:\Users\Biswa\workspace\EventPlus\dist\ep.jar
+
+BUILD SUCCESSFUL
+Total time: 3 seconds
+
+C:\Users\Biswa\workspace\EventPlus>
+}}}
+
+
+
+
 == Step 2 Deploy the Application==
