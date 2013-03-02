@@ -117,27 +117,27 @@ public interface StockQuoteAnalyzer {
    # *Subscription* This is a special form of relation ship between containers. Entries of one container create on demand subscription on other container and the server container fulfills the obligation based on the sink container request. If you look at the code snippet below here Portfolio is Sink container requesting to container NYSE through a Subscriber attribute named nysePrice.
 
 {{{
-    @EPContext()
-    public interface StockQuoteAnalyzer {
-	@EPContainer(type = EPConType.Subscription)
-	public interface NYSE {
-		@EPAttribute(type = EPAttrType.SubProcessor, processor = "processor.NYSEMarketData")
-		Quote marketData = null; 
-	}
+	@EPContext
+	public interface StockQuoteAnalyzer {
+		@EPContainer(type = EPConType.Subscription)
+		public interface NYSE {
+			@EPAttribute(type = EPAttrType.SubProcessor, processor = "processor.NYSEMarketData")
+			Quote marketData = null; 
+		}
 
-	@EPContainer(generator = "generator.Portfolio")
-	interface InputStocks {
-		String symbol = null;
-		Double quantity = null;
-		Double tranPrice = null;
-	}
+		@EPContainer(generator = "generator.Portfolio")
+		interface InputStocks {
+			String symbol = null;
+			Double quantity = null;
+			Double tranPrice = null;
+		}
 
-	@EPContainer(publish=EPPublish.RMI)
-	public interface Portfolio extends InputStocks {
-		@EPAttribute(type = EPAttrType.Subscriber, depends = "symbol", container = "NYSE")
-		public Quote nysePrice = null;
-        .................
-        .................
+		@EPContainer(publish=EPPublish.RMI)
+		public interface Portfolio extends InputStocks {
+			@EPAttribute(type = EPAttrType.Subscriber, depends = "symbol", container = "NYSE")
+			public Quote nysePrice = null;
+        	.................
+      		.................
 }}}
 
 
