@@ -90,7 +90,7 @@ public interface StockQuoteAnalyzer {
   * *Container Entry* 
   
   * *Attribute dependencies*
-If you look at the container below result attribute is dependent on x and y and is re-evaluated as and when either x or y changes.
+If you look at the container below fahrenheit attribute is dependent on celsius  and is re-evaluated as and whenever celsius changes.
 {{{
 	@EPContainer()
 	public interface Weather{
