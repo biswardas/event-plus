@@ -64,7 +64,7 @@ During compilation phase Java compiler will delegate all java files annotated wi
 StockQuoteAnalyzer.xml
 
 <?xml version='1.0'?>
-<Context name='StockQuoteAnalyzer' xmlns='http://www.biswadas.com/pp/deployment-desc'>
+<Context name='StockQuoteAnalyzer' xmlns='https://code.google.com/p/event-plus'>
 	<Container type='Subscription' name='NYSE'>
 		<Publish method='LOCAL' />
 		<Attribute className='epimpl.schema.StockQuoteAnalyzer$NYSE$marketData' />
