@@ -60,9 +60,8 @@ You must have noticed special annotations @EPContext and @EPContainer around the
 
 During compilation phase Java compiler will delegate all java files annotated with @EPContext to event plus library for special purpose processing and will go through further code generation and sub sequential compilation phases behind the curtain. During compilation compiler will also generate deployment descriptors to deploy the generated code.
 
-{{{
-See StockQuoteAnalyzer.xml below.
 <code language="xml">
+{{{
 <?xml version='1.0'?>
 <Context name='StockQuoteAnalyzer' xmlns='https://code.google.com/p/event-plus'>
 	<Container type='Subscription' name='NYSE'>
@@ -97,5 +96,5 @@ See StockQuoteAnalyzer.xml below.
 		<Attribute className='epimpl.schema.StockQuoteAnalyzer$Portfolio$PNL' />
 	</Container>
 </Context>
-</code>
 }}}
+</code>
