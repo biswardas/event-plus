@@ -77,13 +77,51 @@ public interface StockQuoteAnalyzer {
 === Container ===
 
   * *Relationships* 
-   # Inheritance
-   # Union
-   # Join
-   # Subscription
+   # *Inheritance* One container inherits all attributes and its entries as specified by extends and/or implements. You can extend your regular helper classes as well whenever permitted.
+{{{
+	@EPContext
+	public interface WCalculator {
+		public static class Helper {
+			public static Double multiply(Double x, Double y) {
+				return x * y;
+			}
+		}
+		@EPContainer(generator="generator.HelperWorld")
+		public class Calculator extends Helper{
+	        	public Double x=null;
+	        	public Double y=null;
+	        	public Double result=multiply(x,y);
+		}
+	}
+}}}
+
+   # *Union* Container merges all attributes and values both vertically and horizontally. Let take example below. Container AB inherits both A and B. AB has now 4 attributes {{{a1,a2,b1,b2}}} and assume A has 4 entries and B has 5 entries then AB will have 9 entries all together. Value of attributes from other containers will be defaulted in AB container. *If container A and B hosting entries with same identity then records will be merged ending with only 5 entries.* Mode of union can be configured to Substitute(default),Merge,Ignore.
+
+{{{
+	@EPContext
+	public interface UnionDemo {
+		@EPContainer(generator="generator.InputA")
+		public interface A{
+	        	public Double a1=null;
+	        	public Double a2=null;
+		}
+		@EPContainer(generator="generator.InputB")
+		public interface B{
+	        	public Double b1=null;
+	        	public Double b2=null;
+		}
+		@EPContainer
+		public class AB implements A,B{
+		}
+	}
+}}}
+   # *Join* Relational Join allows to join only 2 containers on certain key. Can be thought like just join 
+   # *Subscription*
 
   * *Container Entry* 
- 
+   # *Entry Identity*
+   # *Resolving Identity Conflicts*
+
   * *Container types*
    # *Static*
    # *Basic*
