@@ -1,6 +1,5 @@
 = Case Studies =
 
 [EventPlus Stock Quote Analyzer]
-[DayLowHigh ]
-[Valuation Option Valuations]
-[Greeks]
+[DayLowHigh]
+[Greeks Valuation Option Valuations]
