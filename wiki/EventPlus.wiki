@@ -63,7 +63,7 @@ During compilation phase Java compiler will delegate all java files annotated wi
 <code language="xml">
 {{{
 <?xml version='1.0'?>
-<Context name='StockQuoteAnalyzer' xmlns='http://code.google.com/p/event-plus'>
+<Context name='StockQuoteAnalyzer' xmlns='http://www.biswadas.com/pp/deployment-desc'>
 	<Container type='Subscription' name='NYSE'>
 		<Publish method='LOCAL' />
 		<Attribute className='epimpl.schema.StockQuoteAnalyzer$NYSE$marketData' />
@@ -72,22 +72,22 @@ During compilation phase Java compiler will delegate all java files annotated wi
 		<Publish method='LOCAL' />
 		<Attribute className='epimpl.schema.StockQuoteAnalyzer$NASDAQ$marketData' />
 	</Container>
-	<Container type='Simple' name='InputStocks'>
+	<Container type='Basic' name='InputStocks'>
 		<Publish method='LOCAL' />
 		<Attribute className='epimpl.schema.StockQuoteAnalyzer$InputStocks$symbol' />
 		<Attribute className='epimpl.schema.StockQuoteAnalyzer$InputStocks$quantity' />
 		<Attribute className='epimpl.schema.StockQuoteAnalyzer$InputStocks$tranPrice' />
 		<Source className='epimpl.schema.StockQuoteAnalyzer$InputStocks$Inlet' />
 	</Container>
-	<Container type='Simple' name='Portfolio'>
+	<Container type='Basic' name='Portfolio'>
 		<Publish method='RMI' />
-		<Listen container='InputStocks' context='StockQuoteAnalyzer' method='LOCAL' transactionGroup='1' />
+		<Listen container='InputStocks' context='StockQuoteAnalyzer' method='LOCAL' />
 		<Attribute className='epimpl.schema.StockQuoteAnalyzer$Portfolio$nysePrice' />
-		<Listen container='NYSE' context='StockQuoteAnalyzer' method='LOCAL' transactionGroup='2' />
+		<Listen container='NYSE' context='StockQuoteAnalyzer' method='LOCAL' />
 		<Feedback container='NYSE' context='StockQuoteAnalyzer' method='LOCAL' />
 		<Subscribe container='NYSE' context='StockQuoteAnalyzer' method='LOCAL' depends='symbol' response='nysePrice' />
 		<Attribute className='epimpl.schema.StockQuoteAnalyzer$Portfolio$nasdaqPrice' />
-		<Listen container='NASDAQ' context='StockQuoteAnalyzer' method='LOCAL' transactionGroup='4' />
+		<Listen container='NASDAQ' context='StockQuoteAnalyzer' method='LOCAL' />
 		<Feedback container='NASDAQ' context='StockQuoteAnalyzer' method='LOCAL' />
 		<Subscribe container='NASDAQ' context='StockQuoteAnalyzer' method='LOCAL' depends='symbol' response='nasdaqPrice' />
 		<Attribute className='epimpl.schema.StockQuoteAnalyzer$Portfolio$bestBid' />
@@ -96,5 +96,6 @@ During compilation phase Java compiler will delegate all java files annotated wi
 		<Attribute className='epimpl.schema.StockQuoteAnalyzer$Portfolio$PNL' />
 	</Container>
 </Context>
+
 }}}
 </code>
