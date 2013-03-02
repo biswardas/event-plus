@@ -219,4 +219,4 @@ C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer>
 }}}
 http://event-plus.googlecode.com/svn/trunk/examples/StockQuoteAnalyzer/epclient.png
 
-* Congratulations * Now its time to get hands dirty lets get into some details [EPLanguage here].
+* Congratulations * Now its time to get hands dirty, learn [EPLanguage EventPlus] here.
