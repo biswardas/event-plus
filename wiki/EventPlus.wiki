@@ -183,3 +183,17 @@ C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer>
 
 
 == Step 2 Deploy the Application==
+Start the Server
+{{{
+C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer>start ant run-server
+
+C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer>
+}}}
+
+Start the demo Swing Client
+{{{
+C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer>start ant run-client
+
+C:\Users\Biswa\workspace\EventPlus\examples\StockQuoteAnalyzer>
+}}}
+http://event-plus.googlecode.com/svn/trunk/examples/StockQuoteAnalyzer/epclient.png
