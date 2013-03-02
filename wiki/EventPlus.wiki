@@ -1,6 +1,6 @@
 =Hello World=
 
-Lets win half the Battle by running through the use case below.
+Lets win half the battle by running through the use case below.
 
 
 = Stock Quote Analyzer =
