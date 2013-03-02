@@ -1,8 +1,6 @@
-===Program Structure===
+===Structure===
 
-  * *@EPContext*
-
-  * *Required* YES
+  * *@EPContext* *Required:* YES
 
 Top level element in Event Plus is an interface. It defines one technical / business module. Not necessarily has to be the complete business solution. Remember multiple Context can interact with each other for parallel development to build the entire solution. Context provides a name space to the module. In analogy to hardware think it like a pci card hosting interconnected chips. All the java classes annotated with @EPContext goes through special code generation phase during compilation. 
 
@@ -26,9 +24,7 @@ public interface AdvancedQuoteAnalyzer {
 
 }}}
 
-  * *@EPContainer*
-
-  * *Required* YES
+  * *@EPContainer* *Required:* YES
 
 In above hardware analogy one container is a chip on a pci card. Does specific processing as programmed to do so. In the example below {{{InputStocks}}} is a container which takes input from a hand coded java program {{{generator.Portfolio}}}. The container below can also be written as {{{class InputStocks}}} to get hold of more features(will be discussed later).
 
@@ -51,8 +47,7 @@ public interface StockQuoteAnalyzer {
 
 }}}
 
-  * *@EPAttribute*
-  * *Required* NO Default: @EPAttribute(type=EPAttrType.Member)
+  * *@EPAttribute* *Required:* NO Default: @EPAttribute(type=EPAttrType.Member)
 
 In the analogy to hardware one attribute processes one bit of information entering into the chip through its data bus. Attribute defines the behavior of the the host Container. Unless specified all members in the Containers annotated with @EPContainer are treated as the default Member attribute.
 
@@ -79,16 +74,39 @@ public interface StockQuoteAnalyzer {
 }}}
 
 
-=== Behaviour ===
+=== Container ===
 
-  * *Container Relationships* 
+  * *Relationships* 
    # Inheritance
    # Union
    # Join
    # Subscription
 
   * *Container Entry* 
-  
+ 
+  * *Container types*
+   # *Static*
+   # *Basic*
+   # *Feedback*
+   # *Timed*
+   # *Join*
+   # *Pivot*
+   # *Subscription*
+   # *Proxy*
+   # *Split*
+   # *ForkJoin*
+
+
+===Attribute===
+  * *Attribute typs and Access Privileges*
+   # *Static* Just as {{{static}}} keyword in Java Language Static Attributes live in the container memory space not in each Entry. They can drive changes to all entries in the host container in case of dependencies. These attributes in short save memory other wise we would have end up spending some memory for each entry in the container. Static attributes can depend on other static attributes but not to others.
+   # *Member* All attributes unless otherwise specified are treated as member attribute in the container. These attributes flow to down stream containers unless declared with private java keyword. These attributes can depend on other member attributes and static attributes.
+   # *Subscription* These are special purpose member attributes used where some external world information need to be injected into the system based on certain conditions. Such as Stock market prices. These attributes are always dependent on other member attribute but can NOT depend on Static Attribute. These attributes flow to down stream containers unless declared with private java keyword.
+   # *SubProcessor* This is a member attribute only lives in source Subscription Container. This is used in conjunction with *Subscription* attribute in sink side container. These attributes can NOT be declared private. 
+   # *Private* Just as {{{private}}} keyword in Java Language Private Attributes are only visible in the same container and they do not propagate the information updates to listening containers. This is helpful where you like to mark an attribute as private in an interface. If you are using class keyword to define your container you most likely will not need this.
+   # *Stateless* Stateless attributes live in the space of container entries how ever do not consume any memory. Every time a down stream container requests connection these attributes are recomputed.  Remember to not putting any business logic where you do not wish to perform same activity multiple times like sending an email. *If the container is the terminal container and no one listens to this container these attributes will have no effect.* These attributes flow to down stream containers unless declared with private java keyword.
+
+
   * *Attribute dependencies*
 If you look at the container below fahrenheit attribute is dependent on celsius  and is re-evaluated whenever celsius changes.
 {{{
@@ -108,7 +126,7 @@ How do I introduce dependencies where exists a self dependency. Let say I want t
 	}
 }}}
 
-Remember we spoke about we can use class instead of interface to take advantage of interface. Now its the time to look into class. Also we need to use class when exists a complex calculation which can not be in lined with a single initialization expression. If you look at the method below we are taking all inputs we care about in the formal arguments. And the name of the formal argument must be same as member argument in order compiler to succeed. Else compilation will fail though you may be seeing it all good in Eclipse. Oh Yes we yet have to talk about [IDE development environment].
+Remember we spoke about we can use class instead of interface. Now its the time to look into class. Also we need to use class when exists a complex calculation which can not be in lined with a single initialization expression. If you look at the method below we are taking all inputs we care about in the formal arguments. And the name of the formal argument must be same as member argument in order compiler to succeed. Else compilation will fail though you may be seeing it all good in Eclipse. Oh Yes we yet have to talk about [IDE development environment].
 
 {{{
 	@EPContainer()
@@ -177,19 +195,7 @@ Cant we have done this? Yes and NO. You can inherit any interfaces/classes as Ja
 		public Double tax= income*taxRate/100;
 	}
 }}}
-
-
-  * *Access Privileges*
-   # *Static* Just as {{{static}}} keyword in Java Language Static Attributes live in the container memory space not in each Entry. They can drive changes to all entries in the host container in case of dependencies. These attributes in short save memory other wise we would have end up spending some memory for each entry in the container. Static attributes can depend on other static attributes but not to others.
-   # *Member* All attributes unless otherwise specified are treated as member attribute in the container. These attributes flow to down stream containers unless declared with private java keyword. These attributes can depend on other member attributes and static attributes.
-   # *Subscription* These are special purpose member attributes used where some external world information need to be injected into the system based on certain conditions. Such as Stock market prices. These attributes are always dependent on other member attribute but can NOT depend on Static Attribute. These attributes flow to down stream containers unless declared with private java keyword.
-   # *SubProcessor* This is a member attribute only lives in source Subscription Container. This is used in conjunction with *Subscription* attribute in sink side container. These attributes can NOT be declared private. 
-   # *Private* Just as {{{private}}} keyword in Java Language Private Attributes are only visible in the same container and they do not propagate the information updates to listening containers. This is helpful where you like to mark an attribute as private in an interface. If you are using class keyword to define your container you most likely will not need this.
-   # *Stateless* Stateless attributes live in the space of container entries how ever do not consume any memory. Every time a down stream container requests connection these attributes are recomputed.  Remember to not putting any business logic where you do not wish to perform same activity multiple times like sending an email. *If the container is the terminal container and no one listens to this container these attributes will have no effect.* These attributes flow to down stream containers unless declared with private java keyword.
-
   * *Transport*
    # Serialization
 
-===Container Types===
-===Attribute Types===
 ===Documentation In Progress===
