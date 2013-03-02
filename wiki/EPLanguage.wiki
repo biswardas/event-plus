@@ -1,9 +1,13 @@
-= Syntax =
+===Program Structure===
 
-===Structure===
-Top level element in Event Plus is an interface. It defines one technical / business module. Not necessarily has to be the complete business solution. Remember multiple Context can interact with each other for parallel development to build the entire solution. Context provides a name space to the module.
+  * *@EPContext*
 
-  * @EPContext
+  * *Required* YES
+
+Top level element in Event Plus is an interface. It defines one technical / business module. Not necessarily has to be the complete business solution. Remember multiple Context can interact with each other for parallel development to build the entire solution. Context provides a name space to the module. In analogy to hardware think it like a pci card hosting interconnected chips. All the java classes annotated with @EPContext goes through special code generation phase during compilation. 
+
+
+
 {{{
 
 @EPContext()
@@ -22,7 +26,11 @@ public interface AdvancedQuoteAnalyzer {
 
 }}}
 
-  * @EPContainer
+  * *@EPContainer*
+
+  * *Required* YES
+
+In above hardware analogy one container is a chip on a pci card. Does specific processing as programmed to do so. In the example below InputStocks is a container which takes input from a hand coded java program "generator.Portfolio".
 
 {{{
 @EPContext()
@@ -43,7 +51,32 @@ public interface StockQuoteAnalyzer {
 
 }}}
 
+  * *@EPAttribute*
+  * *Required* NO Default: @EPAttribute(type=EPAttrType.Member)
 
+In the analogy to hardware one attribute is one bit of information entering into the chip through its data bus. Attribute defines the behavior of the the host Container. Unless specified all members in the Containers annotated with EPContainer are treated as the default attribute.
+
+{{{
+@EPContext()
+public interface StockQuoteAnalyzer {
+        ................
+        ................
+        ................
+
+        @EPContainer(generator = "generator.Portfolio")
+        interface InputStocks {
+		@EPAttribute(type=EPAttrType.Member)
+                String symbol = null;
+		@EPAttribute(type=EPAttrType.Member)
+                Double quantity = null;
+		@EPAttribute(type=EPAttrType.Member)
+                Double tranPrice = null;
+        }
+        ................
+        ................
+        ................
+
+}}}
 
 
 = Behaviour =
