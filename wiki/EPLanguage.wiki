@@ -142,7 +142,7 @@ public interface StockQuoteAnalyzer {
 
   * *Container Entry* 
    # *Entry Identity*
-   # *Resolving Identity Conflicts*
+   # *Identity Conflicts*
 
   * *Container types*
    # *Static*
