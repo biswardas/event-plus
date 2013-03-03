@@ -1,5 +1,12 @@
-===Structure===
+=EventPlus=
 
+EventPlus framework can be divided into 3 components. *Language* (just a bit restrictive Java), *Compiler*, and *Runtime*. We can code everything by hand and deploy it in EventPlus run-time. Just like a java class can be manufactured from thin air bypassing entire Java Language and Compiler and run in Java run-time its that simple and easy.
+We will cover all 3 sections below.
+
+==Language==
+EventPlus language is just plain old java with some special purpose annotations will be discussed below.
+
+=== Context ===
   * *@EPContext* *Required:* YES
 
 Top level element in Event Plus is an interface. It defines one technical / business module. Not necessarily has to be the complete business solution. Remember multiple Context can interact with each other for parallel development to build the entire solution. Context provides a name space to the module. In analogy to hardware think it like a pci card hosting interconnected chips. All the java classes annotated with @EPContext goes through special code generation phase during compilation. 
@@ -23,6 +30,7 @@ public interface AdvancedQuoteAnalyzer {
 }
 
 }}}
+=== Container ===
 
   * *@EPContainer* *Required:* YES
 
@@ -47,34 +55,7 @@ public interface StockQuoteAnalyzer {
 
 }}}
 
-  * *@EPAttribute* *Required:* NO Default: @EPAttribute(type=EPAttrType.Member)
 
-In the analogy to hardware one attribute processes one bit of information entering into the chip through its data bus. Attribute defines the behavior of the the host Container. Unless specified all members in the Containers annotated with @EPContainer are treated as the default Member attribute.
-
-{{{
-@EPContext()
-public interface StockQuoteAnalyzer {
-        ................
-        ................
-        ................
-
-        @EPContainer(generator = "generator.Portfolio")
-        interface InputStocks {
-		@EPAttribute(type=EPAttrType.Member)
-                String symbol = null;
-		@EPAttribute(type=EPAttrType.Member)
-                Double quantity = null;
-		@EPAttribute(type=EPAttrType.Member)
-                Double tranPrice = null;
-        }
-        ................
-        ................
-        ................
-
-}}}
-
-
-=== Container ===
 
   * *Relationships* 
    # *Inheritance* One container inherits all attributes and its entries as specified by extends and/or implements.
@@ -158,6 +139,34 @@ public interface StockQuoteAnalyzer {
 
 
 ===Attribute===
+
+  * *@EPAttribute* *Required:* NO Default: @EPAttribute(type=EPAttrType.Member)
+
+In the analogy to hardware one attribute processes one bit of information entering into the chip through its data bus. Attribute defines the behavior of the the host Container. Unless specified all members in the Containers annotated with @EPContainer are treated as the default Member attribute.
+
+{{{
+@EPContext()
+public interface StockQuoteAnalyzer {
+        ................
+        ................
+        ................
+
+        @EPContainer(generator = "generator.Portfolio")
+        interface InputStocks {
+		@EPAttribute(type=EPAttrType.Member)
+                String symbol = null;
+		@EPAttribute(type=EPAttrType.Member)
+                Double quantity = null;
+		@EPAttribute(type=EPAttrType.Member)
+                Double tranPrice = null;
+        }
+        ................
+        ................
+        ................
+
+}}}
+
+
   * *Attribute typs and Access Privileges*
    # *Static* Just as {{{static}}} keyword in Java Language Static Attributes live in the container memory space not in each Entry. They can drive changes to all entries in the host container in case of dependencies. These attributes in short save memory other wise we would have end up spending some memory for each entry in the container. Static attributes can depend on other static attributes but not to others.
    # *Member* All attributes unless otherwise specified are treated as member attribute in the container. These attributes flow to down stream containers unless declared with private java keyword. These attributes can depend on other member attributes and static attributes.
@@ -255,6 +264,8 @@ Cant we have done this? Yes and NO. You can inherit any interfaces/classes as Ja
 		public Double tax= income*taxRate/100;
 	}
 }}}
+
+
   * *Transport*
    # Serialization
 
