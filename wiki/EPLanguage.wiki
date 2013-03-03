@@ -77,20 +77,20 @@ public interface StockQuoteAnalyzer {
 === Container ===
 
   * *Relationships* 
-   # *Inheritance* One container inherits all attributes and its entries as specified by extends and/or implements. You can extend your regular helper classes as well whenever permitted.
+   # *Inheritance* One container inherits all attributes and its entries as specified by extends and/or implements.
 {{{
 	@EPContext
-	public interface WCalculator {
-		public static class Helper {
-			public static Double multiply(Double x, Double y) {
-				return x * y;
-			}
-		}
-		@EPContainer(generator="generator.HelperWorld")
-		public class Calculator extends Helper{
+	public interface QuickCheck {
+		@EPContainer(generator="generator.YourWorld")
+		public class Helper {
 	        	public Double x=null;
 	        	public Double y=null;
-	        	public Double result=multiply(x,y);
+		}
+		@EPContainer
+		public class Calculator extends Helper{
+			public Double multiply(Double x, Double y) {
+				return x * y;
+			}
 		}
 	}
 }}}
