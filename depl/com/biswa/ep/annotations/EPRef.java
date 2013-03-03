@@ -8,16 +8,16 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target( { ElementType.TYPE })
-public @interface EPContainer {
-	EPConType type() default EPConType.Basic;
-
-	EPPublish publish() default EPPublish.LOCAL;
-		
-	String generator() default "";
+public @interface EPRef {
+	String context() default "";
 	
+	String container();
+
 	String filter() default "";
 	
-	EPRef[] ref() default {};
-
-	String[] params() default {};
+	Mode mode() default Mode.AND;
+	
+	enum Mode{
+		AND,OR,NONE;
+	}
 }
