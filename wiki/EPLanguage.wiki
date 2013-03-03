@@ -1,7 +1,7 @@
 =EventPlus=
 
 EventPlus framework can be divided into 3 components. *Language* (just a bit restrictive Java), *Compiler*, and *Runtime*. We can code everything by hand and deploy it in EventPlus run-time. Just like a java class can be manufactured from thin air bypassing entire Java Language and Compiler and run in Java run-time its that simple and easy.
-We will cover all 3 sections below.
+We will cover all 3 sections below however as a event plus user we will spend most of our time in the language section.
 
 ==Language==
 EventPlus language is just plain old java with some special purpose annotations will be discussed below.
