@@ -54,17 +54,16 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 				write("<Container type='" + containerAnnot.type() + "' name='"
 						+ containerName + "'>");
 				write("<Publish method='" + containerAnnot.publish() + "'/>");
-				String contextToListen = containerAnnot.context().isEmpty() ? context
-						: containerAnnot.context();
 				switch (containerAnnot.type()) {
 				case Proxy:
+					String contextToListen = getSourceContext(containerAnnot);
 					proxyManager.registerProxy(epContainer);
 					upStreamContainers.register(containerName);
 					writeListener(
 							containerAnnot.publish(),
-							containerAnnot.container(), contextToListen);
+							getSourceContainer(containerAnnot), contextToListen);
 
-					writeSubscriber(containerAnnot.container(),
+					writeSubscriber(getSourceContainer(containerAnnot),
 							contextToListen, containerAnnot.publish(),
 							"SUBJECT", "Proxy");
 					break;
@@ -102,6 +101,12 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 		}
 	}
 
+	private String getSourceContext(EPContainer containerAnnot) {
+		String contextToListen = containerAnnot.ref()[0].context().isEmpty() ? context
+				: containerAnnot.ref()[0].context();
+		return contextToListen;
+	}
+
 	private void visitAttributes(Element epContainer,
 			UpstreamContainerManager upStreamContainers) {
 		for (Element innerElement : epContainer.getEnclosedElements()) {
@@ -125,16 +130,15 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 									.getProxy(epAttribute.container());
 							EPContainer proxyAnnotation = proxyContainer
 									.getAnnotation(EPContainer.class);
-							String actualContext = proxyAnnotation.context().isEmpty() ? context
-									: proxyAnnotation.context();
-							if(!upStreamContainers.isRegistered(proxyAnnotation.container())){
-								upStreamContainers.register(proxyAnnotation.container());
+							String actualContext = getSourceContext(proxyAnnotation);
+							if(!upStreamContainers.isRegistered(getSourceContainer(proxyAnnotation))){
+								upStreamContainers.register(getSourceContainer(proxyAnnotation));
 								writeListener(listenMethod,
 										epAttribute.container(), sourceContext);	
-								writeFeedback(proxyAnnotation.publish(), proxyAnnotation.container(),
+								writeFeedback(proxyAnnotation.publish(), getSourceContainer(proxyAnnotation),
 										actualContext);
 							}else{
-								upStreamContainers.register(proxyAnnotation.container());
+								upStreamContainers.register(getSourceContainer(proxyAnnotation));
 								writeListener(listenMethod,
 										epAttribute.container(), sourceContext);
 							}
@@ -154,6 +158,10 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 				}
 			}
 		}
+	}
+
+	private String getSourceContainer(EPContainer proxyAnnotation) {
+		return proxyAnnotation.ref()[0].container();
 	}
 
 	private String getKey(String oneParam) {
