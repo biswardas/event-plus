@@ -354,7 +354,7 @@ final public class JoinContainer extends ConcreteContainer {
 					updateIndex(right);
 				
 				joinedEntryCollection.add(this);
-				joinedEntry = new JoinContainerEntry(generateIdentity(),JoinContainer.this,left,right);
+				joinedEntry = new JoinContainerEntry(generateIdentity(),left,right);
 				JoinContainer.super.dispatchEntryAdded(joinedEntry);
 			}
 
