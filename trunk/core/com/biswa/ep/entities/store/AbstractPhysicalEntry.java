@@ -9,7 +9,7 @@ import com.biswa.ep.entities.ConcreteContainer;
  * @author biswa
  *
  */
-abstract class AbstractPhysicalEntry implements PhysicalEntry {
+public abstract class AbstractPhysicalEntry implements PhysicalEntry {
 
 	/**
 	 * 
@@ -19,7 +19,7 @@ abstract class AbstractPhysicalEntry implements PhysicalEntry {
 	final int externalIdentity;
 	int metainfo;
 	
-	AbstractPhysicalEntry(int externalIdentity){
+	public AbstractPhysicalEntry(int externalIdentity){
 		this.externalIdentity=externalIdentity;
 	}
 	
