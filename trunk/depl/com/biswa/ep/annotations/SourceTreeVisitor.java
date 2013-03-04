@@ -60,13 +60,11 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			private HashMap<String, HashSet<String>> inheritanceTree = new HashMap<String, HashSet<String>>();
 
 			private Element lookUpType(String sourceClassName, String variable) {
+				Element element = null;
 				HashMap<String, Element> myMap = typeMap.get(sourceClassName);
-				if (myMap == null) {
-					throw new RuntimeException(sourceClassName
-							+ " Is this a container? Detected dependency: "
-							+ variable);
+				if (myMap != null) {
+					element = myMap.get(variable);
 				}
-				Element element = myMap.get(variable);
 				if (element == null) {
 					Set<String> parentType = inheritanceTree
 							.get(sourceClassName);
@@ -82,7 +80,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 				return element;
 			}
 
-			public void add(String currentContainerName, String superClassName) {
+			public void addInheritance(String currentContainerName, String superClassName) {
 				if (inheritanceTree.containsKey(currentContainerName)) {
 					inheritanceTree.get(currentContainerName).add(
 							superClassName);
@@ -93,7 +91,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 				}
 			}
 
-			public void add(String currentContainerName, String memberName,
+			public void registerMember(String currentContainerName, String memberName,
 					Element element) {
 				if (typeMap.containsKey(currentContainerName)) {
 					typeMap.get(currentContainerName).put(memberName, element);
@@ -108,6 +106,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		private boolean collectDependencies = false;
 		private final TypeManager typeManager = new TypeManager();
 		private Set<String> dependencySet = new HashSet<String>();
+		private Set<TypeElement> containerSet = new HashSet<TypeElement>();
 
 		public boolean isInjectDependency() {
 			return collectDependencies;
@@ -124,11 +123,11 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		}
 
 		public void addInheritance(String className, String superClassName) {
-			typeManager.add(className, superClassName);
+			typeManager.addInheritance(className, superClassName);
 		}
 
-		public void addType(String className, String memberName, Element element) {
-			typeManager.add(className, memberName, element);
+		public void addMember(String className, String memberName, Element element) {
+			typeManager.registerMember(className, memberName, element);
 		}
 
 		public void reset() {
@@ -170,6 +169,20 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 				}
 			}
 			return epAttribute;
+		}
+
+		public String getQualifiedName(String container) {
+			String qualifiedName = null;
+			for(TypeElement oneElement:containerSet){
+				if(oneElement.getSimpleName().toString().equals(container)){
+					qualifiedName = oneElement.getQualifiedName().toString();
+				}
+			}
+			return qualifiedName;
+		}
+
+		public void register(TypeElement element) {
+			containerSet.add(element);
 		}
 	}
 
@@ -372,12 +385,10 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		for (Tree smallTree : arg0.getImports()) {
 			smallTree.accept(this, arg1);
 		}
-		// for (Element element : arg1.getEnclosedElements()) {
-		// if (element.getAnnotation(Generated.class) == null) {
+
 		Tree smallTree = trees.getTree(arg1);
 		smallTree.accept(this, arg1);
-		// }
-		// }
+
 		return true;
 	}
 
@@ -385,6 +396,11 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 	public Boolean visitClass(ClassTree arg0, Element arg1) {
 		boolean returnValue = true;
 		if (arg1.getAnnotation(EPContext.class) != null) {
+			for(Element enclosedElement:arg1.getEnclosedElements()){
+				if(enclosedElement.getAnnotation(EPContainer.class)!=null){
+					writeln("import " + targetPackage + "." +arg1.getSimpleName()+"."+ enclosedElement.getSimpleName() + ".*;");
+				}
+			}
 			generateEPContext(arg0, arg1);
 		} else if (arg1.getAnnotation(EPContainer.class) != null) {
 			generateEPContainer(arg0, arg1);
@@ -396,7 +412,15 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 
 	private void generateEPContainer(ClassTree arg0, Element arg1) {
 		TypeElement typeElement = (TypeElement) arg1;
+		dependencyManager.register(typeElement);
 		currentContainerName = typeElement.getQualifiedName().toString();
+
+		EPContainer epContainerAnn = arg1.getAnnotation(EPContainer.class);
+		for(int i=0;i<epContainerAnn.ref().length;i++){
+			dependencyManager.addInheritance(currentContainerName,
+					dependencyManager.getQualifiedName(epContainerAnn.ref()[i].container()));			
+		}
+		
 		if (arg1.getKind() == ElementKind.CLASS) {
 			write(arg0.getModifiers().toString());
 			write("class");
@@ -429,7 +453,6 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			containerTree.accept(this, containerElement);
 		}
 
-		EPContainer epContainerAnn = arg1.getAnnotation(EPContainer.class);
 		if (!epContainerAnn.generator().isEmpty()) {
 			generateInlet(epContainerAnn);
 		}
@@ -486,7 +509,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 
 	@Override
 	public Boolean visitVariable(VariableTree arg0, Element arg1) {
-		dependencyManager.addType(currentContainerName, arg0.getName()
+		dependencyManager.addMember(currentContainerName, arg0.getName()
 				.toString(), arg1);
 		boolean returnValue = true;
 		Tree initializer = arg0.getInitializer();
@@ -514,7 +537,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 	public Boolean visitMethod(MethodTree arg0, Element arg1) {
 		boolean returnValue = true;
 		if (arg1.getKind() != ElementKind.CONSTRUCTOR) {
-			dependencyManager.addType(currentContainerName, arg0.getName()
+			dependencyManager.addMember(currentContainerName, arg0.getName()
 					.toString(), arg1);
 			if (arg0.getParameters().size() > 0) {
 				dependencyManager.begin();

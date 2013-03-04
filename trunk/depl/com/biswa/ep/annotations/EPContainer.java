@@ -18,6 +18,8 @@ public @interface EPContainer {
 	String filter() default "";
 	
 	EPRef[] ref() default {};
-
+	
+	EPJoinType join() default EPJoinType.INNER_JOIN;
+	
 	String[] params() default {};
 }
