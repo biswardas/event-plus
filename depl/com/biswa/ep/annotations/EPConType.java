@@ -12,6 +12,7 @@ import com.biswa.ep.deployment.handler.SubscriptionDeploymentHandler;
 import com.biswa.ep.deployment.handler.TimedDeploymentHandler;
 
 public enum EPConType {
+	None(),
 	Basic(BasicDeploymentHandler.class),
 	Split(SplitDeploymentHandler.class), 
 	Feedback(FeedbackDeploymentHandler.class,true), 
@@ -23,6 +24,9 @@ public enum EPConType {
 	Static(StaticDeploymentHandler.class);
 	IDeployerHandler handler = null;
 	boolean feedback = false;
+
+	EPConType() {
+	}
 
 	EPConType(Class<? extends IDeployerHandler> handlerclass) {
 		try {
