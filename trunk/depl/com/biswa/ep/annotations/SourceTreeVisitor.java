@@ -4,7 +4,6 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.JarURLConnection;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -13,15 +12,13 @@ import java.util.jar.Attributes;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 
-import com.biswa.ep.annotations.EPCompilationException.ErrorCode;
+import com.biswa.ep.deployment.ContainerManager;
 import com.sun.source.tree.AnnotationTree;
 import com.sun.source.tree.ArrayAccessTree;
 import com.sun.source.tree.BinaryTree;
@@ -55,58 +52,12 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 	private String currentContainerName;
 
 	private class DependencyManager {
-		private class TypeManager {
-			private HashMap<String, HashMap<String, Element>> typeMap = new HashMap<String, HashMap<String, Element>>();
-			private HashMap<String, HashSet<String>> inheritanceTree = new HashMap<String, HashSet<String>>();
-
-			private Element lookUpType(String sourceClassName, String variable) {
-				Element element = null;
-				HashMap<String, Element> myMap = typeMap.get(sourceClassName);
-				if (myMap != null) {
-					element = myMap.get(variable);
-				}
-				if (element == null) {
-					Set<String> parentType = inheritanceTree
-							.get(sourceClassName);
-					if (parentType != null) {
-						for (String oneSuper : parentType) {
-							element = lookUpType(oneSuper, variable);
-							if (element != null) {
-								break;
-							}
-						}
-					}
-				}
-				return element;
-			}
-
-			public void addInheritance(String currentContainerName, String superClassName) {
-				if (inheritanceTree.containsKey(currentContainerName)) {
-					inheritanceTree.get(currentContainerName).add(
-							superClassName);
-				} else {
-					HashSet<String> hs = new HashSet<String>();
-					hs.add(superClassName);
-					inheritanceTree.put(currentContainerName, hs);
-				}
-			}
-
-			public void registerMember(String currentContainerName, String memberName,
-					Element element) {
-				if (typeMap.containsKey(currentContainerName)) {
-					typeMap.get(currentContainerName).put(memberName, element);
-				} else {
-					HashMap<String, Element> hs = new HashMap<String, Element>();
-					hs.put(memberName, element);
-					typeMap.put(currentContainerName, hs);
-				}
-			}
-		}
-
+		private EPContainerManager epContainerManager;
 		private boolean collectDependencies = false;
-		private final TypeManager typeManager = new TypeManager();
 		private Set<String> dependencySet = new HashSet<String>();
-		private Set<TypeElement> containerSet = new HashSet<TypeElement>();
+		public DependencyManager(EPContainerManager epContainerManager) {
+			this.epContainerManager = epContainerManager;
+		}
 
 		public boolean isInjectDependency() {
 			return collectDependencies;
@@ -116,19 +67,6 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			collectDependencies = true;
 		}
 
-		public void add(String attribute) {
-			if (typeManager.lookUpType(currentContainerName, attribute) != null) {
-				dependencySet.add(attribute);
-			}
-		}
-
-		public void addInheritance(String className, String superClassName) {
-			typeManager.addInheritance(className, superClassName);
-		}
-
-		public void addMember(String className, String memberName, Element element) {
-			typeManager.registerMember(className, memberName, element);
-		}
 
 		public void reset() {
 			collectDependencies = false;
@@ -143,62 +81,45 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			return !dependencySet.isEmpty();
 		}
 
-		public String lookUpType(String oneDependency) {
-			String type = null;
-			Element element = typeManager.lookUpType(currentContainerName, oneDependency);
-			switch (element.getKind()) {
-				case FIELD:
-					VariableElement vael = (VariableElement) element;
-					type =  vael.asType().toString();
-					break;
-				case METHOD:
-					ExecutableElement meth = (ExecutableElement) element;
-					type =  meth.getReturnType().toString();
-				default:
-					break;
+		public void add(String attribute) {
+			if (epContainerManager.typeKnown(currentContainerName, attribute)) {
+				dependencySet.add(attribute);
+			}else{
+				System.out.println("Could not locate type for:"+attribute);
 			}
-			return type;
 		}
 
-		public EPAttribute getEPAttribute(String memberName) {			
-			Element element = typeManager.lookUpType(currentContainerName, memberName);
-			EPAttribute epAttribute=element.getAnnotation(EPAttribute.class);
-			if(!currentContainerName.equals(element.getEnclosingElement().asType().toString())){
-				if(element.getModifiers().contains(Modifier.PRIVATE)){
-					throw new EPCompilationException("Access privilage violation in container :"+currentContainerName+" member:"+memberName,ErrorCode.ACCESS);
-				}
-			}
-			return epAttribute;
+		public void addInheritance(String className, String superClassName) {
+			epContainerManager.addInheritance(className, superClassName);
+		}
+
+		public void addMember(String className, String memberName, Element element) {
+			epContainerManager.addMember(className, memberName, element);
+		}
+		
+		public String lookUpType(String oneDependency) {
+			return epContainerManager.lookUpType(currentContainerName, oneDependency);
+		}
+
+		public EPAttribute getEPAttribute(String memberName) {
+			return epContainerManager.getEPAttribute(currentContainerName, memberName);
 		}
 
 		public String getQualifiedName(String container) {
-			String qualifiedName = null;
-			for(TypeElement oneElement:containerSet){
-				if(oneElement.getSimpleName().toString().equals(container)){
-					qualifiedName = oneElement.getQualifiedName().toString();
-				}
-			}
-			return qualifiedName;
-		}
-
-		public void register(TypeElement element) {
-			containerSet.add(element);
+			return epContainerManager.getQualifiedName(container);
 		}
 	}
 
-	private final DependencyManager dependencyManager = new DependencyManager();
+	private final DependencyManager dependencyManager;
 	private Writer writer;
 	private Trees trees;
 	private String targetPackage;
 
-	public SourceTreeVisitor(Writer writer, String targetPackage, Trees trees) {
+	public SourceTreeVisitor(EPContainerManager containerManager,Writer writer, String targetPackage, Trees trees) {
 		this.writer = writer;
 		this.trees = trees;
 		this.targetPackage = targetPackage;
-	}
-
-	public SourceTreeVisitor(Trees trees) {
-		this(new OutputStreamWriter(System.out), null, trees);
+		dependencyManager = new DependencyManager(containerManager);
 	}
 
 	@Override
@@ -412,7 +333,6 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 
 	private void generateEPContainer(ClassTree arg0, Element arg1) {
 		TypeElement typeElement = (TypeElement) arg1;
-		dependencyManager.register(typeElement);
 		currentContainerName = typeElement.getQualifiedName().toString();
 
 		EPContainer epContainerAnn = arg1.getAnnotation(EPContainer.class);

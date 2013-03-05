@@ -25,6 +25,7 @@ import com.sun.source.util.Trees;
 @SupportedAnnotationTypes( { "com.biswa.ep.annotations.EPContext" })
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class EPAnnotationProcessor extends AbstractProcessor {
+	private EPContainerManager containerManager = new EPContainerManager();
 	@Override
 	public synchronized void init(ProcessingEnvironment processingEnv) {
 		super.init(processingEnv);
@@ -33,6 +34,22 @@ public class EPAnnotationProcessor extends AbstractProcessor {
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations,
 			RoundEnvironment roundEnv) {
+
+		//Pass 1 register all containers
+		for (Element element : roundEnv.getRootElements()) {
+			if(element.getAnnotation(Generated.class) == null && element.getAnnotation(EPContext.class)!=null){
+				for (Element innerElement : element.getEnclosedElements()) {
+					EPContainer containerAnnot = innerElement
+							.getAnnotation(EPContainer.class);
+					if (containerAnnot != null) {
+						TypeElement epContainer = (TypeElement) innerElement;
+						containerManager.registerContainer(epContainer);
+					}
+				}
+			}
+		}
+
+		//Pass 2 register all containers
 		for (Element element : roundEnv.getRootElements()) {
 			if (element.getAnnotation(Generated.class) == null && element.getAnnotation(EPContext.class)!=null) {
 				System.out.println("Invoking on:" + element.getSimpleName());
@@ -56,7 +73,7 @@ public class EPAnnotationProcessor extends AbstractProcessor {
 		String targetPackage = getTargetPackage(tree).toString();
 		FileObject fob = processingEnv.getFiler().createSourceFile(targetPackage+"."+ element.getSimpleName());
 		Writer writer = fob.openWriter();
-		SourceTreeVisitor stv = new SourceTreeVisitor(writer,targetPackage, trees);
+		SourceTreeVisitor stv = new SourceTreeVisitor(containerManager,writer,targetPackage, trees);
 		tree.accept(stv, element);
 		writer.close();
 	}

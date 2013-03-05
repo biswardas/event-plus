@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.annotation.Annotation;
-import java.util.HashMap;
 import java.util.HashSet;
 
 import javax.lang.model.element.Element;
@@ -19,13 +18,13 @@ import com.sun.tools.javac.code.Symbol;
 public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 	private Writer writer = null;
 	private String context = null;
-	private ContainerManager containerManager = new ContainerManager();
-
+	private EPContainerManager containerManager = null;
 	public GenSourceVisitor() {
 		writer = new OutputStreamWriter(System.out);
 	}
 
-	public GenSourceVisitor(Writer writer) {
+	public GenSourceVisitor(EPContainerManager containerManager,Writer writer) {
+		this.containerManager=containerManager;
 		this.writer = writer;
 	}
 
@@ -49,9 +48,8 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 					.getAnnotation(EPContainer.class);
 			if (containerAnnot != null) {
 				TypeElement epContainer = (TypeElement) innerElement;
-				containerManager.registerContainer(epContainer);
 				String containerName = epContainer.getSimpleName().toString();
-				UpstreamContainerManager upStreamContainers = new UpstreamContainerManager();
+				CurrentContainerManager upStreamContainers = new CurrentContainerManager();
 				write("<Container type='" + containerAnnot.type() + "' name='"
 						+ containerName + "'>");
 				write("<Publish method='" + containerAnnot.publish() + "'/>");
@@ -66,7 +64,7 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 							leftContainer,
 							leftContext, "Left",leftFilter,leftChainMode);
 					if(containerManager.supportsFeedback(leftContainer)){
-						EPPublish listenMethod = containerManager.getListenMethod(leftContainer,leftContext);
+						EPPublish listenMethod = containerManager.getListenMethod(context,leftContainer,leftContext);
 						writeFeedback(listenMethod, leftContainer, leftContext);
 					}
 					String rightContext = getSourceContext(containerAnnot, 1);
@@ -78,7 +76,7 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 							rightContainer,
 							rightContext, "Right",rightFilter,rightChainMode);
 					if(containerManager.supportsFeedback(rightContainer)){
-						EPPublish listenMethod = containerManager.getListenMethod(leftContainer,leftContext);
+						EPPublish listenMethod = containerManager.getListenMethod(context,leftContainer,leftContext);
 						writeFeedback(listenMethod, rightContainer, rightContext);
 					}
 					write("<JoinPolicy type='" + containerAnnot.join() + "'/>");
@@ -134,7 +132,7 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 
 
 	private void visitAttributes(Element epContainer,
-			UpstreamContainerManager upStreamContainers) {
+			CurrentContainerManager upStreamContainers) {
 		for (Element innerElement : epContainer.getEnclosedElements()) {
 			EPAttribute epAttribute = innerElement
 					.getAnnotation(EPAttribute.class);
@@ -306,7 +304,7 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 		}
 	}
 
-	class UpstreamContainerManager {
+	class CurrentContainerManager {
 		private HashSet<String> registrations = new HashSet<String>();
 	
 		public void register(Element inheritedContainer) {
@@ -327,33 +325,6 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 		 */
 		public boolean isRegistered(String containerName) {
 			return registrations.contains(containerName);
-		}
-	}
-
-	class ContainerManager {
-		private HashMap<String, TypeElement> containers = new HashMap<String, TypeElement>();
-	
-		public void registerContainer(TypeElement epContainer) {
-			containers.put(epContainer.getSimpleName().toString(), epContainer);
-		}
-	
-		public TypeElement getContainer(String name) {
-			return containers.get(name);
-		}
-	
-		public boolean isProxy(String name) {
-			TypeElement element = containers.get(name);
-			return element.getAnnotation(EPContainer.class).type() == EPConType.Proxy;
-		}
-		public boolean supportsFeedback(String name) {
-			TypeElement element = containers.get(name);
-			return element.getAnnotation(EPContainer.class).type().supportsFeedback();
-		}
-		
-		public EPPublish getListenMethod(String containerName,String sourceContext){
-			return sourceContext.equals(context) ? EPPublish.LOCAL
-					: containers.get(containerName).getAnnotation(EPContainer.class)
-							.publish();
 		}
 	}
 

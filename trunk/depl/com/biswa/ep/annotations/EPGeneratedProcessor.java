@@ -19,6 +19,7 @@ import javax.tools.StandardLocation;
 @SupportedAnnotationTypes( {"javax.annotation.Generated" })
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class EPGeneratedProcessor extends AbstractProcessor {
+	private EPContainerManager containerManager = new EPContainerManager();
 	@Override
 	public synchronized void init(ProcessingEnvironment processingEnv) {
 		super.init(processingEnv);
@@ -27,6 +28,21 @@ public class EPGeneratedProcessor extends AbstractProcessor {
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations,
 			RoundEnvironment roundEnv) {
+		//Pass 1 register all containers
+		for (Element element : roundEnv.getRootElements()) {
+			if(element.getAnnotation(Generated.class)!=null && element.getAnnotation(EPContext.class)!=null){
+				for (Element innerElement : element.getEnclosedElements()) {
+					EPContainer containerAnnot = innerElement
+							.getAnnotation(EPContainer.class);
+					if (containerAnnot != null) {
+						TypeElement epContainer = (TypeElement) innerElement;
+						containerManager.registerContainer(epContainer);
+					}
+				}
+			}
+		}
+
+		//Pass 2 Generate Deployment descripters
 		for (Element element : roundEnv.getRootElements()) {
 			if(element.getAnnotation(Generated.class)!=null && element.getAnnotation(EPContext.class)!=null){
 				try {
@@ -34,7 +50,7 @@ public class EPGeneratedProcessor extends AbstractProcessor {
 							StandardLocation.SOURCE_OUTPUT, "",
 							element.getSimpleName()+".xml", element);
 					Writer writer = fob.openWriter();
-					element.accept(new GenSourceVisitor(writer),null);
+					element.accept(new GenSourceVisitor(containerManager,writer),null);
 					writer.close();
 				} catch (IOException e) {
 					throw new RuntimeException(e);
@@ -43,4 +59,5 @@ public class EPGeneratedProcessor extends AbstractProcessor {
 		}
 		return false;
 	}
+
 }
