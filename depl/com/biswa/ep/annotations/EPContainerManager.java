@@ -2,86 +2,68 @@ package com.biswa.ep.annotations;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 
 import com.biswa.ep.annotations.EPCompilationException.ErrorCode;
 
 
 public class EPContainerManager {
 
-	private class TypeManager {
-		private HashMap<String, HashMap<String, Element>> typeMap = new HashMap<String, HashMap<String, Element>>();
-
-		private Element lookUpType(String sourceClassName, String variable) {
-			Element element = null;
-			HashMap<String, Element> myMap = typeMap.get(sourceClassName);
-			if (myMap != null) {
-				element = myMap.get(variable);
-			}
-			if (element == null) {
-				Set<String> parentType = inheritanceTree
-						.get(sourceClassName);
-				if (parentType != null) {
-					for (String oneSuper : parentType) {
-						element = lookUpType(oneSuper, variable);
-						if (element != null) {
-							break;
-						}
-					}
-				}
-			}
-			return element;
-		}
-
-		public void addInheritance(String currentContainerName, String superClassName) {
-			if (inheritanceTree.containsKey(currentContainerName)) {
-				inheritanceTree.get(currentContainerName).add(
-						superClassName);
-			} else {
-				HashSet<String> hs = new HashSet<String>();
-				hs.add(superClassName);
-				inheritanceTree.put(currentContainerName, hs);
-			}
-		}
-
-		public void registerMember(String currentContainerName, String memberName,
-				Element element) {
-			if (typeMap.containsKey(currentContainerName)) {
-				typeMap.get(currentContainerName).put(memberName, element);
-			} else {
-				HashMap<String, Element> hs = new HashMap<String, Element>();
-				hs.put(memberName, element);
-				typeMap.put(currentContainerName, hs);
-			}
-		}
-	}
-
+	private HashMap<String, String> nameToQNameMap = new HashMap<String, String>();
+	
 	private HashMap<String, HashSet<String>> inheritanceTree = new HashMap<String, HashSet<String>>();
 
 	private HashMap<String, TypeElement> containers = new HashMap<String, TypeElement>();
 
-	private final TypeManager typeManager = new TypeManager();
-	
 	public void registerContainer(TypeElement epContainer) {
-		containers.put(epContainer.getSimpleName().toString(), epContainer);
+		nameToQNameMap.put(epContainer.getSimpleName().toString(), epContainer.getQualifiedName().toString());
+		containers.put(epContainer.getQualifiedName().toString(), epContainer);
+		List<? extends TypeMirror> interfaceList = epContainer.getInterfaces();
+		Iterator<? extends TypeMirror> iter = interfaceList.iterator();
+		while (iter.hasNext()) {
+			TypeMirror oneInterface = iter.next();
+			Element asElement = ((DeclaredType) oneInterface).asElement();
+			if (asElement.getAnnotation(EPContainer.class)!=null) {
+				addInheritance(epContainer.getQualifiedName().toString(),
+						oneInterface.toString());
+			}
+		}
+		if(epContainer.getSuperclass().getKind()==TypeKind.DECLARED){
+			TypeElement typeElement = (TypeElement) ((DeclaredType) epContainer.getSuperclass()).asElement();
+			if (typeElement.getAnnotation(EPContainer.class)!=null) {
+				addInheritance(epContainer.getQualifiedName().toString(),
+						typeElement.getQualifiedName().toString());
+			}
+		}
 	}
 
-	public TypeElement getContainer(String name) {
-		return containers.get(name);
+	public TypeElement getContainerBySimpleName(String name) {
+		if(nameToQNameMap.containsKey(name)){
+			return containers.get(nameToQNameMap.get(name));
+		}else{
+			throw new EPCompilationException("Unknown containerDont know about container");
+		}
 	}
 
 	public boolean isProxy(String name) {
-		TypeElement element = containers.get(name);
+		TypeElement element = getContainerBySimpleName(name);
 		return element.getAnnotation(EPContainer.class).type() == EPConType.Proxy;
 	}
+	
 	public boolean supportsFeedback(String name) {
-		TypeElement element = containers.get(name);
+		TypeElement element = getContainerBySimpleName(name);
 		return element.getAnnotation(EPContainer.class).type().supportsFeedback();
 	}
 	
@@ -95,21 +77,29 @@ public class EPContainerManager {
 		return containers.get(container).getQualifiedName().toString();
 	}
 
-	public boolean typeKnown(String currentContainerName,String attribute) {
-		return (typeManager.lookUpType(currentContainerName, attribute) != null);
+	public String typeKnown(String currentContainerName,String attribute) {
+		Element element = lookUpElement(currentContainerName, attribute);
+		if(element!=null){
+			return element.getEnclosingElement().getSimpleName().toString();
+		}else{
+			return null;
+		}
 	}
 
 	public void addInheritance(String className, String superClassName) {
-		typeManager.addInheritance(className, superClassName);
-	}
-
-	public void addMember(String className, String memberName, Element element) {
-		typeManager.registerMember(className, memberName, element);
+		if (inheritanceTree.containsKey(className)) {
+			inheritanceTree.get(className).add(
+					superClassName);
+		} else {
+			HashSet<String> hs = new HashSet<String>();
+			hs.add(superClassName);
+			inheritanceTree.put(className, hs);
+		}
 	}
 	
 	public String lookUpType(String currentContainerName,String oneDependency) {
 		String type = null;
-		Element element = typeManager.lookUpType(currentContainerName, oneDependency);
+		Element element = lookUpElement(currentContainerName, oneDependency);
 		switch (element.getKind()) {
 			case FIELD:
 				VariableElement vael = (VariableElement) element;
@@ -124,7 +114,7 @@ public class EPContainerManager {
 		return type;
 	}
 	public EPAttribute getEPAttribute(String currentContainerName,String memberName) {			
-		Element element = typeManager.lookUpType(currentContainerName, memberName);
+		Element element = lookUpElement(currentContainerName, memberName);
 		EPAttribute epAttribute=element.getAnnotation(EPAttribute.class);
 		if(!currentContainerName.equals(element.getEnclosingElement().asType().toString())){
 			if(element.getModifiers().contains(Modifier.PRIVATE)){
@@ -132,5 +122,45 @@ public class EPContainerManager {
 			}
 		}
 		return epAttribute;
+	}
+
+	private Element lookUpElement(String sourceClassName, String variable) {
+		Element element = null;
+		TypeElement typeElement = containers.get(sourceClassName);
+		//Lookup in immediate container
+		if (typeElement != null) {
+			for(Element oneElement:typeElement.getEnclosedElements()){
+				if(oneElement.getKind()==ElementKind.METHOD || oneElement.getKind()==ElementKind.FIELD){
+					if(oneElement.getSimpleName().toString().equals(variable)){
+						element = oneElement;
+						break;
+					}
+				}
+			}
+		}
+
+		//Lookup in referenced container
+		if (typeElement != null) {
+			for(EPRef oneRef:typeElement.getAnnotation(EPContainer.class).ref()){
+				if((element = lookUpElement(nameToQNameMap.get(oneRef.container()), variable))!=null){
+					break;
+				}
+				
+			}
+		}
+		//Look up in inherited containers
+		if (element == null) {
+			Set<String> parentType = inheritanceTree
+					.get(sourceClassName);
+			if (parentType != null) {
+				for (String oneSuper : parentType) {
+					element = lookUpElement(oneSuper, variable);
+					if (element != null) {
+						break;
+					}
+				}
+			}
+		}
+		return element;
 	}
 }

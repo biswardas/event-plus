@@ -153,7 +153,7 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 								&& containerManager.isProxy(epAttribute
 										.container())) {
 							TypeElement proxyContainer = containerManager
-									.getContainer(epAttribute.container());
+									.getContainerBySimpleName(epAttribute.container());
 							EPContainer proxyAnnotation = proxyContainer
 									.getAnnotation(EPContainer.class);
 							String actualContext = getSourceContext(proxyAnnotation);
