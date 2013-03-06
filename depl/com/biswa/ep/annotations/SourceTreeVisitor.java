@@ -311,11 +311,6 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 	public Boolean visitClass(ClassTree arg0, Element arg1) {
 		boolean returnValue = true;
 		if (arg1.getAnnotation(EPContext.class) != null) {
-			for(Element enclosedElement:arg1.getEnclosedElements()){
-				if(enclosedElement.getAnnotation(EPContainer.class)!=null){
-					writeln("import " + targetPackage + "." +arg1.getSimpleName()+"."+ enclosedElement.getSimpleName() + ".*;");
-				}
-			}
 			generateEPContext(arg0, arg1);
 		} else if (arg1.getAnnotation(EPContainer.class) != null) {
 			generateEPContainer(arg0, arg1);
