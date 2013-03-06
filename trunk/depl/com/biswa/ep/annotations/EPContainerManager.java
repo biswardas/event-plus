@@ -64,7 +64,7 @@ public class EPContainerManager {
 		if(nameToQNameMap.containsKey(name)){
 			return containers.get(nameToQNameMap.get(name));
 		}else{
-			throw new EPCompilationException("Unknown containerDont know about container");
+			throw new EPCompilationException("Unknown container:"+name);
 		}
 	}
 
