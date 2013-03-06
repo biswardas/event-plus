@@ -242,16 +242,8 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 		return proxyAnnotation.ref()[index].filter();
 	}
 
-	private String getSinkFilter(EPContainer proxyAnnotation) {
-		return getSinkFilter(proxyAnnotation, 0);
-	}
-
 	private String getChainMode(EPContainer proxyAnnotation, int index) {
 		return proxyAnnotation.ref()[index].mode().toString();
-	}
-
-	private String getChainMode(EPContainer proxyAnnotation) {
-		return getChainMode(proxyAnnotation, 0);
 	}
 	
 	private String getKey(String oneParam) {
