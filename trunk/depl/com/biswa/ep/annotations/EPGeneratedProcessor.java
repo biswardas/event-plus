@@ -31,6 +31,7 @@ public class EPGeneratedProcessor extends AbstractProcessor {
 		//Pass 1 register all containers
 		for (Element element : roundEnv.getRootElements()) {
 			if(element.getAnnotation(Generated.class)!=null && element.getAnnotation(EPContext.class)!=null){
+				containerManager.registerSchema((TypeElement)element);
 				for (Element innerElement : element.getEnclosedElements()) {
 					EPContainer containerAnnot = innerElement
 							.getAnnotation(EPContainer.class);
