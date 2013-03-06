@@ -93,11 +93,14 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		}
 
 		public String lookUpType(String oneDependency) {
-			return epContainerManager.lookUpType(currentContainerName, oneDependency);
+			return epContainerManager.lookUpVariableType(currentContainerName, oneDependency);
 		}
 
 		public EPAttribute getEPAttribute(String memberName) {
 			return epContainerManager.getEPAttribute(currentContainerName, memberName);
+		}
+		public TypeElement getSchemaElement(String schemaName) {
+			return epContainerManager.getSchemaBySimpleName(schemaName);
 		}
 	}
 
@@ -292,7 +295,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			writeln("import " + oneImport + ";");
 		}
 		for (String oneImport : epContext.schemas()) {
-			writeln("import " + targetPackage + "." + oneImport + ".*;");
+			writeln("import epimpl." + dependencyManager.getSchemaElement(oneImport).getQualifiedName()+ ".*;");
 		}
 		for (Tree smallTree : arg0.getImports()) {
 			smallTree.accept(this, arg1);

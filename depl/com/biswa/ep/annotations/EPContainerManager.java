@@ -26,7 +26,14 @@ public class EPContainerManager {
 	private HashMap<String, HashSet<String>> inheritanceTree = new HashMap<String, HashSet<String>>();
 
 	private HashMap<String, TypeElement> containers = new HashMap<String, TypeElement>();
+	
+	private HashMap<String, TypeElement> contexts = new HashMap<String, TypeElement>();
 
+
+	public void registerSchema(TypeElement epContext) {
+		contexts.put(epContext.getSimpleName().toString(), epContext);		
+	}
+	
 	public void registerContainer(TypeElement epContainer) {
 		nameToQNameMap.put(epContainer.getSimpleName().toString(), epContainer.getQualifiedName().toString());
 		containers.put(epContainer.getQualifiedName().toString(), epContainer);
@@ -47,6 +54,10 @@ public class EPContainerManager {
 						typeElement.getQualifiedName().toString());
 			}
 		}
+	}
+
+	public TypeElement getSchemaBySimpleName(String name) {
+		return contexts.get(name);
 	}
 
 	public TypeElement getContainerBySimpleName(String name) {
@@ -74,7 +85,7 @@ public class EPContainerManager {
 	}
 
 	public String typeKnown(String currentContainerName,String attribute) {
-		Element element = lookUpElement(currentContainerName, attribute);
+		Element element = lookUpVariable(currentContainerName, attribute);
 		if(element!=null){
 			return element.getEnclosingElement().getSimpleName().toString();
 		}else{
@@ -93,9 +104,9 @@ public class EPContainerManager {
 		}
 	}
 	
-	public String lookUpType(String currentContainerName,String oneDependency) {
+	public String lookUpVariableType(String currentContainerName,String oneDependency) {
 		String type = null;
-		Element element = lookUpElement(currentContainerName, oneDependency);
+		Element element = lookUpVariable(currentContainerName, oneDependency);
 		switch (element.getKind()) {
 			case FIELD:
 				VariableElement vael = (VariableElement) element;
@@ -110,7 +121,7 @@ public class EPContainerManager {
 		return type;
 	}
 	public EPAttribute getEPAttribute(String currentContainerName,String memberName) {			
-		Element element = lookUpElement(currentContainerName, memberName);
+		Element element = lookUpVariable(currentContainerName, memberName);
 		EPAttribute epAttribute=element.getAnnotation(EPAttribute.class);
 		if(!currentContainerName.equals(element.getEnclosingElement().asType().toString())){
 			if(element.getModifiers().contains(Modifier.PRIVATE)){
@@ -120,7 +131,7 @@ public class EPContainerManager {
 		return epAttribute;
 	}
 
-	private Element lookUpElement(String sourceClassName, String variable) {
+	private Element lookUpVariable(String sourceClassName, String variable) {
 		Element element = null;
 		TypeElement typeElement = containers.get(sourceClassName);
 		//Lookup in immediate container
@@ -138,7 +149,7 @@ public class EPContainerManager {
 		//Lookup in referenced container
 		if (typeElement != null) {
 			for(EPRef oneRef:typeElement.getAnnotation(EPContainer.class).ref()){
-				if((element = lookUpElement(nameToQNameMap.get(oneRef.container()), variable))!=null){
+				if((element = lookUpVariable(nameToQNameMap.get(oneRef.container()), variable))!=null){
 					break;
 				}
 				
@@ -150,7 +161,7 @@ public class EPContainerManager {
 					.get(sourceClassName);
 			if (parentType != null) {
 				for (String oneSuper : parentType) {
-					element = lookUpElement(oneSuper, variable);
+					element = lookUpVariable(oneSuper, variable);
 					if (element != null) {
 						break;
 					}
