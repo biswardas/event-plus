@@ -69,12 +69,8 @@ public class EPContainerManager {
 	
 	public EPPublish getListenMethod(String context,String containerName,String sourceContext){
 		return sourceContext.equals(context) ? EPPublish.LOCAL
-				: containers.get(containerName).getAnnotation(EPContainer.class)
+				: getContainerBySimpleName(containerName).getAnnotation(EPContainer.class)
 						.publish();
-	}
-
-	public String getQualifiedName(String container) {
-		return containers.get(container).getQualifiedName().toString();
 	}
 
 	public String typeKnown(String currentContainerName,String attribute) {

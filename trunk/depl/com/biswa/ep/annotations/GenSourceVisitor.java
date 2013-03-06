@@ -55,43 +55,14 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 				write("<Publish method='" + containerAnnot.publish() + "'/>");
 				switch (containerAnnot.type()) {
 				case Join:
-					String leftContext = getSourceContext(containerAnnot, 0);
-					String leftContainer = getSourceContainer(containerAnnot, 0);
-					String leftFilter = getSinkFilter(containerAnnot,0);
-					String leftChainMode = getChainMode(containerAnnot,0);
-					
-					writeListener(containerAnnot.publish(),
-							leftContainer,
-							leftContext, "Left",leftFilter,leftChainMode);
-					if(containerManager.supportsFeedback(leftContainer)){
-						EPPublish listenMethod = containerManager.getListenMethod(context,leftContainer,leftContext);
-						writeFeedback(listenMethod, leftContainer, leftContext);
-					}
-					String rightContext = getSourceContext(containerAnnot, 1);
-					String rightContainer = getSourceContainer(containerAnnot, 1);
-					String rightFilter = getSinkFilter(containerAnnot,1);
-					String rightChainMode = getChainMode(containerAnnot,1);
-					
-					writeListener(containerAnnot.publish(),
-							rightContainer,
-							rightContext, "Right",rightFilter,rightChainMode);
-					if(containerManager.supportsFeedback(rightContainer)){
-						EPPublish listenMethod = containerManager.getListenMethod(context,leftContainer,leftContext);
-						writeFeedback(listenMethod, rightContainer, rightContext);
-					}
-					write("<JoinPolicy type='" + containerAnnot.join() + "'/>");
+					generateJoinDescriptor(containerAnnot);
 					break;
 				case Proxy:
-					String contextToListen = getSourceContext(containerAnnot);
-					upStreamContainers.register(containerName);
-					writeListener(containerAnnot.publish(),
-							getSourceContainer(containerAnnot), contextToListen);
-
-					writeSubscriber(getSourceContainer(containerAnnot),
-							contextToListen, containerAnnot.publish(),
-							"SUBJECT", "Proxy");
+					generateProxyDescriptor(containerAnnot, containerName,
+								upStreamContainers);
 					break;
 				default:
+					generateReferenceDescriptor(containerAnnot,upStreamContainers);
 					if (epContainer.getSuperclass().getKind() != TypeKind.NONE) {
 						Element classElement = ((DeclaredType) epContainer
 								.getSuperclass()).asElement();
@@ -105,9 +76,10 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 						Element interfaceElement = ((DeclaredType) typeMirror)
 								.asElement();
 						if (interfaceElement.getAnnotation(EPContainer.class) != null) {
-							upStreamContainers.register(interfaceElement);
-							generateListener(epContext, epContainer,
-									interfaceElement);
+							if(upStreamContainers.register(interfaceElement)){
+								generateListener(epContext, epContainer,
+										interfaceElement);
+							}
 						}
 					}
 					visitAttributes(epContainer, upStreamContainers);
@@ -127,6 +99,64 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 				}
 				write("</Container>");
 			}
+		}
+	}
+
+	private void generateProxyDescriptor(EPContainer containerAnnot,
+			String containerName, CurrentContainerManager upStreamContainers) {
+		String contextToListen = getSourceContext(containerAnnot);
+		upStreamContainers.register(containerName);
+		writeListener(containerAnnot.publish(),
+				getSourceContainer(containerAnnot), contextToListen);
+
+		writeSubscriber(getSourceContainer(containerAnnot),
+				contextToListen, containerAnnot.publish(),
+				"SUBJECT", "Proxy");
+	}
+
+	private void generateJoinDescriptor(EPContainer containerAnnot) {
+		String leftContext = getSourceContext(containerAnnot, 0);
+		String leftContainer = getSourceContainer(containerAnnot, 0);
+		String leftFilter = getSinkFilter(containerAnnot,0);
+		String leftChainMode = getChainMode(containerAnnot,0);
+		
+		writeListener(containerAnnot.publish(),
+				leftContainer,
+				leftContext, "Left",leftFilter,leftChainMode);
+		if(containerManager.supportsFeedback(leftContainer)){
+			EPPublish listenMethod = containerManager.getListenMethod(context,leftContainer,leftContext);
+			writeFeedback(listenMethod, leftContainer, leftContext);
+		}
+		String rightContext = getSourceContext(containerAnnot, 1);
+		String rightContainer = getSourceContainer(containerAnnot, 1);
+		String rightFilter = getSinkFilter(containerAnnot,1);
+		String rightChainMode = getChainMode(containerAnnot,1);
+		
+		writeListener(containerAnnot.publish(),
+				rightContainer,
+				rightContext, "Right",rightFilter,rightChainMode);
+		if(containerManager.supportsFeedback(rightContainer)){
+			EPPublish listenMethod = containerManager.getListenMethod(context,leftContainer,leftContext);
+			writeFeedback(listenMethod, rightContainer, rightContext);
+		}
+		write("<JoinPolicy type='" + containerAnnot.join() + "'/>");
+	}
+
+	private void generateReferenceDescriptor(EPContainer containerAnnot, CurrentContainerManager upStreamContainers) {
+		for(int index=0;index<containerAnnot.ref().length;index++){
+			String context = getSourceContext(containerAnnot, index);
+			String container = getSourceContainer(containerAnnot, index);
+			String filter = getSinkFilter(containerAnnot,index);
+			String chainMode = getChainMode(containerAnnot,index);
+			
+			writeListener(containerAnnot.publish(),
+					container,
+					context, "",filter,chainMode);
+			if(containerManager.supportsFeedback(container)){
+				EPPublish listenMethod = containerManager.getListenMethod(context,container,context);
+				writeFeedback(listenMethod, container, context);
+			}
+			upStreamContainers.register(container);
 		}
 	}
 
@@ -264,7 +294,9 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 		write("<Listen container='" + containerToListen + "' context='"
 				+ contextToListen + "' method='" + listenMethod + "' side='"
 				+ side + "'>");
-		writeFilter(filter,chainMode);
+		if(!filter.isEmpty()){
+			writeFilter(filter,chainMode);
+		}
 		write("</Listen>");
 	}
 
@@ -307,8 +339,12 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 	class CurrentContainerManager {
 		private HashSet<String> registrations = new HashSet<String>();
 	
-		public void register(Element inheritedContainer) {
+		public boolean register(Element inheritedContainer) {
+			if(isRegistered(inheritedContainer.getSimpleName().toString())){
+				return false;
+			}
 			register(inheritedContainer.getSimpleName().toString());
+			return true;
 		}
 	
 		/**
@@ -316,8 +352,12 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 		 * 
 		 * @return
 		 */
-		public void register(String containerName) {
+		public boolean register(String containerName) {
+			if(isRegistered(containerName)){
+				return false;
+			}
 			registrations.add(containerName);
+			return true;
 		}
 	
 		/*
