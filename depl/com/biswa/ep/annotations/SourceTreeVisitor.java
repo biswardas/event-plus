@@ -262,10 +262,10 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 	@Override
 	public Boolean visitMemberSelect(MemberSelectTree arg0, Element arg1) {
 		boolean returnValue = true;
-		// TODO revisit
 		if (dependencyManager.isInjectDependency()) {
 			arg0.getExpression().accept(this, arg1);
-			dependencyManager.add(arg0.getIdentifier().toString());
+			//No Need to care for the terminal
+			//dependencyManager.add(arg0.getIdentifier().toString());
 		} else {
 			returnValue = super.visitMemberSelect(arg0, arg1);
 		}
