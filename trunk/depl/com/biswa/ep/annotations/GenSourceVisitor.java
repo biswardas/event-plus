@@ -214,7 +214,7 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 
 					writeSubscriber(epAttribute.container(), sourceContext,
 							listenMethod, epAttribute.depends(), innerElement
-									.getSimpleName().toString());
+									.getSimpleName().toString(),epAttribute.processor());
 				}
 			}
 		}
@@ -315,6 +315,17 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 		write("<Subscribe container='" + container + "' context='" + context
 				+ "' method='" + listenMethod + "' depends='" + depends
 				+ "' response='" + response + "'/>");
+	}
+	
+	private void writeSubscriber(String container, String context,
+			EPPublish listenMethod, String depends, String response, String handler) {
+		write("<Subscribe container='" + container + "' context='" + context
+				+ "' method='" + listenMethod + "' depends='" + depends
+				+ "' response='" + response + "'>");
+			if(!handler.isEmpty()){
+				write("<Handler className='" + handler + "'/>");
+			}			
+		write("</Subscribe>");
 	}
 
 	private void write(String string) {
