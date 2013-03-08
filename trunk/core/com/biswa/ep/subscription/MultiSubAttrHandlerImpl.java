@@ -81,7 +81,7 @@ public class MultiSubAttrHandlerImpl implements SubscriptionAttrHandler {
 		Attribute responseAttribute = subscriptionAttribute
 				.getResponseAttribute();
 		
-		for (Entry<Integer, Substance> oneEntry : currentSubscriptionSet
+		for (Entry<Integer, Object> oneEntry : currentSubscriptionSet
 				.getValue().entrySet()) {
 			LeafAttribute leafAttribute = new LeafAttribute(responseAttribute
 					.getName(), oneEntry.getKey());
