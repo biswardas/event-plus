@@ -12,6 +12,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import javax.swing.SwingUtilities;
+
 import com.biswa.ep.NamedThreadFactory;
 import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.ContainerEvent;
@@ -81,6 +83,19 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		}
 	}
 	
+	private class SwingTaskHandler extends ContainerTaskHandler{
+		/**Method which applies the task on the container.
+		 * 
+		 * @param r
+		 */
+		public void executeNow(final ContainerTask r){
+			try {
+				SwingUtilities.invokeAndWait(r);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
 	/**Multithreaded task handler which applies the updates on the container in multiple
 	 * threads. The sequence of operation on the records are guaranteed.
 	 * @author biswa
@@ -128,8 +143,10 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		eventCollector = new ScheduledThreadPoolExecutor(1,new NamedThreadFactory("PPL",cl));
 		if(cl.concurrencySupport()>0){
 			taskHandler = new MultiThreadedHandler(cl);
-		}else{//Concurrency not supported.
+		}else if(cl.concurrencySupport()==0){//Concurrency not supported.
 			taskHandler = new ContainerTaskHandler();
+		}else{//Execute in Swing thread
+			taskHandler = new SwingTaskHandler();
 		}
 		transactionTracker = new TransactionTracker(this);
 		feedbackTracker = new FeedbackTracker(this);
@@ -455,7 +472,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	protected void flushPreconnectedQueue(){
 		ContainerTask r = null;
 		while((r=preConnectedQueue.poll())!=null){
-			r.run();
+			taskHandler.executeNow(r);
 		}
 	}
 

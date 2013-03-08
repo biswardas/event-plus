@@ -19,164 +19,92 @@ import javax.swing.table.TableRowSorter;
 
 import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.Attribute;
-import com.biswa.ep.entities.ConcreteContainer;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.ContainerEvent;
+import com.biswa.ep.entities.PivotContainer;
 import com.biswa.ep.entities.spec.SortSpec.SortOrder;
 import com.biswa.ep.entities.substance.ObjectSubstance;
 import com.biswa.ep.entities.substance.Substance;
-public class GenericViewer extends ConcreteContainer {
-
+public class GenericViewer extends PivotContainer {
 	private JFrame jframe = null;
 	private JTable jtable = null;
 	private ViewerTableModel vtableModel = null;
 	private SortOrder[] sortOrder = new SortOrder[0];
 
 	public GenericViewer(String name) {
-		super(name,new Properties());
-	}
+		super(name,new Properties(){
+			private static final long serialVersionUID = 1L;
 
-	public void dispose() {
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				if (jframe != null)
-					jframe.dispose();
+			{
+				put("concurrent","-1");
 			}
 		});
-	}
+		ContainerContext.initialize(GenericViewer.this);
+		jframe = new JFrame(getName()){
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = -2211995623288725113L;
 
-	public void start() {
-		Runnable r = new Runnable() {
-			public void run() {
-				ContainerContext.initialize(GenericViewer.this);
-				jframe = new JFrame(getName()){
-					/**
-					 * 
-					 */
-					private static final long serialVersionUID = -2211995623288725113L;
-	
-					{
-						this.addWindowListener(new WindowAdapter(){
-							private int x;
+			{
+				this.addWindowListener(new WindowAdapter(){
+					private int x;
 
-							@Override
-							public void windowClosing(WindowEvent e) {
-								if(++x==2) System.exit(0);
-								try{
-									disconnect(null);
-								}finally{
-									super.windowClosed(e);
-								}
-							}							
-						});
-					}
-				};
-				vtableModel = new ViewerTableModel(GenericViewer.this);
-				jtable = new JTable(vtableModel);
-				jtable.setPreferredScrollableViewportSize(new Dimension(500, 200));
-				jtable.setFillsViewportHeight(true);				
-				JScrollPane jsc = new JScrollPane(jtable);
-				jframe.add(jsc);
-				jsc.revalidate();
-				jframe.setVisible(true);
-				jframe.setSize(new Dimension(1200, 500));
+					@Override
+					public void windowClosing(WindowEvent e) {
+						if(++x==2) System.exit(0);
+						try{
+							disconnect(null);
+						}finally{
+							super.windowClosed(e);
+						}
+					}							
+				});
 			}
 		};
-		executeInSwingThread(r);
-	}
-
-	@Override
-	public void connected(final ConnectionEvent ce) {
-		Runnable r = new Runnable() {
-			public void run() {
-				GenericViewer.super.connected(ce);			
-				sortIt();
-			}
-		};
-		executeInSwingThread(r);
+		vtableModel = new ViewerTableModel(GenericViewer.this);
+		jtable = new JTable(vtableModel);
+		jtable.setPreferredScrollableViewportSize(new Dimension(500, 200));
+		jtable.setFillsViewportHeight(true);				
+		JScrollPane jsc = new JScrollPane(jtable);
+		jframe.add(jsc);
+		jsc.revalidate();
+		jframe.setVisible(true);
+		jframe.setSize(new Dimension(1200, 500));
 	}
 
 	@Override
 	public void disconnected(ConnectionEvent connectionEvent) {
-		Runnable r = new Runnable() {
-			public void run() {
-				jframe.dispose();
-				System.exit(0);
-			}
-		};
-		executeInSwingThread(r);
+		jframe.dispose();
+		System.exit(0);
 	}
+	
 	@Override
 	public void attributeAdded(final ContainerEvent ce) {
-		Runnable r = new Runnable() {
-			public void run() {
-				GenericViewer.super.attributeAdded(ce);
-				if (jtable != null) {
-					((AbstractTableModel) jtable.getModel())
-							.fireTableStructureChanged();
-				}
-			}
-		};
-		executeInSwingThread(r);
+		super.attributeAdded(ce);
+		if (jtable != null) {
+			((AbstractTableModel) jtable.getModel())
+					.fireTableStructureChanged();
+		}
 	}
 
 	@Override
 	public void attributeRemoved(final ContainerEvent ce) {
-		Runnable r = new Runnable() {
-			public void run() {
-				GenericViewer.super.attributeRemoved(ce);
-				if (jtable != null) {
-					((AbstractTableModel) jtable.getModel())
-							.fireTableStructureChanged();
-				}
-			}
-		};
-		executeInSwingThread(r);
+		super.attributeRemoved(ce);
+		if (jtable != null) {
+			((AbstractTableModel) jtable.getModel())
+					.fireTableStructureChanged();
+		}
 	}
 
-	@Override
-	public void entryAdded(final ContainerEvent ce) {
-		Runnable r = new Runnable() {
-			public void run() {
-				GenericViewer.super.entryAdded(ce);
-			}
-		};
-		executeInSwingThread(r);
-	}
-
-	@Override
-	public void entryRemoved(final ContainerEvent ce) {
-		Runnable r = new Runnable() {
-			public void run() {
-				GenericViewer.super.entryRemoved(ce);
-			}
-		};
-		executeInSwingThread(r);
-	}
-
-	@Override
-	public void entryUpdated(final ContainerEvent ce) {
-		Runnable r = new Runnable() {
-			public void run() {
-				GenericViewer.super.entryUpdated(ce);
-			}
-		};
-		executeInSwingThread(r);
-	}
-	
 	@Override
 	public void commitTran(){
-		Runnable r = new Runnable() {
-			public void run() {
-				if (jtable != null) {
-					((AbstractTableModel) jtable.getModel())
-							.fireTableDataChanged();
-				}
-				jframe.setTitle(getName()+"/"+jtable.getRowCount()+"--"+GenericViewer.this.getCurrentTransactionID());
-			}
-		};
-		executeInSwingThread(r);
+		if (jtable != null) {
+			((AbstractTableModel) jtable.getModel())
+					.fireTableDataChanged();
+		}
+		jframe.setTitle(getName()+"/"+jtable.getRowCount()+"--"+GenericViewer.this.getCurrentTransactionID());
 	}
 
 	public void sortIt() {
@@ -214,13 +142,8 @@ public class GenericViewer extends ConcreteContainer {
 
 	@Override
 	public void applySort(final SortOrder ... sortOrder) {
-		Runnable r = new Runnable() {
-			public void run() {
-				GenericViewer.this.sortOrder=sortOrder;
-				sortIt();
-			}
-		};
-		executeInSwingThread(r);
+		GenericViewer.this.sortOrder=sortOrder;
+		sortIt();
 	}
 
 	private void executeInSwingThread(Runnable r) {
