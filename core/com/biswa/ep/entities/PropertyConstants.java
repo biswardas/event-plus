@@ -93,6 +93,12 @@ public interface PropertyConstants {
 	 */
 	String TIMED_INTERVAL = "timed.interval";
 	
+	/**
+	 * Transforms the substance value in proxy container.
+	 * Ignored in other containers.
+	 */
+	String PROXY_VALUE_TRANSFORMER = "proxy.value.transformer";
+	
 	public int concurrencySupport();
 	public int getTimeOutPeriodInMillis();
 	public boolean beginOnCommit();

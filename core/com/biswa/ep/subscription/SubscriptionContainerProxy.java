@@ -6,21 +6,46 @@ import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ConcreteContainer;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerEntry;
+import com.biswa.ep.entities.ContainerEvent;
 import com.biswa.ep.entities.ContainerStructureEvent;
+import com.biswa.ep.entities.ContainerUpdateEvent;
 import com.biswa.ep.entities.spec.FilterSpec;
+import com.biswa.ep.entities.substance.ObjectSubstance;
 import com.biswa.ep.entities.substance.Substance;
 
 public class SubscriptionContainerProxy extends ConcreteContainer implements
 		SubscriptionSupport {
 
-	SubscriptionContainerHandler subscriptionHandler = new SubscriptionContainerHandler(this);
-
+	private SubscriptionContainerHandler subscriptionHandler = new SubscriptionContainerHandler(this);
+	private ProxyValueTranformer pvt = null;
 	public SubscriptionContainerProxy(String name, Properties props) {
-		super(name, props); 
+		super(name, props);
+		String proxyValueTransString = (String) props.get(PROXY_VALUE_TRANSFORMER);
+		if(proxyValueTransString!=null){
+			try {
+				pvt = (ProxyValueTranformer) Class.forName(proxyValueTransString).newInstance();
+			} catch (Exception e) {
+				assert log("Proxy Value Transformer Ignored");
+			}
+		}
 		agent().attributeAdded(new ContainerStructureEvent(getName(),
 				new SubscriptionContainerProxyProcessor()));
 	}
-
+	
+	@Override
+	public void entryUpdated(ContainerEvent containerEvent){
+		//I like to transform something here.
+		if(pvt!=null){
+			Object newValue = pvt.transform(containerEvent.getSubstance().getValue());
+			containerEvent = new ContainerUpdateEvent(containerEvent.getSource(),
+					containerEvent.getIdentitySequence(),
+					containerEvent.getAttribute(),
+					new ObjectSubstance(newValue),
+					containerEvent.getTransactionId());
+		}
+		super.entryUpdated(containerEvent);
+	}
+	
 	@Override
 	public void replay(ConnectionEvent connectionEvent) {
 	}
