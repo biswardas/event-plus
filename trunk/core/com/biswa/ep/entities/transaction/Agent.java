@@ -220,7 +220,19 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 				//Not yet Connected return
 				if(expectationsMap.containsValue(false)) return;
 				flushPreconnectedQueue();
-				cl.connected(ce);
+				ContainerTask r = new ContainerTask() {
+
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = -6286061490419197136L;
+
+					public void runtask() {
+						cl.connected(ce);
+					}
+				};
+				executeOrEnque(r);
+				
 
 				checkQueuedTransaction();				
 			}

@@ -50,6 +50,14 @@ public class RMIDiscoveryManager extends UncaughtExceptionHandler{
 					ObjectName transGenName = new ObjectName("Services:name="+TransactionGenerator.TRANSACTION_GENERATOR);
 					MBS.registerMBean(new Discovery(transgen), transGenName);
 					
+
+					IdentityGeneratorImpl idGenImpl = new IdentityGeneratorImpl();
+					IdentityGenerator idGen = (IdentityGenerator) UnicastRemoteObject
+							.exportObject(idGenImpl, 0);
+					registry.rebind(IdentityGenerator.IDENTITY_GENERATOR, idGen);
+					ObjectName idGenName = new ObjectName("Services:name="+IdentityGenerator.IDENTITY_GENERATOR);
+					MBS.registerMBean(new Discovery(idGen), idGenName);
+					
 				} catch(Exception e){
 					throw new RuntimeException("Error occured while starting registry"+registryHost+":"+port,e);
 				}

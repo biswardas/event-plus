@@ -9,7 +9,7 @@ import javax.rmi.PortableRemoteObject;
  * @author biswa
  *
  */
-public class RMITransactionGenerator implements TransactionGenerator {
+public class RMITransactionGenerator implements TransactionGenerator,com.biswa.ep.entities.transaction.TransactionGenerator {
 	private static TransactionGenerator transactiongenerator;
 	public RMITransactionGenerator(){
 		try{
