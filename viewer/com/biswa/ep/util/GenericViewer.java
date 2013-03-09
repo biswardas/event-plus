@@ -12,7 +12,6 @@ import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.RowSorter;
-import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
@@ -144,18 +143,6 @@ public class GenericViewer extends PivotContainer {
 	public void applySort(final SortOrder ... sortOrder) {
 		GenericViewer.this.sortOrder=sortOrder;
 		sortIt();
-	}
-
-	private void executeInSwingThread(Runnable r) {
-		if(SwingUtilities.isEventDispatchThread()){
-			r.run();
-		}else{
-			try {
-				SwingUtilities.invokeAndWait(r);
-			} catch (Exception e) {
-				throw new RuntimeException(e.getMessage(),e);
-			}
-		}
 	}
 
 	@Override

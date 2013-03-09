@@ -5,7 +5,6 @@ import java.rmi.RemoteException;
 import java.util.Date;
 
 import javax.management.MBeanServer;
-import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.swing.SwingUtilities;
 
