@@ -21,6 +21,10 @@ import com.biswa.ep.deployment.mbean.Discovery;
  *
  */
 public class RMIDiscoveryManager extends UncaughtExceptionHandler{
+	private static TransactionGeneratorImpl transgenImpl;
+	private static TransactionGenerator transgen;
+	private static IdentityGeneratorImpl idGenImpl;
+	private static IdentityGenerator idGen;
 	public final static MBeanServer MBS = ManagementFactory.getPlatformMBeanServer();
 	public static void main(String args[]) throws InterruptedException{
 		Thread t = new Thread(new Runnable(){
@@ -43,16 +47,16 @@ public class RMIDiscoveryManager extends UncaughtExceptionHandler{
 					ObjectName bindName = new ObjectName("Services:name="+Binder.BINDER);
 					MBS.registerMBean(new Discovery(binder), bindName);
 					
-					TransactionGeneratorImpl transgenImpl = new TransactionGeneratorImpl();
-					TransactionGenerator transgen = (TransactionGenerator) UnicastRemoteObject
+					transgenImpl = new TransactionGeneratorImpl();
+					transgen = (TransactionGenerator) UnicastRemoteObject
 							.exportObject(transgenImpl, 0);
 					registry.rebind(TransactionGenerator.TRANSACTION_GENERATOR, transgen);
 					ObjectName transGenName = new ObjectName("Services:name="+TransactionGenerator.TRANSACTION_GENERATOR);
 					MBS.registerMBean(new Discovery(transgen), transGenName);
 					
 
-					IdentityGeneratorImpl idGenImpl = new IdentityGeneratorImpl();
-					IdentityGenerator idGen = (IdentityGenerator) UnicastRemoteObject
+					idGenImpl = new IdentityGeneratorImpl();
+					idGen = (IdentityGenerator) UnicastRemoteObject
 							.exportObject(idGenImpl, 0);
 					registry.rebind(IdentityGenerator.IDENTITY_GENERATOR, idGen);
 					ObjectName idGenName = new ObjectName("Services:name="+IdentityGenerator.IDENTITY_GENERATOR);
