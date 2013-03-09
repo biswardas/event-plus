@@ -6,10 +6,11 @@
 	<target name="build" depends="clean,download-dependency,generate,compile">
 		<jar jarfile="dist/ep.jar" basedir="build/sources">
 			<service type="com.biswa.ep.entities.transaction.TransactionGenerator">
-				<provider classname="com.biswa.ep.entities.transaction.DefaultTransactionGenerator" />
 				<provider classname="com.biswa.ep.discovery.RMITransactionGenerator" />
+				<provider classname="com.biswa.ep.entities.transaction.DefaultTransactionGenerator" />
 			</service>
 			<service type="com.biswa.ep.entities.identity.IdentityGenerator">
+				<provider classname="com.biswa.ep.discovery.RMIIdentityGenerator" />
 				<provider classname="com.biswa.ep.entities.identity.DefaultIdentityGenerator" />
 			</service>
 			<service type="javax.annotation.processing.Processor">
@@ -40,11 +41,16 @@
 		<jar jarfile="dist/test.jar" basedir="build/test"/>
 		<jar jarfile="lib/services.jar">
 			<service type="com.biswa.ep.entities.transaction.TransactionGenerator">
-				<provider classname="com.biswa.ep.entities.transaction.DefaultTransactionGenerator" />
 				<provider classname="com.biswa.ep.discovery.RMITransactionGenerator" />
+				<provider classname="com.biswa.ep.entities.transaction.DefaultTransactionGenerator" />
 			</service>
 			<service type="com.biswa.ep.entities.identity.IdentityGenerator">
+				<provider classname="com.biswa.ep.discovery.RMIIdentityGenerator" />
 				<provider classname="com.biswa.ep.entities.identity.DefaultIdentityGenerator" />
+			</service>
+			<service type="javax.annotation.processing.Processor">
+				<provider classname="com.biswa.ep.annotations.EPAnnotationProcessor" />
+				<provider classname="com.biswa.ep.annotations.EPGeneratedProcessor" />		
 			</service>
 		</jar>
 	</target>
