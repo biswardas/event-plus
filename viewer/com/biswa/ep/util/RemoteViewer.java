@@ -21,7 +21,7 @@ public class RemoteViewer extends GenericViewer {
 	final String sourceContextName;
 	final String sourceContainerName;
 	public RemoteViewer(final String sourceContextName,final String sourceContainerName) {
-		super("Viewer-"+sourceContextName+"."+sourceContainerName+" ("+new Date()+")");
+		super("Viewer-"+sourceContextName+"."+sourceContainerName+"("+new Date().toString().replaceAll("\\s+", "").replaceAll(":","_")+")");
 		this.sourceContextName=sourceContextName;
 		this.sourceContainerName=sourceContainerName;
 		agent().addSource(new ConnectionEvent(sourceContextName+"."+sourceContainerName, getName()));
