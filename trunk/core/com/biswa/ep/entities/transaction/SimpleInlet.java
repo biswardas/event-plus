@@ -6,7 +6,6 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.concurrent.SynchronousQueue;
 
-import com.biswa.ep.EPEvent;
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ContainerInsertEvent;
 import com.biswa.ep.entities.LeafAttribute;
@@ -49,7 +48,7 @@ public abstract class SimpleInlet implements Inlet {
 					try {
 						incomingObject = queue.take();
 						int tranID = agent.getNextTransactionID();
-						TransactionEvent te = new TransactionEvent(EPEvent.DEF_SRC,EPEvent.DEF_SRC,
+						TransactionEvent te = new TransactionEvent(agent.cl.getName(),agent.cl.getName(),
 								tranID);
 						agent.beginTran(te);
 						HashMap<Attribute, Substance> hm = new HashMap<Attribute, Substance>();
@@ -58,7 +57,7 @@ public abstract class SimpleInlet implements Inlet {
 							Substance substance =  new ObjectSubstance(oneEntry.getValue());
 							hm.put(cachedAttr.get(oneEntry.getKey()),substance);
 						}
-						agent.entryAdded(new ContainerInsertEvent(EPEvent.DEF_SRC,
+						agent.entryAdded(new ContainerInsertEvent(agent.cl.getName(),
 								new TransportEntry(agent.cl.generateIdentity(),
 										hm), tranID));
 						agent.commitTran(te);
