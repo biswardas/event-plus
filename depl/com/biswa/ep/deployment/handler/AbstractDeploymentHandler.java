@@ -21,8 +21,8 @@ public abstract class AbstractDeploymentHandler implements IDeployerHandler {
 	public void expectConnected(Container container,
 			AbstractContainer cs) {
 		if(container.getListen().size()==0){
-			cs.agent().addSource(new ConnectionEvent(EPEvent.DEF_SRC,EPEvent.DEF_SRC));
-			cs.agent().connected(new ConnectionEvent(EPEvent.DEF_SRC,EPEvent.DEF_SRC));
+			cs.agent().addSource(new ConnectionEvent(EPEvent.DEF_SRC,cs.getName()));
+			cs.agent().connected(new ConnectionEvent(EPEvent.DEF_SRC,cs.getName()));
 		}else{
 			for(Listen listen:container.getListen()){
 				cs.agent().addSource(new ConnectionEvent(listen.getContext()+"."+listen.getContainer(),cs.getName()));	
