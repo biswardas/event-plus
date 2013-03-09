@@ -12,24 +12,25 @@ import java.util.ServiceLoader;
  *
  */
 public class ConcreteIdentityGenerator implements IdentityGenerator {
-
-	private ServiceLoader<IdentityGenerator> loader;
-	
-	public ConcreteIdentityGenerator(){
-		loader = ServiceLoader.load(IdentityGenerator.class);
-	}
-	
-	@Override
-	final public int generateIdentity() {
+	private static IdentityGenerator idGen = null;
+	static{
+		ServiceLoader<IdentityGenerator> loader = ServiceLoader.load(IdentityGenerator.class);
         try {
             Iterator<IdentityGenerator> IdentityGenerators = loader.iterator();
             while (IdentityGenerators.hasNext()) {
-            	IdentityGenerator d = IdentityGenerators.next();
-                return d.generateIdentity();
+            	idGen = IdentityGenerators.next();
+            	break;
+            }
+            if(idGen==null){
+                throw new RuntimeException("No Identity Generator Sevice Located");
             }
         } catch (ServiceConfigurationError serviceError) {
             throw new RuntimeException(serviceError);
         }
-        throw new RuntimeException("No Identity Generator Sevice Located");
+	}
+	
+	@Override
+	final public int generateIdentity() {
+		return idGen.generateIdentity();
 	}
 }
