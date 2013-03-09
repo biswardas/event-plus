@@ -41,13 +41,9 @@ public abstract class SimpleInlet implements Inlet {
 	@Override
 	public void init() {
 		String producerName = getClass().getName();
+		initExternalWorld(producerName);
 		Thread t = new Thread(producerName) {
 			public void run() {
-				try {
-					failSafeInit();
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
 				while (true) {
 					Map<Object, Object> incomingObject = null;
 					try {
@@ -73,6 +69,19 @@ public abstract class SimpleInlet implements Inlet {
 			}
 		};
 		t.start();
+	}
+
+	private void initExternalWorld(String producerName) {
+		Thread procthread = new Thread(producerName){
+			public void run() {
+				try {
+					failSafeInit();
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			};
+		};
+		procthread.start();
 	}
 
 	@Override
