@@ -1,5 +1,7 @@
 package com.biswa.ep.entities;
 
+import java.util.Arrays;
+
 import com.biswa.ep.EPEvent;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.transaction.Agent;
@@ -142,7 +144,7 @@ public class ConnectionEvent extends EPEvent {
 	@Override
 	public String toString() {
 		return "ConnectionEvent [source=" + getSource() + ", sink=" + sink
-				+ ", transactionGroup=" + transactionGroup + "]";
+				+ ", transactionGroup=" + Arrays.toString(transactionGroup) + "]";
 	}
 	
 }
