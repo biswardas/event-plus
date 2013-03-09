@@ -339,7 +339,23 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
-				transactionTracker.trackBeginTransaction(te);
+				if(cl.isConnected()){
+					transactionTracker.trackBeginTransaction(te);
+				}else{
+					ContainerTask containerTask = new ContainerTask(){
+						/**
+						 * 
+						 */
+						private static final long serialVersionUID = 1098720506243982025L;
+
+						@Override
+						protected void runtask() throws Exception {
+							transactionTracker.trackBeginTransaction(te);							
+						}
+						
+					};
+					enqueueInPreConnectedQueue(containerTask);
+				}
 			}
 		};
 		executeInListenerThread(outer);
@@ -351,7 +367,24 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
-				transactionTracker.trackCommitTransaction(te);
+
+				if(cl.isConnected()){
+					transactionTracker.trackCommitTransaction(te);
+				}else{
+					ContainerTask containerTask = new ContainerTask(){
+						/**
+						 * 
+						 */
+						private static final long serialVersionUID = 1098720506243982025L;
+
+						@Override
+						protected void runtask() throws Exception {
+							transactionTracker.trackCommitTransaction(te);						
+						}
+						
+					};
+					enqueueInPreConnectedQueue(containerTask);
+				}
 			}
 		};
 		executeInListenerThread(outer);
@@ -363,7 +396,24 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
-				transactionTracker.trackRollbackTransaction(te);
+
+				if(cl.isConnected()){
+					transactionTracker.trackRollbackTransaction(te);
+				}else{
+					ContainerTask containerTask = new ContainerTask(){
+						/**
+						 * 
+						 */
+						private static final long serialVersionUID = -3946096388155163788L;
+
+						@Override
+						protected void runtask() throws Exception {
+							transactionTracker.trackRollbackTransaction(te);					
+						}
+						
+					};
+					enqueueInPreConnectedQueue(containerTask);
+				}
 			}
 		};
 		executeInListenerThread(outer);
