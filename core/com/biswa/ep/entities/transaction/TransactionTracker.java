@@ -345,7 +345,7 @@ public final class TransactionTracker {
 	 * @param transactionGroup
 	 */
 	protected void addSource(String sourceName,String[] transactionOrigin) {
-		System.out.println("#############"+Thread.currentThread().getName()+":"+ sourceName +" origins"+Arrays.toString(transactionOrigin));
+		assert transactionAdapter.log("Source:"+ sourceName +" origins"+Arrays.toString(transactionOrigin));
 		sourceGroupMap.buildCircuit(sourceName,transactionOrigin);
 	}
 

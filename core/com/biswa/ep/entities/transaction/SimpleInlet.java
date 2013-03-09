@@ -43,6 +43,11 @@ public abstract class SimpleInlet implements Inlet {
 		String producerName = getClass().getName();
 		Thread t = new Thread(producerName) {
 			public void run() {
+				try {
+					failSafeInit();
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
 				while (true) {
 					Map<Object, Object> incomingObject = null;
 					try {
@@ -68,16 +73,6 @@ public abstract class SimpleInlet implements Inlet {
 			}
 		};
 		t.start();
-		Thread procthread = new Thread(producerName){
-			public void run() {
-				try {
-					failSafeInit();
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
-			};
-		};
-		procthread.start();
 	}
 
 	@Override

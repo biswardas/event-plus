@@ -12,28 +12,26 @@ import java.util.ServiceLoader;
  *
  */
 public class TransactionGeneratorImpl implements TransactionGenerator {
-
-	private ServiceLoader<TransactionGenerator> loader;
-	
-	public TransactionGeneratorImpl(){
-		loader = ServiceLoader.load(TransactionGenerator.class);
-	}
-	
-	@Override
-	public int getNextTransactionID() {
+	private static TransactionGenerator tGen = null;
+	static{
+		ServiceLoader<TransactionGenerator> loader = ServiceLoader.load(TransactionGenerator.class);
         try {
             Iterator<TransactionGenerator> transactionGenerators = loader.iterator();
             while (transactionGenerators.hasNext()) {
-            	TransactionGenerator d = transactionGenerators.next();
-
-        		int tranID = d.getNextTransactionID();
-        		assert log("Generating Transaction "+tranID);
-                return tranID;
+            	tGen = transactionGenerators.next();
+            	break;
+            }
+            if(tGen==null){
+            	throw new RuntimeException("No Transaction Generator Sevice Located");
             }
         } catch (ServiceConfigurationError serviceError) {
             throw new RuntimeException(serviceError);
         }
-        throw new RuntimeException("No Transaction Generator Sevice Located");
+	}
+	
+	@Override
+	public int getNextTransactionID() {
+		return tGen.getNextTransactionID();
 	}
 
 	boolean log(String str) {
