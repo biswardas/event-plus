@@ -16,12 +16,15 @@ import javax.swing.SwingUtilities;
 
 import com.biswa.ep.NamedThreadFactory;
 import com.biswa.ep.entities.AbstractContainer;
+import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ContainerEvent;
 import com.biswa.ep.entities.ContainerTask;
 import com.biswa.ep.entities.DataOperation;
 import com.biswa.ep.entities.OuterTask;
 import com.biswa.ep.entities.PropertyConstants;
+import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.spec.Spec;
+import com.biswa.ep.entities.substance.Substance;
 
 /**Class responsible to provide transaction support to the underlying containers
  * and hides it from the complexities. This class responsible to manage the task 
@@ -33,18 +36,19 @@ import com.biswa.ep.entities.spec.Spec;
 abstract public class TransactionAdapter extends TransactionGeneratorImpl implements DataOperation, TransactionSupport,TransactionRelay,FeedbackSupport {
 
 	/**
-	 * Queue manages the transaction which are ready to be processed as soon it is possible.
+	 * Queue manages the task which must be performed only when container is in connected state.
+	 * Any transactional operation can only be performed after a container is connected.
 	 */
 	final private Queue<ContainerTask> postConnectedQueue = new LinkedList<ContainerTask>();
 	
 	/**
-	 * Queue manages the transaction which are ready to be processed as soon it is possible.
+	 * Queue manages the task list which can be performed right before container is connected.
 	 */
 	final private Queue<ContainerTask> preConnectedQueue = new LinkedList<ContainerTask>();
 	
 	/**
 	 * The collector thread which is responsible to receive all incoming events and process it on the 
-	 * underlying container.
+	 * underlying container. Its imperative that NOTHING should skip this thread.
 	 */
 	private final ScheduledThreadPoolExecutor eventCollector;	
 	
@@ -64,11 +68,12 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	final protected AbstractContainer cl;
 	
 	/**
-	 *The Handler which applies the container task on the container. 
+	 *The Handler which applies the container task on the container. This is holy grail
+	 *for container multi-threading.
 	 */
 	final ContainerTaskHandler taskHandler;
 	
-	/**Default task handler which applies the task on the container.
+	/**Default single threaded task handler which applies the task on the container.
 	 * 
 	 * @author biswa
 	 *
@@ -83,6 +88,11 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		}
 	}
 	
+	/**Task handler which dispatches all threads in Swing thread.
+	 * 
+	 * @author Biswa
+	 *
+	 */
 	private class SwingTaskHandler extends ContainerTaskHandler{
 		/**Method which applies the task on the container.
 		 * 
@@ -100,8 +110,10 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 			}
 		}
 	}
-	/**Multithreaded task handler which applies the updates on the container in multiple
-	 * threads. The sequence of operation on the records are guaranteed.
+	
+	/**Multi-threaded task handler which applies the updates on the container in multiple
+	 * threads. The sequence of operation on the records are guaranteed. It uses the record 
+	 * locking concept for achieving parallelism. 
 	 * @author biswa
 	 *
 	 */
@@ -138,7 +150,8 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 			}
 		}		
 	}
-	/** The containing schema under management.
+	
+	/** Constructor takes underlying container being managed by this transaction adapter.
 	 * 
 	 * @param cl AbstractContainer
 	 */
@@ -293,8 +306,54 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		};
 		executeInListenerThread(outer);
 	}
+	
+	@Override
+	public void clear() {
+		OuterTask outer = new OuterTask(){
+			@Override
+			public void runouter() {
+				//No Need to implement default transaction as it is not supposed to
+				//generate data events.
+				ContainerTask r = new ContainerTask() {
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = -6605205914636092169L;
 
+					public void runtask() {
+						cl.clear();
+					}
+				};
+				executeOrEnquePostConnected(r);
+			}
+		};
+		executeInListenerThread(outer);
+	}
 
+	@Override
+	public void updateStatic(final Attribute attribute,final Substance substance,
+			final FilterSpec appliedFilter) {
+		OuterTask outer = new OuterTask(){
+			@Override
+			public void runouter() {
+				//Need to implement default transaction as it can
+				//potentially generate data events
+				ContainerTask r = new ContainerTask() {
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = 969041971977780486L;
+
+					public void runtask() {
+						cl.updateStatic(attribute,substance,appliedFilter);
+					}
+				};
+				executeOrEnque(r);
+			}
+		};
+		executeInListenerThread(outer);		
+	}
+	
 	@Override
 	public void applySpec(final Spec spec) {
 		OuterTask outer = new OuterTask(){
