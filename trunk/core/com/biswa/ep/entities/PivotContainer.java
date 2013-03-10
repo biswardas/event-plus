@@ -496,13 +496,9 @@ public class PivotContainer extends ConcreteContainer {
 						for(PivotEntry innerPivot:pivotEntry.childPivotEntries.values()){
 							aggregateUniverse(innerPivot);				
 						}
-						for(Attribute attribute:changeMap.keySet()){
-							pivotEntry.aggregate(attribute);
-						}
-					}else{
-						for(Attribute attribute:changeMap.keySet()){
-							pivotEntry.aggregate(attribute);
-						}
+					}
+					for(Attribute attribute:aggrMap.keySet()){
+						pivotEntry.aggregate(attribute);
 					}
 				}
 			};
