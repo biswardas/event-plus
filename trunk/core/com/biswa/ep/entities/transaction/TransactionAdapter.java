@@ -90,7 +90,11 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		 */
 		public void executeNow(final ContainerTask r){
 			try {
-				SwingUtilities.invokeAndWait(r);
+				if(SwingUtilities.isEventDispatchThread()){
+					r.run();
+				}else{
+					SwingUtilities.invokeAndWait(r);
+				}
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
