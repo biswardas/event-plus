@@ -7,7 +7,6 @@ import java.util.concurrent.Semaphore;
 
 import org.junit.Test;
 
-import com.biswa.ep.EPEvent;
 import com.biswa.ep.entities.ConcreteContainer;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerEvent;
@@ -115,8 +114,8 @@ public class SubscriptionContainerTest {
 	protected SubscriptionContainer buildSubscriptionContainer() {
 		semaphore.drainPermits();
 		subscriptionContainer = new SubscriptionContainer(SUBSCRIPTION_CONTAINER,props);
-		subscriptionContainer.agent().addSource(new ConnectionEvent(EPEvent.DEF_SRC, EPEvent.DEF_SRC));
-		subscriptionContainer.agent().connected(new ConnectionEvent(EPEvent.DEF_SRC, EPEvent.DEF_SRC));
+		subscriptionContainer.agent().addSource(new ConnectionEvent(subscriptionContainer.getName(), subscriptionContainer.getName()));
+		subscriptionContainer.agent().connected(new ConnectionEvent(subscriptionContainer.getName(), subscriptionContainer.getName()));
 		subscriptionContainer.agent().addFeedbackSource(new FeedbackEvent(LISTENING_CONTAINER));
 		subscriptionContainer.agent().connect(new ConnectionEvent(SUBSCRIPTION_CONTAINER, LISTENING_CONTAINER, agent));
 		semaphore.acquireUninterruptibly();
