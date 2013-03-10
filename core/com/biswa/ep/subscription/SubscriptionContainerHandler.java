@@ -294,4 +294,8 @@ public class SubscriptionContainerHandler implements SubscriptionSupport {
 		assert subsContainerSupport.log("EntrySubscriberMap Size:"+entrySubscriptionRequestsMap.size());
 		assert subsContainerSupport.log("SubscriberSubjectMap Size:"+subscriberSubjectMap.size());
 	}
+
+	public void terminate() {
+		processor.terminate();
+	}
 }

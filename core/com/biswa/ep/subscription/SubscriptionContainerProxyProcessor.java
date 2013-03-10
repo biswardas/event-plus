@@ -28,4 +28,8 @@ public class SubscriptionContainerProxyProcessor extends SubscriptionContainerPr
 	@Override
 	protected void init() {
 	}
+
+	@Override
+	protected void terminate() {		
+	}
 }

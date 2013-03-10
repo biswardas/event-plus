@@ -14,6 +14,7 @@ import com.biswa.ep.entities.substance.ObjectSubstance;
 import com.biswa.ep.entities.substance.Substance;
 
 public abstract class SimpleInlet implements Inlet {
+	private Thread inletThread = null;
 	protected SynchronousQueue<Map<Object, Object>> queue = new SynchronousQueue<Map<Object, Object>>();
 	private Map<Object,Attribute> cachedAttr = new HashMap<Object,Attribute>(){
 		private static final long serialVersionUID = -8944792144074973287L;
@@ -41,7 +42,7 @@ public abstract class SimpleInlet implements Inlet {
 	public void init() {
 		String producerName = getClass().getName();
 		initExternalWorld(producerName);
-		Thread t = new Thread(producerName) {
+		inletThread = new Thread(producerName) {
 			public void run() {
 				while (true) {
 					Map<Object, Object> incomingObject = null;
@@ -67,7 +68,7 @@ public abstract class SimpleInlet implements Inlet {
 				}
 			}
 		};
-		t.start();
+		inletThread.start();
 	}
 
 	private void initExternalWorld(String producerName) {
@@ -85,5 +86,23 @@ public abstract class SimpleInlet implements Inlet {
 
 	@Override
 	public void terminate() {
+		String producerName = getClass().getName();
+		destroyExternalWorld(producerName);
 	}
+
+	private void destroyExternalWorld(String producerName) {
+		Thread procthread = new Thread(producerName){
+			public void run() {
+				try {
+					failSafeTerminate();
+					inletThread.interrupt();
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			};
+		};
+		procthread.start();
+	}
+	
+	protected abstract void failSafeTerminate() throws Exception;
 }

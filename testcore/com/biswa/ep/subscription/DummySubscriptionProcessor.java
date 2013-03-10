@@ -70,5 +70,10 @@ public class DummySubscriptionProcessor extends SubscriptionContainerProcessor {
 				}
 			}
 		}, 1, 1, TimeUnit.SECONDS);
+	}
+
+	@Override
+	protected void terminate() {
+		eventDispatcher.shutdownNow();
 	};
 }

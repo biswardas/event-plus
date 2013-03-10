@@ -95,4 +95,10 @@ public class SubscriptionContainer extends FeedbackAwareContainer implements Sub
 	public void applyFilter(final FilterSpec filterSpec){
 		assert false:"Filter Operation Not supported on this type of container.";
 	}
+
+	@Override
+	public void destroy() {
+		subscriptionHandler.terminate();
+		super.destroy();
+	}	
 }
