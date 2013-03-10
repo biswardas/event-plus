@@ -16,6 +16,7 @@ public abstract class SimpleSubscriptionProcessor extends
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	private Thread subscriptionThread = null;
 	final protected SynchronousQueue<Map<Object, Object>> queue = new SynchronousQueue<Map<Object, Object>>();
 	
 	final private HashMap<Object, ContainerEntry> containerEntrySet = new HashMap<Object, ContainerEntry>();
@@ -29,7 +30,7 @@ public abstract class SimpleSubscriptionProcessor extends
 	@Override
 	public void init() {
 		String producerName = getClass().getName();
-		Thread t = new Thread(producerName) {
+		subscriptionThread = new Thread(producerName) {
 			public void run() {
 				while (true) {
 					Map<Object, Object> incomingObject;
@@ -48,7 +49,7 @@ public abstract class SimpleSubscriptionProcessor extends
 				}
 			}
 		};
-		t.start();
+		subscriptionThread.start();
 		Thread procthread = new Thread(producerName){
 			public void run() {
 				try {
@@ -82,4 +83,26 @@ public abstract class SimpleSubscriptionProcessor extends
 		containerEntrySet.remove(subject);
 		unsubscribe(super.getValue(containerEntry, getSubjectAttribute()));
 	}
+	
+	@Override
+	public void terminate() {
+		String producerName = getClass().getName();
+		destroyExternalWorld(producerName);
+	}
+
+	private void destroyExternalWorld(String producerName) {
+		Thread procthread = new Thread(producerName){
+			public void run() {
+				try {
+					failSafeTerminate();
+					subscriptionThread.interrupt();
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			};
+		};
+		procthread.start();
+	}
+	
+	protected abstract void failSafeTerminate() throws Exception;
 }

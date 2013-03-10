@@ -7,11 +7,11 @@
 		<jar jarfile="dist/ep.jar" basedir="build/sources">
 			<service type="com.biswa.ep.entities.transaction.TransactionGenerator">
 				<provider classname="com.biswa.ep.discovery.RMITransactionGenerator" />
-				<provider classname="com.biswa.ep.entities.transaction.DefaultTransactionGenerator" />
+				<!--provider classname="com.biswa.ep.entities.transaction.DefaultTransactionGenerator" /-->
 			</service>
 			<service type="com.biswa.ep.entities.identity.IdentityGenerator">
 				<provider classname="com.biswa.ep.discovery.RMIIdentityGenerator" />
-				<provider classname="com.biswa.ep.entities.identity.DefaultIdentityGenerator" />
+				<!--provider classname="com.biswa.ep.entities.identity.DefaultIdentityGenerator" /-->
 			</service>
 			<service type="javax.annotation.processing.Processor">
 				<provider classname="com.biswa.ep.annotations.EPAnnotationProcessor" />
@@ -26,7 +26,7 @@
 		    </manifest>
 		</jar>
 	</target>
-	<target name="test">
+	<target name="test" depends="services">
 		<javac destdir="build/test" includeantruntime="false" debug="true">
 			<src path="testcore" />
 			<src path="testtools" />
@@ -39,14 +39,16 @@
 			</classpath>
 		</javac>
 		<jar jarfile="dist/test.jar" basedir="build/test"/>
+	</target>
+	<target name="services">
 		<jar jarfile="lib/services.jar">
 			<service type="com.biswa.ep.entities.transaction.TransactionGenerator">
 				<provider classname="com.biswa.ep.discovery.RMITransactionGenerator" />
-				<provider classname="com.biswa.ep.entities.transaction.DefaultTransactionGenerator" />
+				<!--provider classname="com.biswa.ep.entities.transaction.DefaultTransactionGenerator" /-->
 			</service>
 			<service type="com.biswa.ep.entities.identity.IdentityGenerator">
 				<provider classname="com.biswa.ep.discovery.RMIIdentityGenerator" />
-				<provider classname="com.biswa.ep.entities.identity.DefaultIdentityGenerator" />
+				<!--provider classname="com.biswa.ep.entities.identity.DefaultIdentityGenerator" /-->
 			</service>
 			<service type="javax.annotation.processing.Processor">
 				<provider classname="com.biswa.ep.annotations.EPAnnotationProcessor" />

@@ -365,6 +365,8 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 				+ epContainerAnn.generator() + "();");
 		writeln("@Override");
 		writeln("protected void failSafeInit() throws Exception{generator.init(queue);}");
+		writeln("@Override");
+		writeln("protected void failSafeTerminate() throws Exception{generator.terminate();}");
 		writeln("}");
 	}
 
@@ -528,6 +530,8 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			// Generate Eval Function
 			writeln("@Override");
 			writeln("protected void failSafeInit() throws Exception{processor.init(queue);}");
+			writeln("@Override");
+			writeln("protected void failSafeTerminate() throws Exception{processor.terminate();}");
 			writeln("@Override");
 			writeln("public Object subscribe(Object object){"
 					+ "return processor.subscribe(object);" + "}");

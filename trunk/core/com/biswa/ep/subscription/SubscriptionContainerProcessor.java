@@ -84,9 +84,14 @@ public abstract class SubscriptionContainerProcessor extends Subscription {
 	final protected void commit(){
 		subscriptionContainer.agent().commitTran(new TransactionEvent(subscriptionContainer.getName(), transactionId));
 	}
-	
+
 	/**
 	 *Initialize the interaction with external world. 
 	 */
 	abstract protected void init();
+	
+	/**
+	 *Disconnects interaction with with external world. 
+	 */
+	abstract protected void terminate();
 }
