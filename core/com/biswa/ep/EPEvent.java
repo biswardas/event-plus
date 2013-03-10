@@ -9,10 +9,7 @@ public class EPEvent extends EventObject {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -6034865045431637385L;	/**
-	 * The name by which the updates are sent to the underlying container.
-	 */
-	public static final String DEF_SRC = "EPANONYMOUS";
+	private static final long serialVersionUID = -6034865045431637385L;
 
 	private String source;
 

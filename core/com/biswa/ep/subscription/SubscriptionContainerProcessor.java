@@ -1,6 +1,5 @@
 package com.biswa.ep.subscription;
 
-import com.biswa.ep.EPEvent;
 import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ContainerEntry;
@@ -74,7 +73,7 @@ public abstract class SubscriptionContainerProcessor extends Subscription {
 	 * @param substance
 	 */
 	final protected void update(ContainerEntry containerEntry,Substance substance){
-		ContainerEvent updateEvent= new ContainerUpdateEvent(EPEvent.DEF_SRC,
+		ContainerEvent updateEvent= new ContainerUpdateEvent(subscriptionContainer.getName(),
 				containerEntry.getIdentitySequence(),this,substance,transactionId);
 		subscriptionContainer.agent().entryUpdated(updateEvent);
 	}
