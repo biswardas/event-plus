@@ -38,22 +38,22 @@ public class MultiGroupTransactionTrackerTest {
 	public void testTransactionTrackerWithEmptyEvent() {
 		TransactionTracker transactionTracker = getTransactionTracker();
 		
-		transactionTracker.trackBeginTransaction(new TransactionEvent());
+		transactionTracker.trackBeginTransaction(new TransactionEvent(CON_NAME));
 		assertArrayEquals(new Integer[]{0}, transactionTracker.transactionsInProgress());
 		Assert.assertEquals(0, transactionTracker.getCurrentTransactionID());
-		Assert.assertEquals(EPEvent.DEF_SRC, transactionTracker.getCurrentTransactionOrigin());
+		Assert.assertEquals(CON_NAME, transactionTracker.getCurrentTransactionOrigin());
 		
-		transactionTracker.trackCommitTransaction(new TransactionEvent());
+		transactionTracker.trackCommitTransaction(new TransactionEvent(CON_NAME));
 		assertArrayEquals(new Integer[0], transactionTracker.transactionsInProgress());
 		Assert.assertEquals(0, transactionTracker.getCurrentTransactionID());
 		Assert.assertEquals(null, transactionTracker.getCurrentTransactionOrigin());
 
-		transactionTracker.trackBeginTransaction(new TransactionEvent());
+		transactionTracker.trackBeginTransaction(new TransactionEvent(CON_NAME));
 		assertArrayEquals(new Integer[]{0}, transactionTracker.transactionsInProgress());
 		Assert.assertEquals(0, transactionTracker.getCurrentTransactionID());
-		Assert.assertEquals(EPEvent.DEF_SRC, transactionTracker.getCurrentTransactionOrigin());
+		Assert.assertEquals(CON_NAME, transactionTracker.getCurrentTransactionOrigin());
 		
-		transactionTracker.trackRollbackTransaction(new TransactionEvent());
+		transactionTracker.trackRollbackTransaction(new TransactionEvent(CON_NAME));
 		assertArrayEquals(new Integer[0], transactionTracker.transactionsInProgress());
 		Assert.assertEquals(0, transactionTracker.getCurrentTransactionID());
 		Assert.assertEquals(null, transactionTracker.getCurrentTransactionOrigin());
