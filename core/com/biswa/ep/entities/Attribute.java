@@ -449,7 +449,7 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	@Override
 	final public boolean equals(Object obj) {
 		final Attribute other = (Attribute) obj;
-		if (name.equals(other.name) && minor == other.minor)
+		if (other!=null && name.equals(other.name) && minor == other.minor)
 			return true;
 		else
 			return false;

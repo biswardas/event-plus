@@ -57,7 +57,7 @@ public class PivotContainer extends ConcreteContainer {
 
 	@Override
 	final public void entryUpdated(ContainerEvent ce) {
-		if (ce.getSource() == this.getName()) {
+		if (getName().equals(ce.getSource())) {
 			simpleEntryUpdate(ce);
 		} else {
 			if (pivotedAttributes.contains(ce.getAttribute())) {
