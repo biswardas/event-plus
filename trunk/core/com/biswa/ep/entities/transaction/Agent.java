@@ -17,18 +17,26 @@ import com.biswa.ep.subscription.SubscriptionEvent;
 import com.biswa.ep.subscription.SubscriptionSupport;
 /**Any and every operation on the container must be tunneled through this listener to ensure
  * data and structural integrity. All Structural and Data event are executed on the PPL prefixed 
- * threads and every container runs in its own PPL thread.  
+ * threads and every container runs in its own PPL thread. Its imperative that no external world 
+ * code ever invoke any operation on the container directly.
+ * Container and agent has 1-1 relation ship.
+ *   
  * 
  * @author biswa
  *
  */
 public class Agent extends TransactionAdapter implements ContainerListener,ConnectionListener,SubscriptionSupport {
-
-	private Map<String, Boolean> expectationsMap = new HashMap<String, Boolean>();
+	/**
+	 * Map containing all the upstream sources which are going to send messages through this
+	 * agent. When a source sends connected to this value against the source name becomes
+	 * true, When all sources report connected Container is ready to process messages.
+	 */
+	private final Map<String, Boolean> expectationsMap = new HashMap<String, Boolean>();
 	
-	/** The containing schema under management.
-	 * 
-	 * @param cl
+	/** Agent can only be constructed with an underlying container. No business code ever need to 
+	 * create an agent manually. An agent must be accessed through AbstractContainer.agent()
+	 * method.
+	 * @param cl container under management.
 	 */
 	public Agent(AbstractContainer cl) {
 		super(cl);
