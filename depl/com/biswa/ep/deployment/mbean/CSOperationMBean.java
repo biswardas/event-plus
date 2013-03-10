@@ -25,12 +25,18 @@ public interface CSOperationMBean {
 	 * @param filterString
 	 */
 	public void applyFilter(String filterString);
-	
+
 	/**
 	 * Re pivots the container
 	 * @param filterString
 	 */
 	public void applyPivot(String pivotingSpec);
+	
+	/**
+	 * sorts the container
+	 * @param filterString
+	 */
+	public void applySort(String sortSpec);
 	
 	/**Applies aggregations to the container
 	 * 
