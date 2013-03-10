@@ -12,10 +12,14 @@ import com.biswa.ep.entities.ContainerStructureEvent;
 import com.biswa.ep.entities.ContainerTask;
 import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.StaticLeafAttribute;
+import com.biswa.ep.entities.aggregate.Aggregators;
 import com.biswa.ep.entities.dyna.ConcreteAttributeProvider;
 import com.biswa.ep.entities.predicate.Predicate;
+import com.biswa.ep.entities.spec.AggrSpec;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.spec.PivotSpec;
+import com.biswa.ep.entities.spec.SortSpec;
+import com.biswa.ep.entities.spec.SortSpec.SortOrder;
 import com.biswa.ep.entities.substance.ObjectSubstance;
 import com.biswa.ep.util.parser.predicate.PredicateBuilder;
 
@@ -28,9 +32,14 @@ public class CSOperation implements CSOperationMBean {
 		this.cs=cs;
 	}
 	@Override
-	public void applyAggr(String filterString) {
-		// TODO Auto-generated method stub
-		
+	public void applyAggr(String aggrString) {
+		AggrSpec aggrSpec = new AggrSpec();
+		StringTokenizer stk = new StringTokenizer(aggrString,",");
+		while(stk.hasMoreTokens()){
+			String[] oneAttribute = stk.nextToken().split(":");
+			aggrSpec.add(new LeafAttribute(oneAttribute[0]), Aggregators.valueOf(oneAttribute[1]).AGGR);
+		}
+		cs.agent().applySpec(aggrSpec);
 	}
 
 	@Override
@@ -51,6 +60,17 @@ public class CSOperation implements CSOperationMBean {
 		}
 		PivotSpec pivotSpec = new PivotSpec(list.toArray(new Attribute[0]));
 		cs.agent().applySpec(pivotSpec);
+	}
+	
+	@Override
+	public void applySort(String pivotString) {
+		StringTokenizer stk = new StringTokenizer(pivotString,",");
+		List<SortOrder> list = new ArrayList<SortOrder>();
+		while(stk.hasMoreTokens()){
+			list.add(new SortOrder(new LeafAttribute(stk.nextToken()),false));
+		}
+		SortSpec sortSpec = new SortSpec(list.toArray(new SortOrder[0]));
+		cs.agent().applySpec(sortSpec);
 	}
 	
 	@Override
