@@ -6,6 +6,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({
+		ConcreteContainerTest.class,
 		LeafAttributeTest.class,
 		PrivateAttributeTest.class,
 		StatelessAttributeTest.class,
