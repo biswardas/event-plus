@@ -8,7 +8,6 @@ import java.util.Queue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import com.biswa.ep.EPEvent;
 import com.biswa.ep.entities.ContainerTask;
 /**Class responsible to manage each block transactions.
  * 
@@ -41,7 +40,7 @@ public final class TransactionTracker {
 		boolean didEveryOneBegin(String includingSource){
 			State stateForThisSource = null;
 			if((stateForThisSource=currentStateMap.get(includingSource)) !=State.INIT){
-				throw new TransactionException("Transaction Begin already Received transaction:="+transactionID +" souce=" +includingSource+" Current state:"+stateForThisSource);
+				throw new TransactionException("Transaction Begin already Received transaction:="+transactionID +" souce=" +includingSource+" Current state:"+stateForThisSource + " in thread "+Thread.currentThread().getName());
 			}else{
 				currentStateMap.put(includingSource, State.READY);
 			}
@@ -90,19 +89,14 @@ public final class TransactionTracker {
 	}
 	private static final class SourceGroupMap{
 		private Map<String,Map<String,State>> originToSourcesMap = new HashMap<String,Map<String,State>>();
-		private SourceGroupMap(){
-			buildCircuit(EPEvent.DEF_SRC,EPEvent.DEF_SRC);
-		}
 		private void buildCircuit(String source,String[] transactionOrigin){
 			for(String oneOrigin:transactionOrigin){
-				if(!EPEvent.DEF_SRC.equals(oneOrigin)){
-					Map<String,State> sourceMap=originToSourcesMap.get(oneOrigin);
-					if(sourceMap==null){
-						sourceMap = new HashMap<String,State>();
-						originToSourcesMap.put(oneOrigin, sourceMap);
-					}
-					sourceMap.put(source, State.INIT);
+				Map<String,State> sourceMap=originToSourcesMap.get(oneOrigin);
+				if(sourceMap==null){
+					sourceMap = new HashMap<String,State>();
+					originToSourcesMap.put(oneOrigin, sourceMap);
 				}
+				sourceMap.put(source, State.INIT);
 			}
 		};
 

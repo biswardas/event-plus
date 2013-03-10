@@ -13,9 +13,6 @@ public class TransactionEvent extends EPEvent{
 	private static final long serialVersionUID = -8744460021578275985L;
 	private final int transactionId;
 	private final String origin;
-	public TransactionEvent() {
-		this(DEF_SRC,DEF_SRC,0);
-	}
 	public TransactionEvent(String origin) {
 		this(origin,origin,0);
 	}
