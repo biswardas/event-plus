@@ -62,5 +62,5 @@ public abstract class ContainerTask implements Runnable,Serializable{
 		}
 	}
 	
-	protected abstract void runtask() throws Exception;
+	protected abstract void runtask() throws Throwable;
 }

@@ -349,7 +349,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 						private static final long serialVersionUID = 1098720506243982025L;
 
 						@Override
-						protected void runtask() throws Exception {
+						protected void runtask(){
 							transactionTracker.trackBeginTransaction(te);							
 						}
 						
@@ -378,7 +378,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 						private static final long serialVersionUID = 1098720506243982025L;
 
 						@Override
-						protected void runtask() throws Exception {
+						protected void runtask(){
 							transactionTracker.trackCommitTransaction(te);						
 						}
 						
@@ -407,7 +407,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 						private static final long serialVersionUID = -3946096388155163788L;
 
 						@Override
-						protected void runtask() throws Exception {
+						protected void runtask(){
 							transactionTracker.trackRollbackTransaction(te);					
 						}
 						
