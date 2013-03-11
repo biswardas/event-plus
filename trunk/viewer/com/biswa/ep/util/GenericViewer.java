@@ -82,60 +82,52 @@ public class GenericViewer extends PivotContainer {
 	@Override
 	public void attributeAdded(final ContainerEvent ce) {
 		super.attributeAdded(ce);
-		if (jtable != null) {
 			((AbstractTableModel) jtable.getModel())
 					.fireTableStructureChanged();
-		}
 	}
 
 	@Override
 	public void attributeRemoved(final ContainerEvent ce) {
 		super.attributeRemoved(ce);
-		if (jtable != null) {
 			((AbstractTableModel) jtable.getModel())
 					.fireTableStructureChanged();
-		}
 	}
 
 	@Override
 	public void commitTran(){
-		if (jtable != null) {
 			((AbstractTableModel) jtable.getModel())
 					.fireTableDataChanged();
-		}
 		jframe.setTitle(getName()+"/"+jtable.getRowCount()+"--"+GenericViewer.this.getCurrentTransactionID());
 	}
 
 	public void sortIt() {
 		if (sortOrder.length > 0) {
-			if (jtable != null) {
-				int lastColumnIndex = -1;
-				TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(
-						jtable.getModel());
-				List<RowSorter.SortKey> sortKeys = new ArrayList<RowSorter.SortKey>();
-				for (SortOrder sortAttrOrder: sortOrder) {
-					Attribute sortAttr = sortAttrOrder.getAttribute();
-					for (int i = 0; i < getSubscribedAttributes().length; i++) {
-						if (sortAttr.getName().equalsIgnoreCase(
-								getSubscribedAttributes()[i].getName())) {
-							sortKeys.add(new RowSorter.SortKey(i + 1,
-									sortAttrOrder.isDescending()?javax.swing.SortOrder.DESCENDING:javax.swing.SortOrder.ASCENDING));
-							lastColumnIndex = i;
-							break;
-						}
+			int lastColumnIndex = -1;
+			TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(
+					jtable.getModel());
+			List<RowSorter.SortKey> sortKeys = new ArrayList<RowSorter.SortKey>();
+			for (SortOrder sortAttrOrder: sortOrder) {
+				Attribute sortAttr = sortAttrOrder.getAttribute();
+				for (int i = 0; i < getSubscribedAttributes().length; i++) {
+					if (sortAttr.getName().equalsIgnoreCase(
+							getSubscribedAttributes()[i].getName())) {
+						sortKeys.add(new RowSorter.SortKey(i + 1,
+								sortAttrOrder.isDescending()?javax.swing.SortOrder.DESCENDING:javax.swing.SortOrder.ASCENDING));
+						lastColumnIndex = i;
+						break;
 					}
 				}
-				sorter.setComparator(lastColumnIndex + 1,
-						new Comparator<CellValue>() {
-							@Override
-							public int compare(CellValue o1,
-									CellValue o2) {
-								return o1.compareTo(o2);
-							}
-						});
-				sorter.setSortKeys(sortKeys);
-				jtable.setRowSorter(sorter);
 			}
+			sorter.setComparator(lastColumnIndex + 1,
+					new Comparator<CellValue>() {
+						@Override
+						public int compare(CellValue o1,
+								CellValue o2) {
+							return o1.compareTo(o2);
+						}
+					});
+			sorter.setSortKeys(sortKeys);
+			jtable.setRowSorter(sorter);
 		}
 	}
 
@@ -225,7 +217,7 @@ public class GenericViewer extends PivotContainer {
 		}	
 		@Override
 		public String toString(){
-			return substance!=null?this.substance.toString():null;
+			return substance!=null?this.substance.toString():"";
 		}
 	}
 }
