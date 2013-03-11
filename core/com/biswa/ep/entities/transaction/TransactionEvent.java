@@ -42,6 +42,6 @@ public class TransactionEvent extends EPEvent{
 	@Override
 	public String toString() {
 		return "TransactionEvent [transactionId=" + transactionId + ", origin="
-				+ origin + ", getSource()=" + getSource() + "]";
+				+ origin + ", source=" + getSource() + "]";
 	}	
 }
