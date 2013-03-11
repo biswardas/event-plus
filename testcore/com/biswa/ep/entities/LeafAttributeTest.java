@@ -1,6 +1,8 @@
 package com.biswa.ep.entities;
 
 import static org.junit.Assert.*;
+
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.biswa.ep.entities.substance.DecimalSubstance;
@@ -52,11 +54,7 @@ public class LeafAttributeTest{
 			}
 			
 		}));
-		try{
-			attribute.equals(null);
-			fail("Shouldhave thrown exception");
-		}catch(Exception e){
-		}
+		Assert.assertFalse(attribute.equals(null));
 		try{
 			attribute.equals(new Object());
 			fail("Shouldhave thrown exception");

@@ -2,6 +2,7 @@ package com.biswa.ep.entities.transaction;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.ConnectionEvent;
@@ -307,5 +308,21 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 			}
 		};
 		executeInListenerThread(outer);		
+	}
+	
+	/**
+	 * Method exclusively for testing purposes and waits for event queue to drain
+	 * for a post event analysis. There is no business requirement for this method.
+	 */
+	void waitForEventQueueToDrain() {
+		final Semaphore semaphore = new Semaphore(1);
+		semaphore.drainPermits();
+		getEventCollector().execute(new Runnable() {
+			@Override
+			public void run(){				
+				semaphore.release();
+			}
+		});
+		semaphore.acquireUninterruptibly();
 	}
 }

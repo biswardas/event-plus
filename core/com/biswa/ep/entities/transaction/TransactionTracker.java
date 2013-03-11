@@ -380,6 +380,8 @@ public final class TransactionTracker {
 				TransactionState ts = transactionStateMap.get(transactionId);
 				if(ts!=null){
 					 ts.enque(transactionAwareOperation);
+				}else{
+					assert transactionAdapter.log("Invalid Operation(transaction ever begin?) with transactionID=:"+transactionId);
 				}
 			}
 		} else {
