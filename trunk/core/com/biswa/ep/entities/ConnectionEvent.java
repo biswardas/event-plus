@@ -83,8 +83,8 @@ public class ConnectionEvent extends EPEvent {
 		this(source, sink,DEFAULT_TRANSACTION_GROUP, dcl,filterSpec);
 	}		
 	
-	/**Shallow version of the event used when the replay is requested and
-	 * the connection confirmation is sent.
+	/**Shallow version of the event used when expectation is set on the container. This
+	 * also works when a disconnect is requested.
 	 * @param source String source which serving the information 
 	 * @param sink String sink which consumes the information
 	 */
@@ -102,7 +102,8 @@ public class ConnectionEvent extends EPEvent {
 		this(source,sink,DEFAULT_TRANSACTION_GROUP,null,filterSpec);
 	}
 	
-	/**Shallow version of the event used when source expectation is set
+	/**Confirmation event sent from Source to Sink with transaction groups source container
+	 * is aware of.
 	 * @param source String source which serving the information 
 	 * @param sink String sink which consumes the information
 	 * @param transactionGroup the transaction group this source belongs the sink do care about
@@ -112,7 +113,7 @@ public class ConnectionEvent extends EPEvent {
 	}
 	/**
 	 * Return the transaction group of this source.
-	 * @return int
+	 * @return String[]
 	 */
 	public String[] getTransactionGroup() {
 		return transactionGroup;
