@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -98,7 +99,9 @@ public class Deployer extends UncaughtExceptionHandler{
 			throw new RuntimeException(e);
 		}finally{
 			try {
-				ins.close();
+				if(ins!=null){
+					ins.close();
+				}
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -157,10 +160,10 @@ public class Deployer extends UncaughtExceptionHandler{
 		if(!containerDependencyMap.containsKey(container)){
 			AtomicInteger atomInt = new AtomicInteger(1);
 			for(Listen listen:container.getListen()){
-				AtomicInteger nested = null;
 				if(listen.getContext().equals(context.getName())){
+					AtomicInteger nested = null;
 					String dependsOn = listen.getContainer();
-					if((nested=containerDependencyMap.get(dependsOn))==null){
+					if((nested=getNestedWeight(containerDependencyMap, dependsOn))==null){
 						for(Container searchedContainer: context.getContainer()){
 							if(searchedContainer.getName().equals(dependsOn)){
 								addContainer(containerDependencyMap,searchedContainer,context);
@@ -168,12 +171,27 @@ public class Deployer extends UncaughtExceptionHandler{
 								break;
 							}
 						}
+						if(nested==null){
+							throw new RuntimeException("Unresolved container:"+dependsOn);
+						}
 					}
 					atomInt.addAndGet(nested.get());
 				}
 			}
 			containerDependencyMap.put(container, atomInt);
 		}
+	}
+
+
+	private static AtomicInteger getNestedWeight(
+			HashMap<Container, AtomicInteger> containerDependencyMap,
+			String dependsOn) {
+		for(Entry<Container,AtomicInteger> oneEntry: containerDependencyMap.entrySet()){
+			if(oneEntry.getKey().getName().equals(dependsOn)){
+				return oneEntry.getValue();
+			}
+		}
+		return null;
 	}
 	
 	public static Properties getProperties(List<Param> params) {

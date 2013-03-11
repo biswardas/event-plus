@@ -172,14 +172,14 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 				if (epAttribute.type() == EPAttrType.Subscriber) {
 					String sourceContext = epAttribute.context().isEmpty() ? context
 							: epAttribute.context();
-					EPPublish listenMethod = sourceContext == context ? EPPublish.LOCAL
+					EPPublish listenMethod = sourceContext.equals(context) ? EPPublish.LOCAL
 							: epContainer.getAnnotation(EPContainer.class)
 									.publish();
 					// What about listening same container multiple times from
 					// same entry
 					if (!upStreamContainers.isRegistered(epAttribute
 							.container())) {
-						if (sourceContext == context
+						if (sourceContext.equals(context)
 								&& containerManager.isProxy(epAttribute
 										.container())) {
 							TypeElement proxyContainer = containerManager
