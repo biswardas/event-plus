@@ -14,9 +14,10 @@ public class ContainerUpdateEvent extends ContainerEvent {
 	/**Constructor used to create Container Event while updating an container entry
 	 * 
 	 * @param source name of the source which sends the event to sink.
-	 * @param ce Container Entry in which the substance has changed 
+	 * @param externalIdentity identity of the entry to be deleted 
 	 * @param attribute attribute which value has modified
 	 * @param sc the new substance for the attribute
+	 * @param transactionId transaction of this operation
 	 */
 	public ContainerUpdateEvent(String source, int externalIdentity,
 			Attribute attribute,Substance sc,int transactionId) {

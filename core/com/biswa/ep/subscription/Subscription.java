@@ -57,8 +57,6 @@ abstract public class Subscription extends Attribute {
 	 * Subscription activity cleanup. Implemented by Subscription Attributes and
 	 * Processors.
 	 * 
-	 * @param attribute
-	 *            Attribute
 	 * @param containerEntry
 	 *            ContainerEntry
 	 */

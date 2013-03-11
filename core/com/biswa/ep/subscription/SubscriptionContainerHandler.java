@@ -93,9 +93,9 @@ public class SubscriptionContainerHandler implements SubscriptionSupport {
 	
 	/**Adds new subscriber to the the given subject.
 	 * 
-	 * @param subRequest
-	 * @param conEntryId
-	 * @return
+	 * @param subRequest SubscriptionRequest
+	 * @param conEntryId Integer
+	 * @return SubscriptionRequest[]
 	 */
 	private SubscriptionRequest[] addNewSubscriber(SubscriptionRequest subRequest,
 			Integer conEntryId) {
@@ -129,9 +129,9 @@ public class SubscriptionContainerHandler implements SubscriptionSupport {
 	
 	/**Removes the subscriber from the given subject.
 	 * 
-	 * @param subRequest
-	 * @param conEntryId
-	 * @return
+	 * @param subRequest SubscriptionRequest
+	 * @param conEntryId Integer
+	 * @return SubscriptionRequest[]
 	 */
 	private SubscriptionRequest[] removeSubscriber(SubscriptionRequest subRequest,
 			Integer conEntryId) {

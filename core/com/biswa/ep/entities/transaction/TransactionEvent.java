@@ -34,7 +34,7 @@ public class TransactionEvent extends EPEvent{
 	}
 	/**
 	 * Source of origin of this transaction
-	 * @return
+	 * @return String
 	 */
 	public String getOrigin() {
 		return origin;

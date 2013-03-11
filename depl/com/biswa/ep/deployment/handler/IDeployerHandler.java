@@ -25,7 +25,7 @@ public interface IDeployerHandler {
 	 * 
 	 * @param container Container
 	 * @param context Context
-	 * @return
+	 * @return String
 	 */
 	String getQualifiedName(Container container, Context context);
 	

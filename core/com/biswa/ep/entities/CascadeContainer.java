@@ -551,7 +551,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 	/**Updates the static substance associated with the container, and the updates 
 	 * are propagated to entries appropriate by the filter.
 	 * 
-	 * @param attribute Attribute
+	 * @param incomingAttribute Attribute
 	 * @param substance Substance
 	 * @param appliedFilter FilterSpec
 	 */

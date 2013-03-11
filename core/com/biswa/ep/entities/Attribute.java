@@ -150,7 +150,7 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	/**
 	 * Method tells should this attribute be initialized upon insertion.
 	 * 
-	 * @return
+	 * @return boolean
 	 */
 	public boolean initializeOnInsert() {
 		return initializeOnInsert;
@@ -193,7 +193,7 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	 * of attribute being removed however the container keeps it due to its
 	 * dependency.
 	 * 
-	 * @param boolean
+	 * @param propagate boolean
 	 */
 	public void setPropagate(boolean propagate) {
 		this.propagate = propagate;
@@ -228,7 +228,7 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	/**
 	 * Attributes which are dependent on this.
 	 * 
-	 * @return
+	 * @return Attribute[]
 	 */
 	final Attribute[] getDependents() {
 		return dependents;
