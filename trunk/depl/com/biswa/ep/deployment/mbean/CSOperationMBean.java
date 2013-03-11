@@ -28,13 +28,13 @@ public interface CSOperationMBean {
 
 	/**
 	 * Re pivots the container
-	 * @param filterString
+	 * @param pivotingSpec String
 	 */
 	public void applyPivot(String pivotingSpec);
 	
 	/**
 	 * sorts the container
-	 * @param filterString
+	 * @param sortSpec String
 	 */
 	public void applySort(String sortSpec);
 	

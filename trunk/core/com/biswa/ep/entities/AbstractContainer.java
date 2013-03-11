@@ -197,7 +197,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 
 	/**Is Any clients Attached to this container?
 	 * 
-	 * @return
+	 * @return boolean
 	 */
 	protected boolean isClientsAttached() {
 		return !listenerMap.isEmpty();
@@ -605,7 +605,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	
 	/**Method returns the concrete container entry.
 	 * 
-	 * @param int id of the entry
+	 * @param id of the entry
 	 * @return ContainerEntry
 	 */
 	public abstract ContainerEntry getConcreteEntry(int id);

@@ -8,7 +8,6 @@ package com.biswa.ep.entities.transaction;
 public interface TransactionRelay {
 	/**
 	 * Method to begin transaction
-	 * @param transactionId
 	 */
 	void beginTran();
 	/**
