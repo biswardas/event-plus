@@ -342,7 +342,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	
 	@Override
 	public void completionFeedback(int transactionID){
-		assert log("###################Completion Feedback: "+transactionID);
+		assert log("Completion Feedback: "+transactionID);
 	}
 
 	@Override

@@ -36,7 +36,7 @@ public class FeedbackAwareContainer extends ThrottledContainer {
 	@Override
 	public void completionFeedback(int transactionID) {
 		if(transactionID==0 || lastTransactionProcessed==transactionID){//Some client joined the party flush all collected updates
-			assert log("~~~~~~~~~~~~~~~~~~~~~~Receiving Feedback= "+transactionID+" at "+ System.currentTimeMillis());
+			assert log("Receiving Feedback= "+transactionID+" at "+ System.currentTimeMillis());
 			throttledDispatch();
 		}
 	}
