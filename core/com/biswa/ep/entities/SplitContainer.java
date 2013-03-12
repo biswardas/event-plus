@@ -295,13 +295,13 @@ public class SplitContainer extends ConcreteContainer {
 	public void dumpContainer(){
 		//super.dumpContainer();
 		int unAllocated= getContainerEntries().length;
-		log("##################Split details"+getName());
+		verbose("##################Split details"+getName());
 		for(SplitFilterAgent oneAgent:getFilterAgents()){
-			log(oneAgent.name+" has "+oneAgent.getCount());
+			verbose(oneAgent.name+" has "+oneAgent.getCount());
 			unAllocated = unAllocated-oneAgent.getCount();
 		}
-		log("UNALLOCATED = "+unAllocated);
-		log("##################End Dumping Container "+getName());
+		verbose("UNALLOCATED = "+unAllocated);
+		verbose("##################End Dumping Container "+getName());
 	}
 	
 	@Override

@@ -76,7 +76,7 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 					private static final long serialVersionUID = -2038228996079905588L;
 
 					public void runtask() {
-						assert log("Received source addition:"+ce.getSource());
+						assert log("Received source addition:"+ce);
 						expectationsMap.put(ce.getSource(),false);
 						if(cl.isConnected()){
 							assert log("Here comes Mr. Bean, too early for next show.");
@@ -220,6 +220,7 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
+				assert log("Received source connected:"+ce);
 				assert Boolean.FALSE.equals(expectationsMap.get(ce.getSource())):"This source was already connected but received connected message";
 				expectationsMap.put(ce.getSource(),true);
 				addTransactionSource(ce.getSource(),ce.getTransactionGroup());

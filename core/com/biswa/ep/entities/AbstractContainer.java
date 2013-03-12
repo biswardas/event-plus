@@ -98,6 +98,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 */
 	final private Properties props;
 	
+	private boolean verbose = true;
 	/**
 	 * Whether this source is connected to its known sources. 
 	 */
@@ -144,6 +145,10 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 		assert props!=null:"Properties can not be null for the container";
 		this.name=name;
 		this.props=props;
+		String verboseStr = props.getProperty(PropertyConstants.VERBOSE);
+		if(verboseStr!=null){
+			this.verbose=Boolean.parseBoolean(verboseStr);
+		}
 		transmitter = new TransmitterImpl(name);
 		containerAgent = new Agent(this);
 	}
@@ -825,34 +830,40 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	}	
 	
 	public boolean log(String str){
-		System.out.println(Thread.currentThread().getName()+":"+str);
+		if(verbose){
+			verbose(str);
+		}
 		return true;
 	}
 	
-	public boolean ensureExecutingInRightThread() {
-		return Thread.currentThread().getName().startsWith("PPL-"+getName());
+	public void verbose(String str){
+		System.out.println(Thread.currentThread().getName()+":"+str);
 	}
 	
 	/**
 	 *Dumps the current container contents. 
 	 */
 	public void dumpContainer(){
-		log("##################Begin Dumping Container "+getName());
+		verbose("##################Begin Dumping Container "+getName());
 		ContainerEntry[] contEntries = getContainerEntries();
 		for(ContainerEntry conEntry:contEntries){
-			log(conEntry.toString());
+			verbose(conEntry.toString());
 		}
-		log("##################Number of entries:="+contEntries.length);
-		log("##################End Dumping Container "+getName());
+		verbose("##################Number of entries:="+contEntries.length);
+		verbose("##################End Dumping Container "+getName());
 	}
 	
 	/**
 	 *Dumps the meta information for this container 
 	 */
 	public void dumpMetaInfo(){
-		log("##################Begin Dumping Container "+getName());
-		log(this.toString());
-		log("##################End Dumping Container "+getName());
+		verbose("##################Begin Dumping Container "+getName());
+		verbose(this.toString());
+		verbose("##################End Dumping Container "+getName());
+	}
+
+	public boolean ensureExecutingInRightThread() {
+		return Thread.currentThread().getName().startsWith("PPL-"+getName());
 	}
 
 	public void destroy() {
