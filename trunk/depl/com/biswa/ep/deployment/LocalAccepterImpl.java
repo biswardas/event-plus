@@ -29,8 +29,8 @@ public class LocalAccepterImpl extends Accepter {
 	public void addFeedbackSource(Feedback feedback, AbstractContainer sinkSchema) {
 		String listeningSchema = feedback.getContext()+"."+feedback.getContainer();
 		AbstractContainer listeningContainer = getContainerManager().getSchema(listeningSchema);
-		listeningContainer.agent().addFeedbackSource(new FeedbackEvent(feedbackAs(feedback,sinkSchema)));
 		sinkSchema.agent().addFeedbackAgent(new FeedbackAgentImpl(feedbackAs(feedback,sinkSchema), listeningContainer.agent()));
+		listeningContainer.agent().addFeedbackSource(new FeedbackEvent(feedbackAs(feedback,sinkSchema)));
 	}
 	@Override
 	public SubscriptionAgent getSubscriptionAgent(String context,
