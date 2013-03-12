@@ -74,13 +74,13 @@ public class RMIAccepterImpl extends Accepter {
 	public void addFeedbackSource(Feedback feedback, AbstractContainer originatingContainer) {
 		String listeningSchema = feedback.getContext()+"."+feedback.getContainer();		
 		Connector connecter = RegistryHelper.getConnecter(listeningSchema);
+		originatingContainer.agent().addFeedbackAgent(new RMIFeedbackAgentImpl(feedbackAs(feedback,originatingContainer), listeningSchema));
 		try {
 			connecter.addFeedbackSource(listeningSchema, feedbackAs(feedback,originatingContainer));
 		} catch (RemoteException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
-		originatingContainer.agent().addFeedbackAgent(new RMIFeedbackAgentImpl(feedbackAs(feedback,originatingContainer), listeningSchema));
 	}
 
 	@Override
