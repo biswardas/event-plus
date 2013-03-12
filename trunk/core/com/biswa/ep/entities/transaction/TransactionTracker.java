@@ -69,7 +69,6 @@ public final class TransactionTracker {
 		//Enque the task
 		void enque(ContainerTask transactionAwareOperation) {
 			operationQueueMap.add(transactionAwareOperation);
-			assert TransactionTracker.this.transactionAdapter.log("Number of tasks queued in transaction "+transactionID + "="+operationQueueMap.size());
 		}
 
 		//Empty the task queue,scenario when task is rolled back before even begun
@@ -222,7 +221,7 @@ public final class TransactionTracker {
 
 					@Override
 					public void runtask() {
-						setCurrentTransactionID(te.getOrigin(),te.getTransactionId());
+						beginTransaction(te.getOrigin(),te.getTransactionId());
 						transactionAdapter.beginTran();
 					}
 				};
@@ -323,11 +322,7 @@ public final class TransactionTracker {
 	protected void addOperation(int transactionId,ContainerTask transactionAwareOperation) {
 		if(transactionId!=0){
 			TransactionState ts = transactionStateMap.get(transactionId);
-			if(ts!=null){
-				 ts.enque(transactionAwareOperation);
-			}else{
-				assert transactionAdapter.log("????????????????Invalid Operation(transaction ever begin?) with transactionID=:"+transactionId);
-			}
+			ts.enque(transactionAwareOperation);
 		} else {
 			defaultTranState.enque(transactionAwareOperation);
 		}
@@ -338,42 +333,41 @@ public final class TransactionTracker {
 	 * @return ContainerTask
 	 */
 	protected ContainerTask getNext() {
-		assert currentTransactionID!=0;
 		ContainerTask whatIsNext = null;
-		TransactionState ts = transactionStateMap.get(currentTransactionID);
-		if(ts!=null){
+		if(isIdle()){
+			whatIsNext = defaultTranState.getNext();
+			if(whatIsNext==null){
+				Integer nextTransaction = transactionReadyQueue.poll();
+				if(nextTransaction!=null){
+					TransactionState ts = transactionStateMap.get(nextTransaction);
+					whatIsNext = ts.getNext();
+				}
+			}
+		}else{
+			TransactionState ts = transactionStateMap.get(currentTransactionID);
 			whatIsNext = ts.getNext();
 		}
 		return whatIsNext;
 	}
 	
-	/**The next task to be dispatched
-	 * 
-	 * @return ContainerTask
-	 */
-	protected ContainerTask getNextFromReadyQueue() {
-		assert currentTransactionID==0;
-		ContainerTask whatIsNext = null;
-		TransactionState ts = null;
-		whatIsNext = defaultTranState.getNext();
-		if(whatIsNext==null){
-			Integer nextTransaction = transactionReadyQueue.poll();
-			assert transactionAdapter.log("###########Polled Queued :"+nextTransaction);
-			if(nextTransaction!=null){
-				ts = transactionStateMap.get(nextTransaction);				
-				whatIsNext = ts.getNext();
-				assert whatIsNext!=null;
-			}
+
+
+	protected void beginDefaultTran() {
+		if(currentTransactionID==0){
+			int generatedTransactionID = transactionAdapter.getNextTransactionID();
+			TransactionState ts=new TransactionState(generatedTransactionID,sourceGroupMap.getSourceStateMap(transactionAdapter.cl.getName()));
+			transactionStateMap.put(generatedTransactionID, ts);
+			beginTransaction(transactionAdapter.cl.getName(),generatedTransactionID);	
+		}else{
+			throw new IllegalStateException("Can not initiate a default transaction while a transaction already in progress:"+currentTransactionID);
 		}
-		return whatIsNext;
 	}
-	
 	
 	/**Marks the current transaction in progress
 	 * 
 	 * @param currentTransactionID
 	 */
-	protected void setCurrentTransactionID(String transactionOrigin,int currentTransactionID) {
+	private void beginTransaction(String transactionOrigin,int currentTransactionID) {
 		this.currentTransactionStartedAt=System.currentTimeMillis();
 		this.transactionOrigin=transactionOrigin;
 		this.currentTransactionID = currentTransactionID;

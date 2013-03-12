@@ -536,7 +536,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	 * by the underlying container.
 	 */
 	public void beginDefaultTran(){
-		transactionTracker.setCurrentTransactionID(cl.getName(),getNextTransactionID());
+		transactionTracker.beginDefaultTran();
 		beginTran();
 	}
 	
@@ -736,11 +736,8 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 			}else{
 				whatIsNext = preConnectedQueue.poll();
 			}
-			if(whatIsNext==null){
-				whatIsNext = transactionTracker.getNextFromReadyQueue();
-			}
-		}else{
-			//Transaction in progress so pick up the next task which is in private queue of transaction tracker.
+		}
+		if(whatIsNext==null){
 			whatIsNext = transactionTracker.getNext();
 		}
 		return whatIsNext;

@@ -11,18 +11,7 @@ import java.util.concurrent.TimeUnit;
 public class TimedContainer extends ThrottledContainer{
 	public TimedContainer(String name,Properties props) {
 		super(name,props);
-		ContainerTask containerTask = new ContainerTask() {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = -196177963922732735L;
-
-			@Override
-			protected void runtask() {
-				throttledDispatch();
-			}
-		};
-		invokePeriodically(containerTask, 0, getTimedInterval(), TimeUnit.MILLISECONDS);
+		invokePeriodically(throttleTask, 0, getTimedInterval(), TimeUnit.MILLISECONDS);
 	}
 	
 	/**Returns the timed interval for this container
