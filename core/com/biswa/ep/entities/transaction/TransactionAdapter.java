@@ -712,6 +712,14 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	public boolean isConnected() {
 		return cl.isConnected();
 	}
+	
+	public int preConnectedQueueSize() {
+		return preConnectedQueue.size();
+	}
+
+	public int postConnectedQueueSize() {
+		return postConnectedQueue.size();
+	}
 		
 	@Override
 	public String toString() {
