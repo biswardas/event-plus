@@ -57,8 +57,8 @@ public abstract class ContainerTask implements Runnable,Serializable{
 		try{
 			runtask();
 		}catch(Throwable th){
-			System.err.println(ContainerContext.CONTAINER.get().getName());
-			th.printStackTrace();
+			System.out.println("Exception occured in thread:"+Thread.currentThread().getName());
+			th.printStackTrace(System.out);
 		}
 	}
 	

@@ -16,6 +16,17 @@ import com.biswa.ep.entities.transaction.Agent;
  *
  */
 public abstract class ThrottledContainer extends ConcreteContainer {
+	protected final ContainerTask throttleTask = new ContainerTask() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -196177963922732735L;
+
+		@Override
+		protected void runtask() {
+			throttledDispatch();
+		}
+	};
 	/**
 	 * Last throttled transaction on this container
 	 */

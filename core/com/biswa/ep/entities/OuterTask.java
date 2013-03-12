@@ -10,6 +10,7 @@ abstract public class OuterTask implements Runnable {
 		try{
 			runouter();
 		}catch(Throwable th){
+			System.out.println("Exception occured in thread:"+Thread.currentThread().getName());
 			th.printStackTrace(System.out);
 		}
 	}
