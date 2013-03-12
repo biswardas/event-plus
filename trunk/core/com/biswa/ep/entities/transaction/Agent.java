@@ -314,7 +314,7 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 	 * Method exclusively for testing purposes and waits for event queue to drain
 	 * for a post event analysis. There is no business requirement for this method.
 	 */
-	void waitForEventQueueToDrain() {
+	public void waitForEventQueueToDrain() {
 		final Semaphore semaphore = new Semaphore(1);
 		semaphore.drainPermits();
 		getEventCollector().execute(new Runnable() {
