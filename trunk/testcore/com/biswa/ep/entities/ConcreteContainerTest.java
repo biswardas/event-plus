@@ -9,9 +9,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.biswa.ep.entities.substance.ObjectSubstance;
 import com.biswa.ep.entities.transaction.TransactionEvent;
 
 public class ConcreteContainerTest {
+	private static final ObjectSubstance SC = new ObjectSubstance("HELLO");
+	private static final LeafAttribute ATTRIBUTE = new LeafAttribute("HELLO");
 	private static final int TRANID = 9000000;
 	private static final String SINK="SINK";
 	private static final String SOURCEA="SOURCEA";
@@ -45,7 +48,7 @@ public class ConcreteContainerTest {
 	}
 	
 	@Test
-	public void test() {
+	public void holdTransactionTillConnected() {
 		conc.agent().addSource(new ConnectionEvent(SOURCEA, SINK));
 		conc.agent().addSource(new ConnectionEvent(SOURCEB, SINK));
 		
@@ -88,6 +91,24 @@ public class ConcreteContainerTest {
 		Assert.assertEquals(null,conc.agent().getCurrentTransactionOrigin());
 	}
 
+	@Test
+	public void holdOperationsTillConnected() {
+		conc.agent().addSource(new ConnectionEvent(SOURCEA, SINK));
+		conc.agent().addSource(new ConnectionEvent(SOURCEB, SINK));
+		conc.agent().attributeAdded(new ContainerStructureEvent(SOURCEA, ATTRIBUTE));
+		conc.agent().connected(new ConnectionEvent(SOURCEA, SINK,new String[]{SOURCEA}));
+		conc.agent().beginTran(new TransactionEvent(SOURCEA, SOURCEA,TRANID));
+		conc.agent().entryAdded(new ContainerInsertEvent(SOURCEA,new TransportEntry(100),TRANID));
+		conc.agent().entryAdded(new ContainerUpdateEvent(SOURCEA,100,ATTRIBUTE,SC,TRANID));
+		conc.agent().entryAdded(new ContainerDeleteEvent(SOURCEA,100,TRANID));
+		conc.agent().waitForEventQueueToDrain();
+		Assert.assertEquals(1, conc.agent().preConnectedQueueSize());
+		Assert.assertEquals(4, conc.agent().postConnectedQueueSize());
+		conc.agent().connected(new ConnectionEvent(SOURCEB, SINK,new String[]{SOURCEA,SOURCEB}));
+		conc.agent().waitForEventQueueToDrain();
+		Assert.assertEquals(0, conc.agent().preConnectedQueueSize());
+	}
+	
 	@Test
 	public void testUnInvitedGuest() {
 		conc.agent().addSource(new ConnectionEvent(SINK, SINK));
