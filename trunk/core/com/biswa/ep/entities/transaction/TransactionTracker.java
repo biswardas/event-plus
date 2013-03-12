@@ -1,6 +1,7 @@
 package com.biswa.ep.entities.transaction;
 
-import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -21,10 +22,7 @@ public final class TransactionTracker {
 	/**
 	 * Each transaction is managed in this class. 
 	 */
-	private static final class TransactionState{
-		//This flag makes it enable to begin processing 
-		//when all sources commit.
-		private boolean beginOnCommit=false;
+	private class TransactionState{
 		private int transactionID;
 		private Map<String,State> currentStateMap = new HashMap<String,State>();
 		//Operations which has been queued in this transaction
@@ -67,14 +65,11 @@ public final class TransactionTracker {
 			}
 			return toCommit;
 		}
-		
-		boolean isNotAlreadyCommitted(){
-			return currentState!=State.COMMIT;
-		}
 
 		//Enque the task
 		void enque(ContainerTask transactionAwareOperation) {
-			operationQueueMap.add(transactionAwareOperation);			
+			operationQueueMap.add(transactionAwareOperation);
+			assert TransactionTracker.this.transactionAdapter.log("Number of tasks queued in transaction "+transactionID + "="+operationQueueMap.size());
 		}
 
 		//Empty the task queue,scenario when task is rolled back before even begun
@@ -123,9 +118,33 @@ public final class TransactionTracker {
 
 	//Map keeping the transactions
 	private final Map<Integer,TransactionState> transactionStateMap = new HashMap<Integer,TransactionState>();
+	
+	//Queue to manage transaction ready queue
+	private final Queue<Integer> transactionReadyQueue = new LinkedList<Integer>();
+	
+	//Default transaction state
+	private final TransactionState defaultTranState = new TransactionState(0,Collections.<String,State>emptyMap()){
+		@Override
+		boolean didEveryOneBegin(String includingSource) {
+			throw new IllegalStateException("Default transaction should not care about begin transaction");
+		}
 
+		@Override
+		boolean didEveryOneCommit(String includingSource) {
+			throw new IllegalStateException("Default transaction should not care about commit transaction");
+		}
+
+		@Override
+		void emptyTaskQueue() {
+			throw new IllegalStateException("Can not drain default transaction queue");
+		}
+	};
+	
 	//Transaction Adapter
-	final TransactionAdapter transactionAdapter;
+	private final TransactionAdapter transactionAdapter;
+	
+	//Begin the transaction only when all sources commit the transaction
+	private final boolean beginOnCommit;
 
 	//Transaction currently in progress
 	private int currentTransactionID=0;
@@ -133,6 +152,7 @@ public final class TransactionTracker {
 	//Current Transaction origin
 	private String transactionOrigin;
 	
+	//Time at which current transaction started, used to timeout the transaction.
 	private long currentTransactionStartedAt=-1;
 	
 	
@@ -143,6 +163,7 @@ public final class TransactionTracker {
 	protected TransactionTracker(TransactionAdapter transactionAdapter) {
 		assert transactionAdapter!=null;
 		this.transactionAdapter=transactionAdapter;
+		this.beginOnCommit=transactionAdapter.cl.beginOnCommit();
 		sourceGroupMap.buildCircuit(transactionAdapter.cl.getName(),transactionAdapter.cl.getName());
 		initializeTimeOut();
 	}
@@ -172,54 +193,55 @@ public final class TransactionTracker {
 		}
 	}
 
+	/**Source and the group they belong
+	 * 
+	 * @param sourceName
+	 * @param transactionGroup
+	 */
+	protected void addSource(String sourceName,String[] transactionOrigin) {
+		sourceGroupMap.buildCircuit(sourceName,transactionOrigin);
+	}
+	
 	/**Track transaction begin.
 	 * 
 	 * @param transactionId
 	 * @param sourceName
 	 */
-	protected void trackBeginTransaction(TransactionEvent te){
+	protected void trackBeginTransaction(final TransactionEvent te){
 		assert transactionAdapter.log("Track Begin Transaction: "+te);
 		if(sourceGroupMap.knownOrigin(te.getOrigin())){
 			TransactionState ts = transactionStateMap.get(te.getTransactionId());
 			if(ts==null){
 				ts=new TransactionState(te.getTransactionId(),sourceGroupMap.getSourceStateMap(te.getOrigin()));
 				transactionStateMap.put(te.getTransactionId(), ts);
+				ContainerTask transactionAwareOperation = new ContainerTask(){
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = 235003479179508804L;
+
+					@Override
+					public void runtask() {
+						setCurrentTransactionID(te.getOrigin(),te.getTransactionId());
+						transactionAdapter.beginTran();
+					}
+				};
+				ts.enque(transactionAwareOperation);
 			}
 			if(ts.didEveryOneBegin(te.getSource())){
+				//All sources have reported build the task and push the task into transaction state queue
 				assert transactionAdapter.log("Every one begin for Transaction: "+te.getTransactionId());
-				//All sources have reported
-				if(!transactionAdapter.cl.beginOnCommit()){
-					beginTransaction(te.getOrigin(),te.getTransactionId());
-				}else{
-					ts.beginOnCommit=true;
+				if(!beginOnCommit){
+					//Push the message only if begin on commit is not enabled.
+					transactionReadyQueue.add(te.getTransactionId());
+					assert transactionAdapter.log("###########Queuing Transaction:"+te.getTransactionId());
+					assert transactionAdapter.log("###########Transaction Queue Size:"+ts.operationQueueMap.size());
+					assert transactionAdapter.log("###########All Queued Transactions:"+transactionReadyQueue);
 				}
-			}
-		
+			}		
 		}else{
 			throw new TransactionException("Unknown source in transaction:"+te);
 		}
-	}
-	/**Transaction can begin with as soon as all sources begin transaction 
-	 * or it can be lazy one and wait till every one commit. 
-	 * 
-	 * @param transactionId int
-	 * @param sourceName
-	 * @param ts
-	 */
-	private void beginTransaction(final String origin,final int transactionId) { 
-		ContainerTask r = new ContainerTask(){
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 235003479179508804L;
-
-			@Override
-			public void runtask() {
-				setCurrentTransactionID(origin,transactionId);
-				transactionAdapter.beginTran();
-			}
-		};
-		transactionAdapter.executeOrEnquePostConnected(r);
 	}
 
 	/**Track transaction commit.
@@ -230,23 +252,24 @@ public final class TransactionTracker {
 	protected void trackCommitTransaction(TransactionEvent te){
 		assert transactionAdapter.log("Track Commit Transaction: "+te);
 		if(sourceGroupMap.knownOrigin(te.getOrigin())){
-			TransactionState ts = transactionStateMap.get(te.getTransactionId());
+			TransactionState ts = transactionStateMap.get(te.getTransactionId());			
 			if(ts!=null){
 				if(ts.didEveryOneCommit(te.getSource())){
 					assert transactionAdapter.log("Every one committed for Transaction: "+te.getTransactionId());
-					ContainerTask r = new ContainerTask() {
+					//Enqueue Commit transaction task
+					ContainerTask buildCommitTranTask = new ContainerTask() {
 						/**
 						 * 
 						 */
 						private static final long serialVersionUID = -5106553872435964358L;
-	
+
 						public void runtask() {
 							transactionAdapter.commitTran();
 						}
 					};
-					addOperation(te.getTransactionId(), r);
-					if(ts.beginOnCommit){
-						beginTransaction(te.getOrigin(),te.getTransactionId());
+					ts.enque(buildCommitTranTask);
+					if(beginOnCommit){
+						transactionReadyQueue.add(te.getTransactionId());
 					}
 				}else{
 					assert transactionAdapter.log("Not Every one committed for Transaction: "+te.getTransactionId());
@@ -258,7 +281,7 @@ public final class TransactionTracker {
 		}else{
 			throw new TransactionException("Unknown source in transaction:"+te);
 		}
-	} 
+	}
 	
 	/**Track transaction rollback.
 	 * 
@@ -270,35 +293,98 @@ public final class TransactionTracker {
 		if(sourceGroupMap.knownOrigin(te.getOrigin())){
 			TransactionState ts = transactionStateMap.get(te.getTransactionId());
 			if(ts!=null){
-				if(ts.isNotAlreadyCommitted()){
-					if(currentTransactionID==te.getTransactionId()){
-						transactionAdapter.rollbackTran();
-					}else{
-						ts.emptyTaskQueue();
-						ContainerTask transactionAwareOperation = new ContainerTask(){
-							/**
-							 * 
-							 */
-							private static final long serialVersionUID = 48624528355863414L;
-	
-							@Override
-							public void runtask() {
-								transactionAdapter.rollbackTran();
-							}
-						};
-						ts.enque(transactionAwareOperation);
-					}
+				if(transactionReadyQueue.contains(te.getTransactionId())){
+					//Best Case scenario transaction rolled back without any side effect.
+					transactionReadyQueue.remove(te.getTransactionId());
+					transactionStateMap.remove(te.getTransactionId());
+				}else{
+					//Next best just let know down stream at best effort 
+					//in case down stream can manage this atom bomb
+					ts.emptyTaskQueue();
+					ContainerTask transactionAwareOperation = new ContainerTask(){
+						/**
+						 * 
+						 */
+						private static final long serialVersionUID = 48624528355863414L;
+
+						@Override
+						public void runtask() {
+							transactionAdapter.rollbackTran();
+						}
+					};
+					ts.enque(transactionAwareOperation);
 				}
 			}
 		}else{
 			throw new TransactionException("Unknown source in transaction:"+te);
 		}
 	}
+
+	protected void addOperation(int transactionId,ContainerTask transactionAwareOperation) {
+		if(transactionId!=0){
+			TransactionState ts = transactionStateMap.get(transactionId);
+			if(ts!=null){
+				 ts.enque(transactionAwareOperation);
+			}else{
+				assert transactionAdapter.log("????????????????Invalid Operation(transaction ever begin?) with transactionID=:"+transactionId);
+			}
+		} else {
+			defaultTranState.enque(transactionAwareOperation);
+		}
+	}
+
+	/**The next task to be dispatched
+	 * 
+	 * @return ContainerTask
+	 */
+	protected ContainerTask getNext() {
+		assert currentTransactionID!=0;
+		ContainerTask whatIsNext = null;
+		TransactionState ts = transactionStateMap.get(currentTransactionID);
+		if(ts!=null){
+			whatIsNext = ts.getNext();
+		}
+		return whatIsNext;
+	}
+	
+	/**The next task to be dispatched
+	 * 
+	 * @return ContainerTask
+	 */
+	protected ContainerTask getNextFromReadyQueue() {
+		assert currentTransactionID==0;
+		ContainerTask whatIsNext = null;
+		TransactionState ts = null;
+		whatIsNext = defaultTranState.getNext();
+		if(whatIsNext==null){
+			Integer nextTransaction = transactionReadyQueue.poll();
+			assert transactionAdapter.log("###########Polled Queued :"+nextTransaction);
+			if(nextTransaction!=null){
+				ts = transactionStateMap.get(nextTransaction);				
+				whatIsNext = ts.getNext();
+				assert whatIsNext!=null;
+			}
+		}
+		return whatIsNext;
+	}
+	
+	
+	/**Marks the current transaction in progress
+	 * 
+	 * @param currentTransactionID
+	 */
+	protected void setCurrentTransactionID(String transactionOrigin,int currentTransactionID) {
+		this.currentTransactionStartedAt=System.currentTimeMillis();
+		this.transactionOrigin=transactionOrigin;
+		this.currentTransactionID = currentTransactionID;
+		assert transactionAdapter.log("##########################Completing transaction:"+currentTransactionID);
+	}
 	
 	/**
 	 * Marks the current transaction complete. 
 	 */
 	protected void completeTransaction(){
+		assert transactionAdapter.log("##########################Completing transaction:"+currentTransactionID);
 		transactionStateMap.remove(currentTransactionID);
 		currentTransactionID=0;
 		transactionOrigin=null;
@@ -308,7 +394,7 @@ public final class TransactionTracker {
 	 * 
 	 * @return boolean
 	 */
-	boolean isIdle() {
+	public boolean isIdle() {
 		return currentTransactionID==0;
 	}
 
@@ -316,78 +402,52 @@ public final class TransactionTracker {
 	 * 
 	 * @return Integer[]
 	 */
-	Integer[] transactionsInProgress() {
+	public Integer[] transactionsInProgress() {
 		return transactionStateMap.keySet().toArray(new Integer[0]);
-	}
-
-	/**The next task to be dispatched
-	 * 
-	 * @return ContainerTask
-	 */
-	ContainerTask getNext() {
-		ContainerTask whatIsNext = null;
-		TransactionState ts = transactionStateMap.get(currentTransactionID);
-		if(ts!=null){
-			whatIsNext = ts.getNext();
-		}
-		return whatIsNext;
-	}
-	
-	/**Source and the group they belong
-	 * 
-	 * @param sourceName
-	 * @param transactionGroup
-	 */
-	protected void addSource(String sourceName,String[] transactionOrigin) {
-		assert transactionAdapter.log("Source:"+ sourceName +" origins"+Arrays.toString(transactionOrigin));
-		sourceGroupMap.buildCircuit(sourceName,transactionOrigin);
-	}
+	}	
 
 	/**Returns the current transaction
 	 * 
 	 * @return int
 	 */
-	int getCurrentTransactionID() {
+	public int getCurrentTransactionID() {
 		return currentTransactionID;
 	}
 
-
-	String getCurrentTransactionOrigin() {
+	/**
+	 * Returns the Current transaction origin
+	 * @return
+	 */
+	public String getCurrentTransactionOrigin() {
 		return transactionOrigin;
 	}
 	
+	/**Returns all origins this tracker knows about.
+	 * 
+	 * @return String[]
+	 */
 	public String[] getKnownTransactionOrigins() {
 		return sourceGroupMap.getOrigins();
 	}
-	/**Marks the current transaction in progress
+	
+	/**Returns operations queued in current state queue
 	 * 
-	 * @param currentTransactionID
+	 * @return int
 	 */
-	void setCurrentTransactionID(String transactionOrigin,int currentTransactionID) {
-		this.currentTransactionStartedAt=System.currentTimeMillis();
-		this.transactionOrigin=transactionOrigin;
-		this.currentTransactionID = currentTransactionID;
+	public int getTransactionReadyQueue() {
+		return transactionReadyQueue.size();
 	}
-
-	protected void addOperation(int transactionId,ContainerTask transactionAwareOperation) {
-
-		if(transactionId!=0){
-			if(currentTransactionID==transactionId){
-				//Active transaction in progress dispatch directly to the underlying container.
-				transactionAdapter.taskHandler.executeNow(transactionAwareOperation);
-			}else{
-				//Other transaction in progress queue the operation in transaction's private queue
-				TransactionState ts = transactionStateMap.get(transactionId);
-				if(ts!=null){
-					 ts.enque(transactionAwareOperation);
-				}else{
-					assert transactionAdapter.log("Invalid Operation(transaction ever begin?) with transactionID=:"+transactionId);
-				}
-			}
-		} else {
-			//I dont belong here directly dispatch
-			transactionAdapter.executeOrEnquePostConnected(transactionAwareOperation);
+	
+	/**Returns operations queued in current state queue
+	 * 
+	 * @return int
+	 */
+	public int getOpsInTransactionQueue() {
+		Collection<TransactionState> stateCollection = transactionStateMap.values();
+		int count = 0;
+		for (TransactionState ts:stateCollection){
+			count = count + ts.operationQueueMap.size();
 		}
+		return count;
 	}
-
 }

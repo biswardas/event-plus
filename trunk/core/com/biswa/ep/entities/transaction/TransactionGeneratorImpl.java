@@ -33,9 +33,4 @@ public class TransactionGeneratorImpl implements TransactionGenerator {
 	public int getNextTransactionID() {
 		return tGen.getNextTransactionID();
 	}
-
-	boolean log(String str) {
-		System.out.println(Thread.currentThread().getName()+":"+str);
-		return true;
-	}
 }

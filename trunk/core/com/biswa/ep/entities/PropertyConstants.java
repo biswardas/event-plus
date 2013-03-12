@@ -8,6 +8,11 @@ package com.biswa.ep.entities;
 public interface PropertyConstants {
 	
 	/**
+	 * Enables printing debug messages on container.
+	 */
+	String VERBOSE = "verbose";
+	
+	/**
 	 * Concurrent property of the container. this is a BitMap integer constant each bit specifying the 
 	 * concurrent nature of the operation.
 	 */

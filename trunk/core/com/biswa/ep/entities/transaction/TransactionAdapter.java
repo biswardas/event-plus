@@ -248,7 +248,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
-				ContainerTask r = new ContainerTask() {
+				final ContainerTask r = new ContainerTask() {
 					/**
 					 * 
 					 */
@@ -258,7 +258,23 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 						cl.entryAdded(ce);
 					}
 				};
-				transactionTracker.addOperation(ce.getTransactionId(), r);	
+				if(cl.isConnected()){
+					transactionTracker.addOperation(ce.getTransactionId(), r);
+					checkQueuedTransaction();
+				}else{
+					ContainerTask wrapperTask = new ContainerTask(){
+						/**
+						 * 
+						 */
+						private static final long serialVersionUID = 6033820351648817067L;
+
+						@Override
+						protected void runtask() throws Throwable {
+							transactionTracker.addOperation(ce.getTransactionId(), r);							
+						}						
+					};
+					enqueueInPostConnectedQueue(wrapperTask);
+				}
 			}
 		};
 		executeInListenerThread(outer);
@@ -269,17 +285,33 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
-				ContainerTask r = new ContainerTask() {
+				final ContainerTask r = new ContainerTask() {
 					/**
 					 * 
 					 */
-					private static final long serialVersionUID = -1336168655096370704L;
+					private static final long serialVersionUID = -1233200541986647567L;
 
 					public void runtask() {
 						cl.entryRemoved(ce);
 					}
 				};
-				transactionTracker.addOperation(ce.getTransactionId(), r);	
+				if(cl.isConnected()){
+					transactionTracker.addOperation(ce.getTransactionId(), r);
+					checkQueuedTransaction();
+				}else{
+					ContainerTask wrapperTask = new ContainerTask(){
+						/**
+						 * 
+						 */
+						private static final long serialVersionUID = 6033820351648817067L;
+
+						@Override
+						protected void runtask() throws Throwable {
+							transactionTracker.addOperation(ce.getTransactionId(), r);							
+						}						
+					};
+					enqueueInPostConnectedQueue(wrapperTask);
+				}
 			}
 		};
 		executeInListenerThread(outer);
@@ -290,18 +322,33 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
-				ContainerTask r =new ContainerTask(ce.getIdentitySequence()) {
+				final ContainerTask r = new ContainerTask() {
 					/**
 					 * 
 					 */
-					private static final long serialVersionUID = 7119423560062857413L;
+					private static final long serialVersionUID = -1233200541986647567L;
 
-					@Override
 					public void runtask() {
 						cl.entryUpdated(ce);
 					}
 				};
-				transactionTracker.addOperation(ce.getTransactionId(), r);
+				if(cl.isConnected()){
+					transactionTracker.addOperation(ce.getTransactionId(), r);
+					checkQueuedTransaction();
+				}else{
+					ContainerTask wrapperTask = new ContainerTask(){
+						/**
+						 * 
+						 */
+						private static final long serialVersionUID = 6033820351648817067L;
+
+						@Override
+						protected void runtask() throws Throwable {
+							transactionTracker.addOperation(ce.getTransactionId(), r);							
+						}						
+					};
+					enqueueInPostConnectedQueue(wrapperTask);
+				}
 			}
 		};
 		executeInListenerThread(outer);
@@ -404,6 +451,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 			public void runouter() {
 				if(cl.isConnected()){
 					transactionTracker.trackBeginTransaction(te);
+					checkQueuedTransaction();
 				}else{
 					ContainerTask containerTask = new ContainerTask(){
 						/**
@@ -413,11 +461,11 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 
 						@Override
 						protected void runtask(){
-							transactionTracker.trackBeginTransaction(te);							
+							transactionTracker.trackBeginTransaction(te);
 						}
 						
 					};
-					enqueueInPreConnectedQueue(containerTask);
+					enqueueInPostConnectedQueue(containerTask);
 				}
 			}
 		};
@@ -433,6 +481,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 
 				if(cl.isConnected()){
 					transactionTracker.trackCommitTransaction(te);
+					checkQueuedTransaction();
 				}else{
 					ContainerTask containerTask = new ContainerTask(){
 						/**
@@ -446,7 +495,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 						}
 						
 					};
-					enqueueInPreConnectedQueue(containerTask);
+					enqueueInPostConnectedQueue(containerTask);
 				}
 			}
 		};
@@ -459,9 +508,9 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
-
 				if(cl.isConnected()){
 					transactionTracker.trackRollbackTransaction(te);
+					checkQueuedTransaction();
 				}else{
 					ContainerTask containerTask = new ContainerTask(){
 						/**
@@ -475,7 +524,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 						}
 						
 					};
-					enqueueInPreConnectedQueue(containerTask);
+					enqueueInPostConnectedQueue(containerTask);
 				}
 			}
 		};
@@ -596,6 +645,14 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	protected void enqueueInPreConnectedQueue(ContainerTask r) {
 		preConnectedQueue.add(r);
 	}
+	
+	/**Enqueue the container tasks in post connected queue.
+	 * 
+	 * @param outer OuterTask
+	 */
+	protected void enqueueInPostConnectedQueue(ContainerTask r) {
+		postConnectedQueue.add(r);
+	}
 
 	/**The tasks which are supposed to be dispatched even before connected
 	 * are submitted to this method.
@@ -679,8 +736,11 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 			}else{
 				whatIsNext = preConnectedQueue.poll();
 			}
+			if(whatIsNext==null){
+				whatIsNext = transactionTracker.getNextFromReadyQueue();
+			}
 		}else{
-			//Transaction in progress so pick up the next minor task which is in private queue of current transaction.
+			//Transaction in progress so pick up the next task which is in private queue of transaction tracker.
 			whatIsNext = transactionTracker.getNext();
 		}
 		return whatIsNext;
@@ -712,15 +772,32 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	public boolean isConnected() {
 		return cl.isConnected();
 	}
-	
-	public int preConnectedQueueSize() {
-		return preConnectedQueue.size();
-	}
 
-	public int postConnectedQueueSize() {
+	public int getPostConnectedQueueSize() {
 		return postConnectedQueue.size();
 	}
-		
+
+	public Integer[] getTransactionsInProgress() {
+		return transactionTracker.transactionsInProgress();
+	}
+
+	public int getPreConnectedQueueSize() {
+		return preConnectedQueue.size();
+	}
+	
+	public int getOpsInTransactionQueue() {
+		return transactionTracker.getOpsInTransactionQueue();
+	}
+	
+	public int getTransactionReadyQueue() {
+		return transactionTracker.getTransactionReadyQueue();
+	}
+	
+
+	public boolean log(String string) {
+		return cl.log(string);
+	}
+	
 	@Override
 	public String toString() {
 		return cl.getName();
