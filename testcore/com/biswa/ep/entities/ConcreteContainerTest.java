@@ -95,18 +95,19 @@ public class ConcreteContainerTest {
 	public void holdOperationsTillConnected() {
 		conc.agent().addSource(new ConnectionEvent(SOURCEA, SINK));
 		conc.agent().addSource(new ConnectionEvent(SOURCEB, SINK));
-		conc.agent().attributeAdded(new ContainerStructureEvent(SOURCEA, ATTRIBUTE));
+		conc.agent().attributeAdded(new ContainerStructureEvent(SINK, ATTRIBUTE));
+		conc.agent().waitForEventQueueToDrain();
+		Assert.assertEquals(1, conc.agent().getPreConnectedQueueSize());
 		conc.agent().connected(new ConnectionEvent(SOURCEA, SINK,new String[]{SOURCEA}));
 		conc.agent().beginTran(new TransactionEvent(SOURCEA, SOURCEA,TRANID));
 		conc.agent().entryAdded(new ContainerInsertEvent(SOURCEA,new TransportEntry(100),TRANID));
 		conc.agent().entryAdded(new ContainerUpdateEvent(SOURCEA,100,ATTRIBUTE,SC,TRANID));
 		conc.agent().entryAdded(new ContainerDeleteEvent(SOURCEA,100,TRANID));
 		conc.agent().waitForEventQueueToDrain();
-		Assert.assertEquals(1, conc.agent().preConnectedQueueSize());
-		Assert.assertEquals(4, conc.agent().postConnectedQueueSize());
+		Assert.assertEquals(4, conc.agent().getPostConnectedQueueSize());
 		conc.agent().connected(new ConnectionEvent(SOURCEB, SINK,new String[]{SOURCEA,SOURCEB}));
 		conc.agent().waitForEventQueueToDrain();
-		Assert.assertEquals(0, conc.agent().preConnectedQueueSize());
+		Assert.assertEquals(0, conc.agent().getPreConnectedQueueSize());
 	}
 	
 	@Test
