@@ -25,12 +25,12 @@ public class TransactionTrackerTest {
 	private static final String SRCC = "SRCC";
 	private static final String SRCA = "SRCA";
 	private static final String SRCB = "SRCB";
-	private static final String CON = "CON";
+	public static final String CON = "CON";
 	private static final String[] expectedList = {CON,SRCA,SRCB};
 
 	@Test
 	public void testWhileNotConnected() {
-		AbstractContainer abs = new ConcreteContainer(CON, new Properties());
+		AbstractContainer abs = newContainer(new Properties());
 		TransactionTracker tracker = abs.agent().transactionTracker;		
 		Assert.assertEquals(0,tracker.getCurrentTransactionID());
 		Assert.assertEquals(CON,tracker.getCurrentTransactionOrigin());
@@ -44,7 +44,7 @@ public class TransactionTrackerTest {
 
 	@Test
 	public void testSelfConnected() {
-		AbstractContainer abs = new ConcreteContainer(CON, new Properties());
+		AbstractContainer abs = newContainer(new Properties());
 		abs.agent().addSource(new ConnectionEvent(CON,CON));
 		abs.agent().connected(new ConnectionEvent(CON,CON));
 		abs.agent().waitForEventQueueToDrain();
@@ -471,7 +471,7 @@ public class TransactionTrackerTest {
 	}
 	
 	private AbstractContainer getConnectedContainer() {
-		AbstractContainer abs = new ConcreteContainer(CON, new Properties());
+		AbstractContainer abs = newContainer(new Properties());
 		abs.agent().addSource(new ConnectionEvent(SRCA,CON));
 		abs.agent().addSource(new ConnectionEvent(SRCB,CON));
 		abs.agent().connected(new ConnectionEvent(SRCA,CON,new String[]{SRCA}));
@@ -479,11 +479,15 @@ public class TransactionTrackerTest {
 		abs.agent().waitForEventQueueToDrain();
 		return abs;
 	}
+
+	protected ConcreteContainer newContainer(Properties props) {
+		return new ConcreteContainer(CON, props);
+	}
 	
 	private AbstractContainer getTimeoutContainer(String delay){
 		Properties props = new Properties();
 		props.put(PropertyConstants.TRAN_TIME_OUT, delay);
-		ConcreteContainer abs = new ConcreteContainer(CON,props);
+		AbstractContainer abs = new ConcreteContainer(CON,props);
 		abs.agent().addSource(new ConnectionEvent(SRCA,CON));
 		abs.agent().addSource(new ConnectionEvent(SRCB,CON));
 		abs.agent().connected(new ConnectionEvent(SRCA,CON,new String[]{SRCA}));

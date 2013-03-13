@@ -7,9 +7,13 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({
 		ConcreteTransactionGeneratorTest.class,
-		MultiGroupTransactionTrackerTest.class,
 		TransactionTrackerTest.class,
-		TransactionTrackerTimeOutTest.class})
+		TimedTrackerTest.class,
+		ThrottledTrackerTest.class,
+		TransactionTrackerTimeOutTest.class,
+		SubscriptionTrackerTest.class,
+		SplitTrackerTest.class,
+		PivotTrackerTest.class})
 public class AllTests {
 
 }
