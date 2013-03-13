@@ -200,6 +200,8 @@ public class TransactionTrackerTest {
 		//Invalid Operation will be discarded with NPE
 		abs.agent().entryAdded(new ContainerInsertEvent(SRCA,new TransportEntry(1), 0));
 		abs.agent().entryAdded(new ContainerInsertEvent(SRCA,new TransportEntry(1), 0));
+		abs.agent().waitForEventQueueToDrain();
+		checkOneValidTransactionFrom(CON,0,0,0,true,new Integer[]{},expectedList,tracker);
 		
 		abs.agent().beginTran(new TransactionEvent(SRCA, 12345));
 		abs.agent().entryAdded(new ContainerInsertEvent(SRCA,new TransportEntry(1), 12345));
@@ -213,15 +215,15 @@ public class TransactionTrackerTest {
 		abs.agent().entryAdded(new ContainerInsertEvent(SRCA,new TransportEntry(1), 0));
 		abs.agent().entryAdded(new ContainerInsertEvent(SRCA,new TransportEntry(1), 0));
 		abs.agent().waitForEventQueueToDrain();
-		checkOneValidTransactionFrom(SRCA,12345,0,2,false,new Integer[]{12345,12346},expectedList,tracker);
+		checkOneValidTransactionFrom(SRCA,12345,0,4,false,new Integer[]{12345,12346},expectedList,tracker);
 		abs.agent().beginTran(new TransactionEvent(SRCB,SRCA, 12346));
 		abs.agent().waitForEventQueueToDrain();
-		checkOneValidTransactionFrom(SRCA,12345,1,2,false,new Integer[]{12345,12346},expectedList,tracker);
+		checkOneValidTransactionFrom(SRCA,12345,1,4,false,new Integer[]{12345,12346},expectedList,tracker);
 		abs.agent().commitTran(new TransactionEvent(SRCB,SRCA, 12345));
 		abs.agent().entryAdded(new ContainerInsertEvent(SRCA,new TransportEntry(1), 0));
 		abs.agent().entryAdded(new ContainerInsertEvent(SRCA,new TransportEntry(1), 0));
 		abs.agent().waitForEventQueueToDrain();
-		checkOneValidTransactionFrom(SRCA,12345,1,2,false,new Integer[]{12345,12346},expectedList,tracker);
+		checkOneValidTransactionFrom(SRCA,12345,1,6,false,new Integer[]{12345,12346},expectedList,tracker);
 		abs.agent().commitTran(new TransactionEvent(SRCA,SRCA, 12345));
 		abs.agent().waitForEventQueueToDrain();
 		checkOneValidTransactionFrom(SRCA,12346,0,0,false,new Integer[]{12346},expectedList,tracker);
@@ -387,8 +389,7 @@ public class TransactionTrackerTest {
 		abs.agent().waitForEventQueueToDrain();
 		tracker.beginDefaultTran();
 	}
-
-
+	
 	private AbstractContainer getConnectedContainer() {
 		AbstractContainer abs = new ConcreteContainer(CON, new Properties());
 		abs.agent().addSource(new ConnectionEvent(SRCA,CON));
