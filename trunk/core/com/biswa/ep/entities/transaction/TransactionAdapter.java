@@ -312,7 +312,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
-				final ContainerTask r = new ContainerTask() {
+				final ContainerTask r = new ContainerTask(ce.getIdentitySequence()) {
 					/**
 					 * 
 					 */
