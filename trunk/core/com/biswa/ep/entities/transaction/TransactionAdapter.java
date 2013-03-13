@@ -1,5 +1,6 @@
 package com.biswa.ep.entities.transaction;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -786,10 +787,9 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		return transactionTracker.getOpsInTransactionQueue();
 	}
 	
-	public int getTransactionReadyQueue() {
+	public Collection<Integer> getTransactionReadyQueue() {
 		return transactionTracker.getTransactionReadyQueue();
-	}
-	
+	}	
 
 	public boolean log(String string) {
 		return cl.log(string);
