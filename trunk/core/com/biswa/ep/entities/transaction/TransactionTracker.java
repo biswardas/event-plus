@@ -187,8 +187,9 @@ public final class TransactionTracker {
 			Runnable timeOutTask = new Runnable() {
 				@Override
 				public void run() {
-					if (!TransactionTracker.this.isIdle() && (System.currentTimeMillis() - activeTransaction.startedAt()) > TransactionTracker.this.transactionAdapter
+					if (!TransactionTracker.this.isIdle() && (System.currentTimeMillis() - activeTransaction.startedAt()) >= TransactionTracker.this.transactionAdapter
 							.getTimeOutPeriodInMillis()) {
+						rollbackTran();
 						TransactionTracker.this.transactionAdapter
 								.transactionTimedOut();
 					}
@@ -198,7 +199,7 @@ public final class TransactionTracker {
 			
 			executor.scheduleWithFixedDelay(
 					timeOutTask,
-					this.transactionAdapter.getTimeOutPeriodInMillis(),
+					0,
 					this.transactionAdapter.getTimeOutPeriodInMillis(),
 					TimeUnit.MILLISECONDS);
 		}
@@ -234,7 +235,6 @@ public final class TransactionTracker {
 						@Override
 						public void runtask() {
 							beginTransaction(newTransaction);
-							transactionAdapter.beginTran();
 						}
 					};
 					newTransaction.enque(transactionAwareOperation);
@@ -278,7 +278,7 @@ public final class TransactionTracker {
 							private static final long serialVersionUID = -5106553872435964358L;
 	
 							public void runtask() {
-								transactionAdapter.commitTran();
+								commitTran();
 							}
 						};
 						ts.enque(buildCommitTranTask);
@@ -323,7 +323,7 @@ public final class TransactionTracker {
 
 						@Override
 						public void runtask() {
-							transactionAdapter.rollbackTran();
+							rollbackTran();
 						}
 					};
 					ts.enque(transactionAwareOperation);
@@ -371,10 +371,18 @@ public final class TransactionTracker {
 			int generatedTransactionID = transactionAdapter.getNextTransactionID();
 			TransactionState ts=new TransactionState(transactionAdapter.cl.getName(),generatedTransactionID,originToSourceManager.getSourceStateMap(transactionAdapter.cl.getName()));
 			transactionStateMap.put(generatedTransactionID, ts);
-			beginTransaction(ts);	
+			beginTransaction(ts);
 		}else{
 			throw new IllegalStateException("Can not initiate a default transaction while a transaction already in progress:"+activeTransaction.getTransactionID());
 		}
+	}
+
+	protected void commitDefaultTran() {
+		commitTran();
+	}
+	
+	protected void rollbackDefaultTran() {
+		rollbackTran();
 	}
 	
 	/**Marks the current transaction in progress
@@ -385,13 +393,19 @@ public final class TransactionTracker {
 		assert transactionAdapter.log("##########################Begining transaction:"+newTransaction.transactionID);
 		newTransaction.begin();
 		activeTransaction=newTransaction;
+		transactionAdapter.beginTran();
 	}
 	
-	/**
-	 * Marks the current transaction complete. 
-	 */
-	protected void completeTransaction(){
-		assert transactionAdapter.log("##########################Completing transaction:"+activeTransaction.getTransactionID());
+	private void commitTran() {
+		assert transactionAdapter.log("##########################Commiting transaction:"+activeTransaction.getTransactionID());
+		transactionAdapter.commitTran();
+		transactionStateMap.remove(activeTransaction.getTransactionID());
+		activeTransaction=atomicTransactionState;
+	}
+	
+	private void rollbackTran() {
+		assert transactionAdapter.log("##########################Rolling back transaction:"+activeTransaction.getTransactionID());
+		transactionAdapter.rollbackTran();
 		transactionStateMap.remove(activeTransaction.getTransactionID());
 		activeTransaction=atomicTransactionState;
 	}
