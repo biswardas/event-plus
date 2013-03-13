@@ -221,14 +221,14 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 			@Override
 			public void runouter() {
 				assert log("Received source connected:"+ce);
+				assert cl.ensureExecutingInRightThread();
 				assert Boolean.FALSE.equals(expectationsMap.get(ce.getSource())):"This source was already connected but received connected message";
 				expectationsMap.put(ce.getSource(),true);
-				addTransactionSource(ce.getSource(),ce.getTransactionGroup());
+				transactionTracker.addSource(ce.getSource(),ce.getTransactionGroup());
 				//Not yet Connected return
 				if(expectationsMap.containsValue(false)) return;
 				flushPreconnectedQueue();
 				ContainerTask r = new ContainerTask() {
-
 					/**
 					 * 
 					 */
@@ -238,7 +238,7 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 						cl.connected(ce);
 					}
 				};
-				executeOrEnque(r);
+				taskHandler.executeNow(r);
 				
 
 				checkQueuedTransaction();				

@@ -12,14 +12,14 @@ public class MultiSubstance extends AbstractSubstance {
 	/**
 	 *The value holder for the multi value. 
 	 */
-	private Map<Integer,Object> multivalue = new HashMap<Integer,Object>(4,1);
+	private final Map<Integer,Object> multivalue = new HashMap<Integer,Object>(4,1);
 	/**Adds a value to the multi value entry
 	 * 
 	 * @param minor
 	 * @param substance
 	 */
 	public void addValue(Integer minor,Substance substance){
-		multivalue.put(minor,substance.getValue());
+		multivalue.put(minor,substance==null?null:substance.getValue());
 	}
 	
 	/**Removes a value from the multi value entry.

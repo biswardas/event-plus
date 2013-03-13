@@ -170,17 +170,6 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		feedbackTracker = new FeedbackTracker(this);
 	}
 	
-	/**Method educates the transaction manager about the transactional source and the
-	 * transaction group it manages.
-	 * 
-	 * @param sourceName
-	 * @param transactionGroup
-	 */
-	protected void addTransactionSource(String sourceName,String[] transactionOrigin){
-		assert cl.ensureExecutingInRightThread();
-		transactionTracker.addSource(sourceName,transactionOrigin);
-	}
-	
 	@Override
 	public void addFeedbackSource(final FeedbackEvent feedbackEvent) {
 		OuterTask outer = new OuterTask(){
