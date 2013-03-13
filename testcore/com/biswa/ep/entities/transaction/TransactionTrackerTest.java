@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import junit.framework.Assert;
 
@@ -15,6 +17,8 @@ import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.ConcreteContainer;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerInsertEvent;
+import com.biswa.ep.entities.ContainerTask;
+import com.biswa.ep.entities.PropertyConstants;
 import com.biswa.ep.entities.TransportEntry;
 
 public class TransactionTrackerTest {
@@ -66,30 +70,69 @@ public class TransactionTrackerTest {
 
 	@Test
 	public void testBeginDefaultTran() {
-		AbstractContainer abs = getConnectedContainer();
+		final AbstractContainer abs = getConnectedContainer();
+		final ContainerTask beginCommit = new ContainerTask() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = -196177963922732735L;
+
+			@Override
+			protected void runtask() {
+				abs.agent().beginDefaultTran();
+				abs.agent().commitDefaultTran();
+			}
+		};
+		final ContainerTask beginRollback = new ContainerTask() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = -196177963922732735L;
+
+			@Override
+			protected void runtask() {
+				abs.agent().beginDefaultTran();
+				abs.agent().rollbackDefaultTran();
+			}
+		};
 		TransactionTracker tracker = abs.agent().transactionTracker;
 		Assert.assertTrue(abs.isConnected());
 		checkInitialState(tracker);
-		tracker.beginDefaultTran();
-		checkOneValidTransactionFrom(CON,tracker);
-		tracker.completeTransaction();
+		abs.agent().invokeOperation(beginCommit);
+		abs.agent().waitForEventQueueToDrain();
 		checkInitialState(tracker);
-		tracker.beginDefaultTran();
-		checkOneValidTransactionFrom(CON,tracker);
-		tracker.completeTransaction();
+		abs.agent().invokeOperation(beginRollback);
+		abs.agent().waitForEventQueueToDrain();
 		checkInitialState(tracker);
 	}
 
 
 	
-	@Test(expected=IllegalStateException.class)
+	@Test
 	public void testBeginDefaultTranTwice() {
-		AbstractContainer abs = getConnectedContainer();
+		final AbstractContainer abs = getConnectedContainer();
 		TransactionTracker tracker = abs.agent().transactionTracker;
 		Assert.assertTrue(abs.isConnected());
 		checkInitialState(tracker);
-		tracker.beginDefaultTran();
-		tracker.beginDefaultTran();
+		final Semaphore s = new Semaphore(1);
+		s.drainPermits();
+		final ContainerTask beginCommit = new ContainerTask() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = -196177963922732735L;
+
+			@Override
+			protected void runtask() {
+				abs.agent().beginDefaultTran();
+				abs.agent().beginDefaultTran();
+				s.release();
+			}
+		};
+		abs.agent().waitForEventQueueToDrain();
+		if(s.tryAcquire()){
+			Assert.fail("Transaction can not be overridden only be rolledback.");
+		}
 	}
 
 	@Test
@@ -390,6 +433,43 @@ public class TransactionTrackerTest {
 		tracker.beginDefaultTran();
 	}
 	
+	@Test
+	public void testNormalResumePostTimeout() throws InterruptedException {
+		int timeoutInMillis = 2000;
+		final AbstractContainer abs = getTimeoutContainer(String.valueOf(timeoutInMillis));
+		TransactionTracker tracker = abs.agent().transactionTracker;
+		Assert.assertTrue(abs.isConnected());
+		checkInitialState(tracker);
+		abs.agent().beginTran(new TransactionEvent(CON,12345));
+		abs.agent().waitForEventQueueToDrain();
+		checkOneValidTransactionFrom(CON,12345,0,0,false,new Integer[]{12345},expectedList,tracker);		
+		//Invalid Operation will be discarded with NPE
+		abs.agent().entryAdded(new ContainerInsertEvent(SRCA,new TransportEntry(1), 0));
+		abs.agent().entryAdded(new ContainerInsertEvent(SRCA,new TransportEntry(1), 0));
+		abs.agent().waitForEventQueueToDrain();
+		checkOneValidTransactionFrom(CON,12345,0,2,false,new Integer[]{12345},expectedList,tracker);		
+		abs.agent().waitForEventQueueToDrain();		
+		final Semaphore s = new Semaphore(1);
+		s.drainPermits();
+		abs.agent().invokeOperation(new ContainerTask(){
+			@Override
+			protected void runtask() throws Throwable {
+				s.release();
+			}
+		});
+		//Check rollback just before 10 milli seconds
+		int premature = timeoutInMillis-10;
+		if(s.tryAcquire(premature, TimeUnit.MILLISECONDS)){
+			Assert.fail("Timed Out too early than as specified:"+timeoutInMillis);
+		}
+		//Check rollback just after 10 milli seconds
+		if(!s.tryAcquire(timeoutInMillis-premature+10, TimeUnit.MILLISECONDS)){
+			Assert.fail("Post rollback queued operations did not fire timeout in millis:"+timeoutInMillis);
+		}
+		abs.agent().waitForEventQueueToDrain();
+		checkOneValidTransactionFrom(CON,0,0,0,true,new Integer[]{},expectedList,tracker);
+	}
+	
 	private AbstractContainer getConnectedContainer() {
 		AbstractContainer abs = new ConcreteContainer(CON, new Properties());
 		abs.agent().addSource(new ConnectionEvent(SRCA,CON));
@@ -399,7 +479,19 @@ public class TransactionTrackerTest {
 		abs.agent().waitForEventQueueToDrain();
 		return abs;
 	}
-
+	
+	private AbstractContainer getTimeoutContainer(String delay){
+		Properties props = new Properties();
+		props.put(PropertyConstants.TRAN_TIME_OUT, delay);
+		ConcreteContainer abs = new ConcreteContainer(CON,props);
+		abs.agent().addSource(new ConnectionEvent(SRCA,CON));
+		abs.agent().addSource(new ConnectionEvent(SRCB,CON));
+		abs.agent().connected(new ConnectionEvent(SRCA,CON,new String[]{SRCA}));
+		abs.agent().connected(new ConnectionEvent(SRCB,CON,new String[]{SRCA,SRCB}));
+		abs.agent().waitForEventQueueToDrain();
+		return abs;
+	}
+	
 	private void checkInitialState(TransactionTracker tracker) {
 		Integer[] tranInProgress = new Integer[0];
 		checkOneValidTransactionFrom(CON,0,0,0,true,tranInProgress,expectedList,tracker);
