@@ -221,35 +221,37 @@ public final class TransactionTracker {
 	protected void trackBeginTransaction(final TransactionEvent te){
 		assert transactionAdapter.log("Track Begin Transaction: "+te);
 		if(originToSourceManager.knownOrigin(te.getOrigin())){
-			if(!transactionStateMap.containsKey(te.getTransactionId())){
-				final TransactionState newTransaction=new TransactionState(te.getOrigin(),te.getTransactionId(),originToSourceManager.getSourceStateMap(te.getOrigin()));
-				transactionStateMap.put(te.getTransactionId(), newTransaction);
-				ContainerTask transactionAwareOperation = new ContainerTask(){
-					/**
-					 * 
-					 */
-					private static final long serialVersionUID = 235003479179508804L;
-
-					@Override
-					public void runtask() {
-						beginTransaction(newTransaction);
-						transactionAdapter.beginTran();
-					}
-				};
-				newTransaction.enque(transactionAwareOperation);
-			}
-			TransactionState ts = transactionStateMap.get(te.getTransactionId());
-			if(ts.didEveryOneBegin(te.getSource())){
-				//All sources have reported build the task and push the task into transaction state queue
-				assert transactionAdapter.log("Every one begin for Transaction: "+te.getTransactionId());
-				if(!beginOnCommit){
-					//Push the message only if begin on commit is not enabled.
-					transactionReadyQueue.add(te.getTransactionId());
-					assert transactionAdapter.log("###########Queuing Transaction:"+te.getTransactionId());
-					assert transactionAdapter.log("###########Transaction Queue Size:"+ts.operationQueueMap.size());
-					assert transactionAdapter.log("###########All Queued Transactions:"+transactionReadyQueue);
+			if(te.getTransactionId()!=0){
+				if(!transactionStateMap.containsKey(te.getTransactionId())){
+					final TransactionState newTransaction=new TransactionState(te.getOrigin(),te.getTransactionId(),originToSourceManager.getSourceStateMap(te.getOrigin()));
+					transactionStateMap.put(te.getTransactionId(), newTransaction);
+					ContainerTask transactionAwareOperation = new ContainerTask(){
+						/**
+						 * 
+						 */
+						private static final long serialVersionUID = 235003479179508804L;
+	
+						@Override
+						public void runtask() {
+							beginTransaction(newTransaction);
+							transactionAdapter.beginTran();
+						}
+					};
+					newTransaction.enque(transactionAwareOperation);
 				}
-			}		
+				TransactionState ts = transactionStateMap.get(te.getTransactionId());
+				if(ts.didEveryOneBegin(te.getSource())){
+					//All sources have reported build the task and push the task into transaction state queue
+					assert transactionAdapter.log("Every one begin for Transaction: "+te.getTransactionId());
+					if(!beginOnCommit){
+						//Push the message only if begin on commit is not enabled.
+						transactionReadyQueue.add(te.getTransactionId());
+						assert transactionAdapter.log("###########Queuing Transaction:"+te.getTransactionId());
+						assert transactionAdapter.log("###########Transaction Queue Size:"+ts.operationQueueMap.size());
+						assert transactionAdapter.log("###########All Queued Transactions:"+transactionReadyQueue);
+					}
+				}
+			}
 		}else{
 			throw new TransactionException("Unknown source in transaction:"+te);
 		}
@@ -263,32 +265,33 @@ public final class TransactionTracker {
 	protected void trackCommitTransaction(TransactionEvent te){
 		assert transactionAdapter.log("Track Commit Transaction: "+te);
 		if(originToSourceManager.knownOrigin(te.getOrigin())){
-			TransactionState ts = transactionStateMap.get(te.getTransactionId());			
-			if(ts!=null){
-				if(ts.didEveryOneCommit(te.getSource())){
-					assert transactionAdapter.log("Every one committed for Transaction: "+te.getTransactionId());
-					//Enqueue Commit transaction task
-					ContainerTask buildCommitTranTask = new ContainerTask() {
-						/**
-						 * 
-						 */
-						private static final long serialVersionUID = -5106553872435964358L;
-
-						public void runtask() {
-							transactionAdapter.commitTran();
+			if(te.getTransactionId()!=0){
+				TransactionState ts = transactionStateMap.get(te.getTransactionId());			
+				if(ts!=null){
+					if(ts.didEveryOneCommit(te.getSource())){
+						assert transactionAdapter.log("Every one committed for Transaction: "+te.getTransactionId());
+						//Enqueue Commit transaction task
+						ContainerTask buildCommitTranTask = new ContainerTask() {
+							/**
+							 * 
+							 */
+							private static final long serialVersionUID = -5106553872435964358L;
+	
+							public void runtask() {
+								transactionAdapter.commitTran();
+							}
+						};
+						ts.enque(buildCommitTranTask);
+						if(beginOnCommit){
+							transactionReadyQueue.add(te.getTransactionId());
 						}
-					};
-					ts.enque(buildCommitTranTask);
-					if(beginOnCommit){
-						transactionReadyQueue.add(te.getTransactionId());
+					}else{
+						assert transactionAdapter.log("Not Every one committed for Transaction: "+te.getTransactionId());
 					}
-				}else{
-					assert transactionAdapter.log("Not Every one committed for Transaction: "+te.getTransactionId());
+				} else {
+					throw new TransactionException("Transaction attmpted to be committed without corresponding begin transaction:="+te.getTransactionId());
 				}
-			} else {
-				throw new TransactionException("Transaction attmpted to be committed without corresponding begin transaction:="+te.getTransactionId());
 			}
-		
 		}else{
 			throw new TransactionException("Unknown source in transaction:"+te);
 		}

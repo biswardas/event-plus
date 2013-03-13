@@ -105,6 +105,45 @@ public class TransactionTrackerTest {
 		abs.agent().waitForEventQueueToDrain();
 		checkInitialState(tracker);
 	}
+
+	@Test
+	public void testTrackBeginZeroTransaction() {
+		AbstractContainer abs = getConnectedContainer();
+		TransactionTracker tracker = abs.agent().transactionTracker;
+		Assert.assertTrue(abs.isConnected());
+		checkInitialState(tracker);
+		abs.agent().beginTran(new TransactionEvent(SRCB, 0));
+		abs.agent().waitForEventQueueToDrain();
+		checkInitialState(tracker);
+	}
+
+	@Test
+	public void testTrackAttemptCommitWithZeroTransaction() {
+		AbstractContainer abs = getConnectedContainer();
+		TransactionTracker tracker = abs.agent().transactionTracker;
+		Assert.assertTrue(abs.isConnected());
+		checkInitialState(tracker);
+		abs.agent().beginTran(new TransactionEvent(SRCB, 12345));
+		abs.agent().waitForEventQueueToDrain();
+		checkOneValidTransactionFrom(SRCB,tracker);
+		abs.agent().commitTran(new TransactionEvent(SRCB, 0));
+		abs.agent().waitForEventQueueToDrain();
+		checkOneValidTransactionFrom(SRCB,tracker);
+	}
+	
+	@Test
+	public void testTrackAttemptRollbackWithZeroTransaction() {
+		AbstractContainer abs = getConnectedContainer();
+		TransactionTracker tracker = abs.agent().transactionTracker;
+		Assert.assertTrue(abs.isConnected());
+		checkInitialState(tracker);
+		abs.agent().beginTran(new TransactionEvent(SRCB, 12345));
+		abs.agent().waitForEventQueueToDrain();
+		checkOneValidTransactionFrom(SRCB,tracker);
+		abs.agent().rollbackTran(new TransactionEvent(SRCB, 0));
+		abs.agent().waitForEventQueueToDrain();
+		checkOneValidTransactionFrom(SRCB,tracker);
+	}
 	
 	@Test
 	public void testTrackBeginRollbackTransaction() {
