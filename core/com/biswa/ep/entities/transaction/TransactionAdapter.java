@@ -538,7 +538,6 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	 */
 	public void beginDefaultTran(){
 		transactionTracker.beginDefaultTran();
-		beginTran();
 	}
 	
 	/**
@@ -547,7 +546,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	 */
 
 	public void commitDefaultTran(){
-		commitTran();
+		transactionTracker.commitDefaultTran();
 	}
 	
 	/**
@@ -555,32 +554,26 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	 */
 
 	public void rollbackDefaultTran(){
-		rollbackTran();
+		transactionTracker.rollbackDefaultTran();
 	}
 
 	@Override
 	public void beginTran(){		
 		assert cl.ensureExecutingInRightThread();
 		cl.beginTran();
-		checkQueuedTransaction();
 	}
 	
 	@Override
 	public void commitTran(){
 		assert cl.ensureExecutingInRightThread();
 		cl.commitTran();
-		transactionTracker.completeTransaction();
-		checkQueuedTransaction();
 	}
 
 	@Override
 	public void rollbackTran(){
 		assert cl.ensureExecutingInRightThread();
 		cl.rollbackTran();
-		transactionTracker.completeTransaction();
-		checkQueuedTransaction();
 	}
-
 	
 	public void completionFeedback(int transactionID){
 		assert cl.ensureExecutingInRightThread();
@@ -610,8 +603,9 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	
 	@Override
 	public void transactionTimedOut(){
-		rollbackTran();
+		checkQueuedTransaction();
 	}
+	
 	@Override
 	public long getTimeOutPeriodInMillis(){
 		return cl.getTimeOutPeriodInMillis();
