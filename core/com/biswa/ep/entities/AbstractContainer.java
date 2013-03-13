@@ -1,5 +1,6 @@
 package com.biswa.ep.entities;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -98,7 +99,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 */
 	final private Properties props;
 	
-	private boolean verbose = true;
+	private boolean verbose = false;
 	/**
 	 * Whether this source is connected to its known sources. 
 	 */
@@ -859,7 +860,15 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	public void dumpMetaInfo(){
 		verbose("##################Begin Dumping Container "+getName());
 		verbose(this.toString());
-		verbose("##################End Dumping Container "+getName());
+		verbose("##################Container Runtime Stats "+getName());
+		verbose("Transaction in progress:"+agent().getCurrentTransactionID());
+		verbose("Transaction origin:"+agent().getCurrentTransactionOrigin());
+		verbose("Post Connected Queue Length:"+agent().getPostConnectedQueueSize());
+		verbose("Pre Connected Queue Length:"+agent().getPreConnectedQueueSize());
+		verbose("Known Transaction Origins:"+Arrays.toString(agent().getKnownTransactionOrigins()));
+		verbose("Transaction Ready Queue:"+Arrays.toString(agent().getTransactionReadyQueue().toArray()));
+		verbose("Operations In Transaction Queue:"+agent().getOpsInTransactionQueue());
+		verbose("Connection Status:"+isConnected());
 	}
 
 	public boolean ensureExecutingInRightThread() {
