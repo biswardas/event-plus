@@ -532,27 +532,17 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		executeInListenerThread(outer);
 	}
 	
-	/**
-	 * Method responsible to begin a default transaction if an Atomic operation is received
-	 * by the underlying container.
-	 */
+	@Override
 	public void beginDefaultTran(){
 		transactionTracker.beginDefaultTran();
 	}
 	
-	/**
-	 * Method responsible to commit a default transaction if an Atomic operation is committed
-	 * by the underlying container.
-	 */
-
+	@Override
 	public void commitDefaultTran(){
 		transactionTracker.commitDefaultTran();
 	}
 	
-	/**
-	 * Method responsible to rollback a default transaction if an Atmoic operation fails.
-	 */
-
+	@Override
 	public void rollbackDefaultTran(){
 		transactionTracker.rollbackDefaultTran();
 	}
@@ -574,7 +564,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		assert cl.ensureExecutingInRightThread();
 		cl.rollbackTran();
 	}
-	
+	@Override
 	public void completionFeedback(int transactionID){
 		assert cl.ensureExecutingInRightThread();
 		cl.completionFeedback(transactionID);

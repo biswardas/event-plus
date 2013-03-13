@@ -24,6 +24,24 @@ public interface TransactionSupport {
 	 * @param te
 	 */
 	void rollbackTran(TransactionEvent te);
+	/**
+	 * Method responsible to begin a default transaction if an Atomic operation is received
+	 * by the underlying container.
+	 */
+	public void beginDefaultTran();
+	
+	/**
+	 * Method responsible to commit a default transaction if an Atomic operation is committed
+	 * by the underlying container.
+	 */
+
+	public void commitDefaultTran();
+	
+	/**
+	 * Method responsible to rollback a default transaction if an Atmoic operation fails.
+	 */
+
+	public void rollbackDefaultTran();
 	
 	/**
 	 *Method to handle transaction timeout. 
