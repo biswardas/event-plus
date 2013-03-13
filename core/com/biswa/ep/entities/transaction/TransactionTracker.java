@@ -27,7 +27,7 @@ public final class TransactionTracker {
 		private final String origin;
 		private final Map<String,State> currentStateMap = new HashMap<String,State>();
 		//Operations which has been queued in this transaction
-		private final Queue<ContainerTask> operationQueueMap = new LinkedList<ContainerTask>();
+		private final Queue<ContainerTask> operationQueue = new LinkedList<ContainerTask>();
 		private State currentState;
 		private long startedAt=0;
 		//Constructor to start a transaction state
@@ -71,17 +71,17 @@ public final class TransactionTracker {
 
 		//Enque the task
 		void enque(ContainerTask transactionAwareOperation) {
-			operationQueueMap.add(transactionAwareOperation);
+			operationQueue.add(transactionAwareOperation);
 		}
 
 		//Empty the task queue,scenario when task is rolled back before even begun
 		void emptyTaskQueue(){
-			operationQueueMap.clear();
+			operationQueue.clear();
 		}
 		
 		//Returns the next possible task and removes from the task queue
 		ContainerTask getNext() {
-			return operationQueueMap.poll();
+			return operationQueue.poll();
 		}
 
 		int getTransactionID() {
@@ -247,7 +247,7 @@ public final class TransactionTracker {
 						//Push the message only if begin on commit is not enabled.
 						transactionReadyQueue.add(te.getTransactionId());
 						assert transactionAdapter.log("###########Queuing Transaction:"+te.getTransactionId());
-						assert transactionAdapter.log("###########Transaction Queue Size:"+ts.operationQueueMap.size());
+						assert transactionAdapter.log("###########Transaction Queue Size:"+ts.operationQueue.size());
 						assert transactionAdapter.log("###########All Queued Transactions:"+transactionReadyQueue);
 					}
 				}
@@ -450,9 +450,9 @@ public final class TransactionTracker {
 	 */
 	public int getOpsInTransactionQueue() {
 		Collection<TransactionState> stateCollection = transactionStateMap.values();
-		int count = 0;
+		int count = atomicTransactionState.operationQueue.size();
 		for (TransactionState ts:stateCollection){
-			count = count + ts.operationQueueMap.size();
+			count = count + ts.operationQueue.size();
 		}
 		return count;
 	}
