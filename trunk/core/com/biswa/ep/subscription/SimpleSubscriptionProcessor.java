@@ -73,7 +73,7 @@ public abstract class SimpleSubscriptionProcessor extends
 		containerEntrySet.put(subject, containerEntry);
 		HashMap<Object, Object> hm = new HashMap<Object, Object>();
 		hm.put(subject, subscribe(subject));
-		queue.add(hm);
+		queue.put(hm);
 		return containerEntry.getSubstance(this);
 	};
 
