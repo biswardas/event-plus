@@ -59,8 +59,8 @@ public class ContainerManager {
 		return accepter.get(method);
 	}
 	
-	public ConcreteContainer[] getAllContainers(){
-		return nameContainerMap.values().toArray(new ConcreteContainer[0]);
+	public AbstractContainer[] getAllContainers(){
+		return nameContainerMap.values().toArray(new AbstractContainer[0]);
 	}
 	
 	public void destroyAllContainers(){
@@ -86,11 +86,12 @@ public class ContainerManager {
 			} catch (Exception e) {
 				e.printStackTrace();		
 			}
-		}
+		}		
 		
-		for(ConcreteContainer concContainer:this.getAllContainers()){
+		for(AbstractContainer concContainer:this.getAllContainers()){
 			concContainer.agent().destroy();
 		}
+		
 		try {
 			Deployer.mbs.unregisterMBean(containerManagementBean);
 		} catch (Exception e) {
