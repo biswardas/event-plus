@@ -5,7 +5,7 @@ import java.util.PriorityQueue;
 import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.StatelessContainerEntry;
-/**Container information associated with 
+/**Container information associated with ThreadLocal
  * 
  * @author biswa
  *

@@ -1,5 +1,9 @@
 package com.biswa.ep;
-
+/**
+ * Base class for all exceptions in EP framework.
+ * @author Biswa
+ *
+ */
 public class EPException extends RuntimeException {
 
 	/**
