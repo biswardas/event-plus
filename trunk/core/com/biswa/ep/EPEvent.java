@@ -3,7 +3,12 @@ package com.biswa.ep;
 import java.util.EventObject;
 
 
-
+/**
+ * Base class of all events in EP Framework.
+ * 
+ * @author Biswa
+ *
+ */
 public class EPEvent extends EventObject {
 
 	/**
@@ -20,7 +25,6 @@ public class EPEvent extends EventObject {
 	 */
 	public EPEvent(String source) {
 		super(source);
-		assert source!=null;
 		this.source=source;
 	}
 	
