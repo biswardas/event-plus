@@ -51,6 +51,7 @@ public class SubscriptionContainer extends FeedbackAwareContainer implements Sub
 	public void dispatchEntryUpdated(Attribute attribute, Substance substance,
 			ContainerEntry containerEntry) {
 		subscriptionHandler.collectUpdates(attribute,substance,containerEntry);
+		check();
 	}
 
 	@Override
