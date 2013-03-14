@@ -52,6 +52,7 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 					private static final long serialVersionUID = -3711759506396173774L;
 
 					public void runtask() {
+						assert ensureExecutingInRightThread();
 						cl.replay(ce);
 					}
 				};
@@ -105,6 +106,7 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 					private static final long serialVersionUID = 969041971977780486L;
 
 					public void runtask() {
+						assert ensureExecutingInRightThread();
 						cl.attributeAdded(ce);
 					}
 				};
@@ -138,6 +140,7 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 					private static final long serialVersionUID = 3817691048842932303L;
 
 					public void runtask() {
+						assert ensureExecutingInRightThread();
 						cl.attributeRemoved(ce);
 					}
 				};
@@ -161,6 +164,7 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 					private static final long serialVersionUID = 3390398537432811489L;
 
 					public void runtask() {
+						assert ensureExecutingInRightThread();
 						cl.disconnect(ce);
 					}
 				};
@@ -184,6 +188,7 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 					private static final long serialVersionUID = 2654384610901249637L;
 
 					public void runtask() {
+						assert ensureExecutingInRightThread();
 						cl.disconnected(ce);
 					}
 				};
@@ -205,6 +210,7 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 					private static final long serialVersionUID = 338402669457934546L;
 
 					public void runtask() {
+						assert ensureExecutingInRightThread();
 						cl.connect(ce);
 					}
 				};
@@ -221,7 +227,6 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 			@Override
 			public void runouter() {
 				assert log("Received source connected:"+ce);
-				assert cl.ensureExecutingInRightThread();
 				assert Boolean.FALSE.equals(expectationsMap.get(ce.getSource())):"This source was already connected but received connected message";
 				expectationsMap.put(ce.getSource(),true);
 				transactionTracker.addSource(ce.getSource(),ce.getTransactionGroup());
@@ -235,6 +240,7 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 					private static final long serialVersionUID = -6286061490419197136L;
 
 					public void runtask() {
+						assert ensureExecutingInRightThread();
 						cl.connected(ce);
 					}
 				};
@@ -260,6 +266,7 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 					private static final long serialVersionUID = 19832482510541758L;
 
 					public void runtask() {
+						assert ensureExecutingInRightThread();
 						((SubscriptionSupport)cl).subscribe(subscriptionEvent);
 					}
 				};
@@ -281,6 +288,7 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 					private static final long serialVersionUID = 4005059765756489435L;
 
 					public void runtask() {
+						assert ensureExecutingInRightThread();
 						((SubscriptionSupport)cl).unsubscribe(subscriptionEvent);
 					}
 				};
@@ -302,6 +310,7 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 					private static final long serialVersionUID = -5235163705114117576L;
 
 					public void runtask() {
+						assert ensureExecutingInRightThread();
 						((SubscriptionSupport)cl).substitute(subscriptionEvent);
 					}
 				};
