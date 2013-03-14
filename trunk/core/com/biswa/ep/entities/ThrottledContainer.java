@@ -90,6 +90,7 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		containerEntry.markAdded(true);
 		pendingUpdates = true;
 		dirty = true;
+		check();
 	}
 	
 	@Override
@@ -125,6 +126,7 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 			attrSubstanceMap.put(attribute,substance);
 			containerEntry.markDirty(true);
 		}
+		check();
 	}
 	
 	@Override
@@ -155,6 +157,7 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		collectedUpdates.remove(containerEntry.getIdentitySequence());
 		//Since the physical entry added in the last cycle has been removed
 		//No need to do anything.
+		check();
 	}
 
 	@Override
