@@ -88,7 +88,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 			r.run();
 		}
 
-		public boolean ensureExecutingInRightThread() {
+		public boolean ensureExecutingInRightThread(boolean b) {
 			return Thread.currentThread().getName().startsWith("PPL-"+cl.getName());
 		}
 	}
@@ -115,7 +115,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 			}
 		}
 
-		public boolean ensureExecutingInRightThread() {
+		public boolean ensureExecutingInRightThread(boolean b) {
 			return SwingUtilities.isEventDispatchThread();
 		}
 	}
@@ -157,7 +157,15 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 				f = workerThreadPoolExecutor.submit(r);
 				lockedRows.put(rowID, f);
 			}
-		}		
+		}
+
+		public boolean ensureExecutingInRightThread(boolean worker) {
+			if(worker){
+				return Thread.currentThread().getName().startsWith("Worker-"+cl.getName());
+			}else{
+				return super.ensureExecutingInRightThread(worker);
+			}
+		}
 	}
 	
 	/** Constructor takes underlying container being managed by this transaction adapter.
@@ -329,7 +337,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 					private static final long serialVersionUID = -1233200541986647567L;
 
 					public void runtask() {
-						assert ensureExecutingInRightThread();
+						assert ensureExecutingInRightThread(true);
 						cl.entryUpdated(ce);
 					}
 				};
@@ -775,9 +783,21 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		return cl.log(string);
 	}
 
-
-	public boolean ensureExecutingInRightThread() {
-		return taskHandler.ensureExecutingInRightThread();
+	/**
+	 * Run it on appropriate container thread. not the worker thread.
+	 * @return
+	 */
+	protected boolean ensureExecutingInRightThread() {
+		return taskHandler.ensureExecutingInRightThread(false);
+	}
+	
+	/**If worker is true then It runs on worker thread, If worker is false runs it in container thread.
+	 * 
+	 * @param worker boolean
+	 * @return boolean 
+	 */
+	protected boolean ensureExecutingInRightThread(boolean worker) {
+		return taskHandler.ensureExecutingInRightThread(worker);
 	}
 	
 	@Override
