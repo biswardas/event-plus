@@ -91,6 +91,10 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		public boolean ensureExecutingInRightThread(boolean b) {
 			return Thread.currentThread().getName().startsWith("PPL-"+cl.getName());
 		}
+
+		public void destroy() {
+			eventCollector.shutdownNow();			
+		}
 	}
 	
 	/**Task handler which dispatches all threads in Swing thread.
@@ -165,6 +169,11 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 			}else{
 				return super.ensureExecutingInRightThread(worker);
 			}
+		}
+
+		public void destroy() {
+			super.destroy();
+			workerThreadPoolExecutor.shutdownNow();			
 		}
 	}
 	
@@ -744,7 +753,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	 * 
 	 */
 	public synchronized void destroy(){
-		eventCollector.shutdownNow();
+		taskHandler.destroy();
 		cl.destroy();
 	}
 
