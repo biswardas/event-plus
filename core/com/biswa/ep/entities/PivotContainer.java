@@ -295,7 +295,9 @@ public class PivotContainer extends ConcreteContainer {
 				aggregateAndPropagate(attribute);
 			}
 			if (registeredEntries.size() == 0) {
-				parent.removePivot(this.substance);
+				if(parent!=null){//NOT GROUPED
+					parent.removePivot(this.substance);
+				}
 			}
 		}
 

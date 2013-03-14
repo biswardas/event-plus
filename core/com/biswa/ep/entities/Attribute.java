@@ -366,9 +366,8 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	 * @return Object
 	 */
 	protected Object getValue(ContainerEntry containerEntry, String name) {
-		return containerEntry.getSubstance(
-				containerEntry.getContainer().getAttributeByName(name))
-				.getValue();
+		Substance substance = containerEntry.getSubstance(containerEntry.getContainer().getAttributeByName(name));
+		return substance!=null?substance.getValue():null;
 	}
 
 	/**
