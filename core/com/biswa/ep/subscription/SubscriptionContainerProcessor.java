@@ -26,7 +26,7 @@ public abstract class SubscriptionContainerProcessor extends Subscription {
 	/**
 	 * The current transaction in progress.
 	 */
-	private transient int transactionId=-1;
+	private transient int transactionId=0;
 	
 	/**
 	 * The container associated with this Subscription processor
