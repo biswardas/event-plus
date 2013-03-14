@@ -87,6 +87,10 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		public void executeNow(final ContainerTask r){
 			r.run();
 		}
+
+		public boolean ensureExecutingInRightThread() {
+			return Thread.currentThread().getName().startsWith("PPL-"+cl.getName());
+		}
 	}
 	
 	/**Task handler which dispatches all threads in Swing thread.
@@ -109,6 +113,10 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
+		}
+
+		public boolean ensureExecutingInRightThread() {
+			return SwingUtilities.isEventDispatchThread();
 		}
 	}
 	
@@ -245,6 +253,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 					private static final long serialVersionUID = -1233200541986647567L;
 
 					public void runtask() {
+						assert ensureExecutingInRightThread();
 						cl.entryAdded(ce);
 					}
 				};
@@ -282,6 +291,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 					private static final long serialVersionUID = -1233200541986647567L;
 
 					public void runtask() {
+						assert ensureExecutingInRightThread();
 						cl.entryRemoved(ce);
 					}
 				};
@@ -319,6 +329,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 					private static final long serialVersionUID = -1233200541986647567L;
 
 					public void runtask() {
+						assert ensureExecutingInRightThread();
 						cl.entryUpdated(ce);
 					}
 				};
@@ -358,6 +369,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 					private static final long serialVersionUID = -6605205914636092169L;
 
 					public void runtask() {
+						assert ensureExecutingInRightThread();
 						cl.clear();
 					}
 				};
@@ -382,6 +394,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 					private static final long serialVersionUID = 969041971977780486L;
 
 					public void runtask() {
+						assert ensureExecutingInRightThread();
 						cl.updateStatic(attribute,substance,appliedFilter);
 					}
 				};
@@ -403,6 +416,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 					private static final long serialVersionUID = 2561765662542487226L;
 
 					public void runtask() {
+						assert ensureExecutingInRightThread();
 						spec.apply(cl);
 					}
 				};
@@ -538,24 +552,24 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 
 	@Override
 	public void beginTran(){		
-		assert cl.ensureExecutingInRightThread();
+		assert ensureExecutingInRightThread();
 		cl.beginTran();
 	}
 	
 	@Override
 	public void commitTran(){
-		assert cl.ensureExecutingInRightThread();
+		assert ensureExecutingInRightThread();
 		cl.commitTran();
 	}
 
 	@Override
 	public void rollbackTran(){
-		assert cl.ensureExecutingInRightThread();
+		assert ensureExecutingInRightThread();
 		cl.rollbackTran();
 	}
 	@Override
 	public void completionFeedback(int transactionID){
-		assert cl.ensureExecutingInRightThread();
+		assert ensureExecutingInRightThread();
 		cl.completionFeedback(transactionID);
 	}
 
@@ -571,6 +585,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 					private static final long serialVersionUID = 4510373033258245094L;
 
 					public void runtask() {
+						assert ensureExecutingInRightThread();
 						cl.addFeedbackAgent(feedBackAgent);
 					}
 				};
@@ -592,9 +607,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	/**
 	 * Dispatch all tasks which can possibly be dispatched at this point.
 	 */
-	protected void checkQueuedTransaction(){ 
-		assert cl.ensureExecutingInRightThread();
-		
+	protected void checkQueuedTransaction(){ 		
 		ContainerTask r = null;
 		//Task is dispatched to executor
 		while ((r = getNext())!=null) {
@@ -632,9 +645,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	 * are submitted to this method.
 	 * @param r Runnable
 	 */
-	protected void executeOrEnque(ContainerTask r) {
-		assert cl.ensureExecutingInRightThread();
-		
+	protected void executeOrEnque(ContainerTask r) {		
 		if (transactionTracker.isIdle()) {
 			taskHandler.executeNow(r);
 		} else {
@@ -652,9 +663,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	 * till the container is connected.
 	 * @param r Runnable
 	 */
-	protected void executeOrEnquePostConnected(ContainerTask r) {
-		assert cl.ensureExecutingInRightThread();
-		
+	protected void executeOrEnquePostConnected(ContainerTask r) {		
 		if (isConnected() && transactionTracker.isIdle()) {
 			taskHandler.executeNow(r);
 		} else {
@@ -699,9 +708,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	 * 
 	 * @return Runnable
 	 */
-	protected ContainerTask getNext(){
-		assert cl.ensureExecutingInRightThread();
-		
+	protected ContainerTask getNext(){		
 		ContainerTask whatIsNext = null;
 		if(transactionTracker.isIdle()){
 			//No transaction in progress so pick up the next major task in transaction ready queue.
@@ -766,6 +773,11 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 
 	public boolean log(String string) {
 		return cl.log(string);
+	}
+
+
+	public boolean ensureExecutingInRightThread() {
+		return taskHandler.ensureExecutingInRightThread();
 	}
 	
 	@Override

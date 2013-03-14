@@ -99,6 +99,9 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 */
 	final private Properties props;
 	
+	/**
+	 * Verbose messages from the current container when assertion is enabled.
+	 */
 	private boolean verbose = false;
 	/**
 	 * Whether this source is connected to its known sources. 
@@ -871,8 +874,19 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 		verbose("Connection Status:"+isConnected());
 	}
 
-	public boolean ensureExecutingInRightThread() {
-		return Thread.currentThread().getName().startsWith("PPL-"+getName());
+	/**
+	 * Is verbose enabled?
+	 * @return boolean
+	 */
+	public boolean isVerbose() {
+		return verbose;
+	}
+	/**
+	 * Enables or disables verbose on this container.
+	 * @param verbose boolean
+	 */
+	public void setVerbose(boolean verbose) {
+		this.verbose = verbose;
 	}
 
 	public void destroy() {
