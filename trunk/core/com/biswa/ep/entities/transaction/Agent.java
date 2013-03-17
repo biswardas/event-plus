@@ -336,4 +336,8 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 		});
 		semaphore.acquireUninterruptibly();
 	}
+
+	public String getName() {
+		return cl.getName();
+	}
 }
