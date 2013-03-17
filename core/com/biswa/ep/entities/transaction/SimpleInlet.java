@@ -1,35 +1,9 @@
 package com.biswa.ep.entities.transaction;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.concurrent.SynchronousQueue;
-
-import com.biswa.ep.entities.Attribute;
-import com.biswa.ep.entities.ContainerInsertEvent;
-import com.biswa.ep.entities.LeafAttribute;
-import com.biswa.ep.entities.TransportEntry;
-import com.biswa.ep.entities.substance.ObjectSubstance;
-import com.biswa.ep.entities.substance.Substance;
 
 public abstract class SimpleInlet implements Inlet {
-	private Thread inletThread = null;
-	protected SynchronousQueue<Map<Object, Object>> queue = new SynchronousQueue<Map<Object, Object>>();
-	private Map<Object,Attribute> cachedAttr = new HashMap<Object,Attribute>(){
-		private static final long serialVersionUID = -8944792144074973287L;
-
-		@Override
-		public Attribute get(Object key){
-			Attribute attribute = super.get(key);
-			if(attribute==null){
-				put(key,(attribute=new LeafAttribute(key.toString())));
-			}
-			return attribute;
-		}
-	};
-
-	private Agent agent = null;
+	protected Agent agent = null;
 
 	@Override
 	public void setAgent(Agent agent, Properties props) {
@@ -41,37 +15,6 @@ public abstract class SimpleInlet implements Inlet {
 	@Override
 	public void init() {
 		String producerName = getClass().getName();
-		initExternalWorld(producerName);
-		inletThread = new Thread(producerName) {
-			public void run() {
-				while (true) {
-					Map<Object, Object> incomingObject = null;
-					try {
-						incomingObject = queue.take();
-						int tranID = agent.getNextTransactionID();
-						TransactionEvent te = new TransactionEvent(agent.cl.getName(),agent.cl.getName(),
-								tranID);
-						agent.beginTran(te);
-						HashMap<Attribute, Substance> hm = new HashMap<Attribute, Substance>();
-						for (Entry<Object, Object> oneEntry : incomingObject
-								.entrySet()) {
-							Substance substance =  new ObjectSubstance(oneEntry.getValue());
-							hm.put(cachedAttr.get(oneEntry.getKey()),substance);
-						}
-						agent.entryAdded(new ContainerInsertEvent(agent.cl.getName(),
-								new TransportEntry(agent.cl.generateIdentity(),
-										hm), tranID));
-						agent.commitTran(te);
-					} catch (InterruptedException e) {
-						throw new RuntimeException(e);
-					}
-				}
-			}
-		};
-		inletThread.start();
-	}
-
-	private void initExternalWorld(String producerName) {
 		Thread procthread = new Thread(producerName){
 			public void run() {
 				try {
@@ -87,15 +30,10 @@ public abstract class SimpleInlet implements Inlet {
 	@Override
 	public void terminate() {
 		String producerName = getClass().getName();
-		destroyExternalWorld(producerName);
-	}
-
-	private void destroyExternalWorld(String producerName) {
 		Thread procthread = new Thread(producerName){
 			public void run() {
 				try {
 					failSafeTerminate();
-					inletThread.interrupt();
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}

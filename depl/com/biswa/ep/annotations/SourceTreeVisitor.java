@@ -364,7 +364,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		writeln("private " +epContainerAnn.generator() + " generator =new "
 				+ epContainerAnn.generator() + "();");
 		writeln("@Override");
-		writeln("protected void failSafeInit() throws Exception{generator.init(queue);}");
+		writeln("protected void failSafeInit() throws Exception{generator.init(new com.biswa.ep.jdbc.EPLocalConnection(agent));}");
 		writeln("@Override");
 		writeln("protected void failSafeTerminate() throws Exception{generator.terminate();}");
 		writeln("}");
