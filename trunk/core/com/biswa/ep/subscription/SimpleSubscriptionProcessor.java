@@ -39,12 +39,18 @@ public abstract class SimpleSubscriptionProcessor extends
 						begin();
 						for (Entry<Object, Object> oneEntry : incomingObject
 								.entrySet()) {
-							update(containerEntrySet.get(oneEntry.getKey()),
-									new ObjectSubstance(oneEntry.getValue()));
+							ContainerEntry containerEntry = containerEntrySet.get(oneEntry.getKey());
+							if(containerEntry!=null){
+								//Possibly unsubscribed however external world yet to acknowledge
+								update(containerEntry,new ObjectSubstance(oneEntry.getValue()));
+							}
 						}
 						commit();
 					} catch (InterruptedException e) {
 						throw new RuntimeException(e);
+					} catch (Throwable th){
+						th.printStackTrace();
+						rollback();
 					}
 				}
 			}
