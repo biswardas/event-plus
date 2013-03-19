@@ -66,7 +66,7 @@ public class ConcreteContainerTest {
 		Assert.assertTrue(conc.isConnected());
 		
 		Assert.assertEquals(0,conc.agent().getCurrentTransactionID());
-		Assert.assertEquals(null,conc.agent().getCurrentTransactionOrigin());
+		Assert.assertEquals(SINK,conc.agent().getCurrentTransactionOrigin());
 		
 		conc.agent().beginTran(new TransactionEvent(SOURCEB, SOURCEA,TRANID));
 		
@@ -88,7 +88,7 @@ public class ConcreteContainerTest {
 		pipeClean();
 		
 		Assert.assertEquals(0,conc.agent().getCurrentTransactionID());
-		Assert.assertEquals(null,conc.agent().getCurrentTransactionOrigin());
+		Assert.assertEquals(SINK,conc.agent().getCurrentTransactionOrigin());
 	}
 
 	@Test
@@ -117,12 +117,12 @@ public class ConcreteContainerTest {
 		conc.agent().beginTran(new TransactionEvent("X", "X",TRANID));
 		pipeClean();
 		Assert.assertEquals(0,conc.agent().getCurrentTransactionID());
-		Assert.assertEquals(null,conc.agent().getCurrentTransactionOrigin());
+		Assert.assertEquals(SINK,conc.agent().getCurrentTransactionOrigin());
 
 		conc.agent().commitTran(new TransactionEvent("X", "X",TRANID));
 		pipeClean();
 		Assert.assertEquals(0,conc.agent().getCurrentTransactionID());
-		Assert.assertEquals(null,conc.agent().getCurrentTransactionOrigin());
+		Assert.assertEquals(SINK,conc.agent().getCurrentTransactionOrigin());
 		
 		
 		conc.agent().beginTran(new TransactionEvent(SINK, SINK,TRANID));
