@@ -346,7 +346,6 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 					private static final long serialVersionUID = -1233200541986647567L;
 
 					public void runtask() {
-						assert ensureExecutingInRightThread(true);
 						cl.entryUpdated(ce);
 					}
 				};

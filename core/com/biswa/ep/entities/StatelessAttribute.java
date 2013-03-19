@@ -30,9 +30,4 @@ public abstract class StatelessAttribute extends Attribute{
 	final public boolean isStateless() {
 		return true;
 	}
-
-	@Override
-	final public boolean initializeOnInsert() {
-		return false;
-	}
 }

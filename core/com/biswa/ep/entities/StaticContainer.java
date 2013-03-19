@@ -115,4 +115,9 @@ public class StaticContainer extends CascadeContainer {
 		}
 		verbose("##################End Dumping Container "+getName());
 	}
+	
+	@Override
+	public PhysicalEntry getDefaultEntry() {
+		throw new IllegalStateException("I should never have been invoked"+getName());
+	}
 }

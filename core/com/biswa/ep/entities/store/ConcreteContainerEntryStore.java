@@ -11,6 +11,7 @@ import com.biswa.ep.entities.ConcreteContainer;
  *
  */
 class ConcreteContainerEntryStore implements ContainerEntryStore{
+	private PhysicalEntry defaultEntry = null;
 	/**
 	 * Record Store which keeps the concrete records.
 	 */
@@ -19,6 +20,11 @@ class ConcreteContainerEntryStore implements ContainerEntryStore{
 	public ConcreteContainerEntryStore(ConcreteContainer concreteContainer) {
 		containerDataEntries = new IntKeyOpenHashMap(concreteContainer.expectedRowCount,concreteContainer.memOptimize);
 		this.concreteContainer=concreteContainer;
+	}
+
+	@Override
+	public PhysicalEntry getDefaultEntry() {
+		return defaultEntry==null?(defaultEntry=new ConcreteContainerEntry()):defaultEntry;
 	}
 	
 	@Override

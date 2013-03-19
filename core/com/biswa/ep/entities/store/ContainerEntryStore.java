@@ -13,4 +13,5 @@ public interface ContainerEntryStore{
 	PhysicalEntry remove(int id);
 	void save(PhysicalEntry containerEntry);
 	PhysicalEntry[] getEntries();
+	PhysicalEntry getDefaultEntry();
 }

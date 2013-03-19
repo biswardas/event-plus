@@ -22,7 +22,14 @@ class ConcreteContainerEntry extends AbstractPhysicalEntry{
 	private static final long serialVersionUID = 8719027377801534629L;
 	//Substance are kept here for this record with index as the attribute's ordinal.
 	private Substance[] substanceArray;
-		
+
+	
+	protected ConcreteContainerEntry() {
+		super(0);
+		ConcreteContainer concreteContainer = this.getContainer();
+		substanceArray=new Substance[concreteContainer.getPhysicalSize()];
+	}
+	
 	/** The actual entry which is made into the container. This creates a concrete entry
 	 * 
 	 * @param externalidentity
@@ -31,11 +38,13 @@ class ConcreteContainerEntry extends AbstractPhysicalEntry{
 	protected ConcreteContainerEntry(int externalidentity) {
 		super(externalidentity);
 		ConcreteContainer concreteContainer = this.getContainer();
-		this.substanceArray = new Substance[concreteContainer.getPhysicalSize()];
+		substanceArray=((ConcreteContainerEntry)concreteContainer.getDefaultEntry()).substanceArray.clone();
 	}
 
 
-	
+
+
+
 	@Override
 	final public Substance getSubstance(Attribute attribute) {
 		return substanceArray[attribute.getOrdinal()];

@@ -83,12 +83,6 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	transient private Attribute[] dependents = new Attribute[0];
 
 	/**
-	 * Variable keeps the state whether this attribute must be initialized on
-	 * insertion into the container.
-	 */
-	transient private boolean initializeOnInsert = true;
-
-	/**
 	 * protected constructor to allow creating subclass and create own
 	 * Attributes.
 	 * 
@@ -145,15 +139,6 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	 */
 	final public boolean requiresStorage() {
 		return !isStatic() && !isStateless();
-	}
-
-	/**
-	 * Method tells should this attribute be initialized upon insertion.
-	 * 
-	 * @return boolean
-	 */
-	public boolean initializeOnInsert() {
-		return initializeOnInsert;
 	}
 
 	/**
@@ -301,9 +286,6 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 				Attribute registeredAttribute = oneDependee
 						.getRegisteredAttribute();
 				al.add(registeredAttribute);
-				if (!registeredAttribute.isStatic()) {
-					initializeOnInsert = false;
-				}
 			}
 			dependsOnList.clear();
 			dependsOnList.addAll(al);
