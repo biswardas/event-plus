@@ -134,7 +134,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		final protected Map<Integer,Future<?>> lockedRows = new HashMap<Integer,Future<?>>();
 		final protected ThreadPoolExecutor workerThreadPoolExecutor;
 		private MultiThreadedHandler(AbstractContainer cl){
-			String worker_thread_count_str = cl.getProperties().getProperty(PropertyConstants.WORKER_THREAD_COUNT);
+			String worker_thread_count_str = cl.getProperty(PropertyConstants.WORKER_THREAD_COUNT);
 			int threadCount = Runtime.getRuntime().availableProcessors();
 			if(worker_thread_count_str!=null){
 				threadCount = Integer.parseInt(worker_thread_count_str);

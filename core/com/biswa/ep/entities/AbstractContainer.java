@@ -635,12 +635,12 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 		return idGen.generateIdentity();
 	}
 	
-	/**Gets the properties for this container.
+	/**Gets the property for this propertyName.
 	 * 
-	 * @return Properties
+	 * @return String
 	 */
-	public Properties getProperties(){
-		return props;
+	public String getProperty(String propertyName){
+		return props.getProperty(propertyName);
 	}
 	/** Returns the dynamic container listener of this container.
 	 * 
@@ -798,7 +798,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 * @return int concurrency level
 	 */
 	public int concurrencySupport(){
-		String concurrent = getProperties().getProperty(CONCURRENT);
+		String concurrent = getProperty(CONCURRENT);
 		int concurrencyLevel = 0;
 		if(concurrent!=null){
 			concurrencyLevel = Integer.parseInt(concurrent);
@@ -811,7 +811,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 * @return int
 	 */
 	public int getTimeOutPeriodInMillis(){
-		String strTranTimeOut = getProperties().getProperty(TRAN_TIME_OUT);
+		String strTranTimeOut = getProperty(TRAN_TIME_OUT);
 		int timeOut = 0;
 		if(strTranTimeOut!=null){
 			timeOut = Integer.parseInt(strTranTimeOut);
@@ -825,7 +825,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 * @return boolean 
 	 */
 	public boolean beginOnCommit(){
-		String beginOnCommit = getProperties().getProperty(BEGIN_ON_COMMIT);
+		String beginOnCommit = getProperty(BEGIN_ON_COMMIT);
 		boolean begCommit = false;
 		if(beginOnCommit!=null){
 			begCommit = Boolean.parseBoolean(beginOnCommit);

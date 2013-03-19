@@ -7,13 +7,13 @@ public class ContainerStoreFactory {
 	public static ContainerEntryStore getContainerEntryStore(ConcreteContainer concreteContainer){
 		
 		boolean d3support=false;
-		String d3strProperty = concreteContainer.getProperties().getProperty(PropertyConstants.D3_SUPPORT);
+		String d3strProperty = concreteContainer.getProperty(PropertyConstants.D3_SUPPORT);
 		if(d3strProperty!=null){
 			d3support = Boolean.parseBoolean(d3strProperty);
 		}
 		
 		int passivation_idle_period = 0;
-		String passivateDurStrProperty = concreteContainer.getProperties().getProperty(PropertyConstants.PASSIVATION_IDLE_DURATION);
+		String passivateDurStrProperty = concreteContainer.getProperty(PropertyConstants.PASSIVATION_IDLE_DURATION);
 		if(passivateDurStrProperty!=null){
 			passivation_idle_period = Integer.parseInt(passivateDurStrProperty)*1000;
 		}else{
@@ -22,7 +22,7 @@ public class ContainerStoreFactory {
 		
 		if(passivation_idle_period>0){
 			boolean eager;
-			String wakeupMode = concreteContainer.getProperties().getProperty(PropertyConstants.PASSIVATION_WAKEUP);
+			String wakeupMode = concreteContainer.getProperty(PropertyConstants.PASSIVATION_WAKEUP);
 			if(wakeupMode!=null){
 				eager = Boolean.parseBoolean(wakeupMode);
 			}else{

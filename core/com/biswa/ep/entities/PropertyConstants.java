@@ -104,6 +104,12 @@ public interface PropertyConstants {
 	 */
 	String PROXY_VALUE_TRANSFORMER = "proxy.value.transformer";
 	
+	/**
+	 * Boolean property to deny alien attributes. 
+	 * Only attributes added in current container cross past this point.
+	 */
+	String ALLOW_ALIEN_ATTRIBUTES = "allow.alien.attributes";
+	
 	public int concurrencySupport();
 	public int getTimeOutPeriodInMillis();
 	public boolean beginOnCommit();

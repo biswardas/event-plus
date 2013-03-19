@@ -11,6 +11,7 @@ import com.biswa.ep.entities.ContainerEvent;
 import com.biswa.ep.entities.ContainerListener;
 import com.biswa.ep.entities.ContainerTask;
 import com.biswa.ep.entities.OuterTask;
+import com.biswa.ep.entities.PropertyConstants;
 import com.biswa.ep.subscription.SubscriptionEvent;
 import com.biswa.ep.subscription.SubscriptionSupport;
 /**Any and every operation on the container must be tunneled through this listener to ensure
@@ -31,6 +32,8 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 	 */
 	private final Map<String, Boolean> expectationsMap = new HashMap<String, Boolean>();
 	
+	private boolean allowAlien = true;
+	
 	/** Agent can only be constructed with an underlying container. No business code ever need to 
 	 * create an agent manually. An agent must be accessed through AbstractContainer.agent()
 	 * method.
@@ -38,6 +41,10 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 	 */
 	public Agent(AbstractContainer cl) {
 		super(cl);
+		String alienAttrString = cl.getProperty(PropertyConstants.ALLOW_ALIEN_ATTRIBUTES);
+		if(alienAttrString!=null){
+			allowAlien=Boolean.parseBoolean(cl.getProperty(PropertyConstants.ALLOW_ALIEN_ATTRIBUTES));
+		}
 	}
 
 	@Override
@@ -97,28 +104,30 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
-				//Need to implement default transaction as it can
-				//potentially generate data events
-				ContainerTask r = new ContainerTask() {
-					/**
-					 * 
-					 */
-					private static final long serialVersionUID = 969041971977780486L;
-
-					public void runtask() {
-						assert ensureExecutingInRightThread();
-						cl.attributeAdded(ce);
-					}
-				};
-				//Following to make sure cascading attributes gets into the system before
-				//directly added attributes
-				if(isConnected()){
-					executeOrEnque(r);					
-				}else{
-					if(ce.getSource().equalsIgnoreCase(cl.getName())){
-						enqueueInPreConnectedQueue(r);
+				if(allowAlien || notAlien(ce)){
+					//Need to implement default transaction as it can
+					//potentially generate data events
+					ContainerTask r = new ContainerTask() {
+						/**
+						 * 
+						 */
+						private static final long serialVersionUID = 969041971977780486L;
+	
+						public void runtask() {
+							assert ensureExecutingInRightThread();
+							cl.attributeAdded(ce);
+						}
+					};
+					//Following to make sure cascading attributes gets into the system before
+					//directly added attributes
+					if(isConnected()){
+						executeOrEnque(r);					
 					}else{
-						executeOrEnque(r);	
+						if(notAlien(ce)){
+							enqueueInPreConnectedQueue(r);
+						}else{
+							executeOrEnque(r);	
+						}
 					}
 				}
 			}
@@ -131,20 +140,30 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
-				//No Need to implement default transaction as it is not supposed to
-				//generate data events.
-				ContainerTask r = new ContainerTask() {
-					/**
-					 * 
-					 */
-					private static final long serialVersionUID = 3817691048842932303L;
-
-					public void runtask() {
-						assert ensureExecutingInRightThread();
-						cl.attributeRemoved(ce);
+				if(allowAlien || notAlien(ce)){
+					ContainerTask r = new ContainerTask() {
+						/**
+						 * 
+						 */
+						private static final long serialVersionUID = 969041971977780486L;
+	
+						public void runtask() {
+							assert ensureExecutingInRightThread();
+							cl.attributeRemoved(ce);
+						}
+					};
+					//Following to make sure cascading attributes gets into the system before
+					//directly added attributes
+					if(isConnected()){
+						executeOrEnque(r);					
+					}else{
+						if(notAlien(ce)){
+							enqueueInPreConnectedQueue(r);
+						}else{
+							executeOrEnque(r);	
+						}
 					}
-				};
-				executeOrEnque(r);
+				}
 			}
 		};
 		executeInListenerThread(outer);
@@ -321,6 +340,12 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 		executeInListenerThread(outer);		
 	}
 	
+	private boolean notAlien(ContainerEvent ce){
+		if(cl.getName().equals(ce.getSource())){
+			return true;
+		}
+		return false;
+	}
 	/**
 	 * Method exclusively for testing purposes and waits for event queue to drain
 	 * for a post event analysis. There is no business requirement for this method.

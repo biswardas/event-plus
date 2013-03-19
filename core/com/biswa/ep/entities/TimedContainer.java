@@ -19,7 +19,7 @@ public class TimedContainer extends ThrottledContainer{
 	 * @return int interval in milli seconds
 	 */
 	public int getTimedInterval(){
-		String interval = getProperties().getProperty(TIMED_INTERVAL);
+		String interval = getProperty(TIMED_INTERVAL);
 		int interValDuration = 1000;
 		if(interval!=null){
 			interValDuration = Integer.parseInt(interval);

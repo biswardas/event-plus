@@ -43,31 +43,33 @@ public class ConcreteContainer extends CascadeContainer{
 		Attribute attribute = containerEvent.getAttribute();
 		//Obtain the registered attribute
 		Attribute notifyingAttribute = attribute.getRegisteredAttribute();
-		//Obtain the existing Entry being updated
-		ContainerEntry containerEntry = containerEntryStore.getEntry(containerEvent.getIdentitySequence());
-		if(containerEntry!=null){
-			//Extract the substance received
-			Substance substance = containerEvent.getSubstance();
-
-			//Update entry with INCOMING attribute & notify listeners
-			if(attribute.hasMinor()){
-				substance = containerEntry.silentUpdate(notifyingAttribute, substance,attribute.getMinor());
+		if(notifyingAttribute!=null){
+			//Obtain the existing Entry being updated
+			ContainerEntry containerEntry = containerEntryStore.getEntry(containerEvent.getIdentitySequence());
+			if(containerEntry!=null){
+				//Extract the substance received
+				Substance substance = containerEvent.getSubstance();
+	
+				//Update entry with INCOMING attribute & notify listeners
+				if(attribute.hasMinor()){
+					substance = containerEntry.silentUpdate(notifyingAttribute, substance,attribute.getMinor());
+				}else{
+					substance = containerEntry.silentUpdate(notifyingAttribute, substance);				
+				}
+				
+				//Dispatch the entry with registered attribute not with guest attribute
+				dispatchEntryUpdated(notifyingAttribute,substance,containerEntry);
+				
+				//Update dependent Attributes and notify listeners
+				for (Attribute notifiedAttribute : notifyingAttribute.getDependents()) {
+					processNotifiedAttribute(notifyingAttribute, containerEntry,
+							notifiedAttribute);
+				}
+				//Perform the stateless attribution
+				performPostUpdateStatelessAttribution(containerEntry);
 			}else{
-				substance = containerEntry.silentUpdate(notifyingAttribute, substance);				
+				assert log("Received update on non existent entry"+containerEntry);
 			}
-			
-			//Dispatch the entry with registered attribute not with guest attribute
-			dispatchEntryUpdated(notifyingAttribute,substance,containerEntry);
-			
-			//Update dependent Attributes and notify listeners
-			for (Attribute notifiedAttribute : notifyingAttribute.getDependents()) {
-				processNotifiedAttribute(notifyingAttribute, containerEntry,
-						notifiedAttribute);
-			}
-			//Perform the stateless attribution
-			performPostUpdateStatelessAttribution(containerEntry);
-		}else{
-			assert log("Received update on non existent entry"+containerEntry);
 		}
 	}	
 	
@@ -140,13 +142,15 @@ public class ConcreteContainer extends CascadeContainer{
 			//For each incoming attribute attribute the dependency
 			for(Attribute attribute:transportEntry.getEntryQualifier().keySet()){
 				attribute = attribute.getRegisteredAttribute();
-				containerEntry.silentUpdate(attribute, transportEntry.getEntryQualifier().get(attribute));
-				//Update dependent Attributes and notify listeners
-				//TODO Can we update all and perform the attribution just once?
-				for (Attribute notifiedAttribute : attribute.getDependents()) {
-					if(!notifiedAttribute.isStateless()){
-						Substance substance = notifiedAttribute.failSafeEvaluate(attribute, containerEntry); 
-						containerEntry.silentUpdate(notifiedAttribute, substance);			
+				if(attribute!=null){
+					containerEntry.silentUpdate(attribute, transportEntry.getEntryQualifier().get(attribute));
+					//Update dependent Attributes and notify listeners
+					//TODO Can we update all and perform the attribution just once?
+					for (Attribute notifiedAttribute : attribute.getDependents()) {
+						if(!notifiedAttribute.isStateless()){
+							Substance substance = notifiedAttribute.failSafeEvaluate(attribute, containerEntry); 
+							containerEntry.silentUpdate(notifiedAttribute, substance);			
+						}
 					}
 				}
 			}
@@ -166,12 +170,14 @@ public class ConcreteContainer extends CascadeContainer{
 			//For each incoming attribute attribute the dependency
 			for(Attribute attribute:transportEntry.getEntryQualifier().keySet()){
 				attribute = attribute.getRegisteredAttribute();
-				Substance initialSubstance = containerEntry.silentUpdate(attribute, transportEntry.getEntryQualifier().get(attribute));
-				dispatchEntryUpdated(attribute,initialSubstance,containerEntry);
-				//Update dependent Attributes and notify listeners
-				//TODO Can we update all and perform the attribution just once?
-				for (Attribute notifiedAttribute : attribute.getDependents()) {
-					processNotifiedAttribute(attribute,containerEntry,notifiedAttribute);
+				if(attribute!=null){
+					Substance initialSubstance = containerEntry.silentUpdate(attribute, transportEntry.getEntryQualifier().get(attribute));
+					dispatchEntryUpdated(attribute,initialSubstance,containerEntry);
+					//Update dependent Attributes and notify listeners
+					//TODO Can we update all and perform the attribution just once?
+					for (Attribute notifiedAttribute : attribute.getDependents()) {
+						processNotifiedAttribute(attribute,containerEntry,notifiedAttribute);
+					}
 				}
 			}
 		}
@@ -261,7 +267,7 @@ public class ConcreteContainer extends CascadeContainer{
 	 * Loads the tuning properties for the container.
 	 */
 	{
-		String strExpectCount = getProperties().getProperty(EXPECTED_COLUMN_COUNT);
+		String strExpectCount = getProperty(EXPECTED_COLUMN_COUNT);
 		if(strExpectCount!=null){
 			expectedColCount = Integer.parseInt(strExpectCount);
 		} else { 
@@ -269,7 +275,7 @@ public class ConcreteContainer extends CascadeContainer{
 		}
 		assert log("Estimated number of Columns in "+getName()+ " "+expectedColCount);
 
-		String strProperty = getProperties().getProperty(RESOLVE_IDENTITY_CONFLICTS);
+		String strProperty = getProperty(RESOLVE_IDENTITY_CONFLICTS);
 		if(strProperty!=null){
 			identityConflictResolution = Boolean.parseBoolean(strProperty);
 		} else {
@@ -277,7 +283,7 @@ public class ConcreteContainer extends CascadeContainer{
 		}
 		assert log("Identity Conflict Resolution in "+getName()+ " to "+identityConflictResolution);
 
-		String strExpectRowCount = getProperties().getProperty(EXPECTED_ROW_COUNT);
+		String strExpectRowCount = getProperty(EXPECTED_ROW_COUNT);
 		if(strExpectRowCount!=null){
 			expectedRowCount = Integer.parseInt(strExpectRowCount);
 		}else{
@@ -285,7 +291,7 @@ public class ConcreteContainer extends CascadeContainer{
 		}
 		assert log("Estimated number of Records in "+getName()+ " "+expectedRowCount);
 
-		String strMemOptimize = getProperties().getProperty(MEM_OPTIMIZATION);
+		String strMemOptimize = getProperty(MEM_OPTIMIZATION);
 		if(strMemOptimize!=null){
 			memOptimize = Float.parseFloat(strMemOptimize);
 		}else{
@@ -293,7 +299,7 @@ public class ConcreteContainer extends CascadeContainer{
 		}
 		assert log("Mem optimized in "+getName()+ " to "+memOptimize);
 
-		String strDuplInsertMode = getProperties().getProperty(DUPLICATE_INSERT_MODE);
+		String strDuplInsertMode = getProperty(DUPLICATE_INSERT_MODE);
 		if(strDuplInsertMode!=null){
 			duplicateInsertMode = Byte.parseByte(strDuplInsertMode);
 		}else{
