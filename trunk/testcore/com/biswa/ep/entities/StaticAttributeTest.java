@@ -35,12 +35,6 @@ public class StaticAttributeTest{
 	}
 
 	@Test
-	public void testShouldInitializeOnInsert() {
-		StaticAttribute staticAttribute = new StaticAttributeX("staticAttribute");
-		assertTrue(staticAttribute.initializeOnInsert());
-	}
-
-	@Test
 	public void testSetPropagate() {
 		StaticAttribute staticAttribute = new StaticAttributeX("staticAttribute");
 		staticAttribute.setPropagate(true);

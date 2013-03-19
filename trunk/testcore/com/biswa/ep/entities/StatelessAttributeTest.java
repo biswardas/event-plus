@@ -42,12 +42,6 @@ public class StatelessAttributeTest{
 		assertFalse(statelessAttribute.requiresStorage());
 	}
 
-	@Test
-	public void testShouldInitializeOnInsert() {
-		StatelessAttribute statelessAttribute = new StatelessAttributeX("statelessAttribute");
-		assertFalse(statelessAttribute.initializeOnInsert());
-	}
-
 	public void testSetPropagate() {
 		StatelessAttribute statelessAttribute = new StatelessAttributeX("statelessAttribute");
 		statelessAttribute.setPropagate(true);

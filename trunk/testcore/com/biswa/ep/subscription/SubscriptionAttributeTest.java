@@ -27,12 +27,6 @@ public class SubscriptionAttributeTest{
 	}
 
 	@Test
-	public void testShouldInitializeOnInsert() {
-		SubscriptionAttribute subscriptionAttribute = new SubscriptionAttribute("subscriptionAttribute",null,null,null,null);
-		assertTrue(subscriptionAttribute.initializeOnInsert());
-	}
-
-	@Test
 	public void testSetPropagate() {
 		SubscriptionAttribute subscriptionAttribute = new SubscriptionAttribute("subscriptionAttribute",null,null,null,null);
 		subscriptionAttribute.setPropagate(true);
