@@ -103,30 +103,11 @@ public class ConcreteContainer extends CascadeContainer{
 	 * @param transportEntry TransportEntry
 	 */
 	private void regularInsert(TransportEntry transportEntry) {
-		ContainerEntry containerEntry;
-		containerEntry = createAndInitialize(transportEntry);
-		performAttributionOnInitialEntrySet(transportEntry, containerEntry);
-		dispatchEntryAdded(containerEntry);
-	}
-	
-	/** Method creates an entry in the container, allocates an identity if required
-	 * 
-	 * @param transportEntry TransportEntry
-	 * @return ContainerEntry
-	 */
-	private ContainerEntry createAndInitialize(TransportEntry transportEntry) {
-		//Creating the new container entry
 		ContainerEntry containerEntry = containerEntryStore.create(transportEntry.getIdentitySequence());
 		//Manage the internal identity for the concrete entry 
 		storeInternalIdentity(containerEntry);
-		//Initialize all zero dependency attributes & attribute the constants
-		for (Attribute notifiedAttribute : getSubscribedAttributes()) {
-			if(notifiedAttribute.initializeOnInsert()){
-				Substance substance = notifiedAttribute.failSafeEvaluate(null, containerEntry);
-				containerEntry.silentUpdate(notifiedAttribute, substance);
-			}
-		}
-		return containerEntry;
+		performAttributionOnInitialEntrySet(transportEntry, containerEntry);
+		dispatchEntryAdded(containerEntry);
 	}
 	
 	/**Method performs the attribution on initial entry set. We do not track any stateless attributes
@@ -225,6 +206,11 @@ public class ConcreteContainer extends CascadeContainer{
 		return containerEntryStore;
 	}
 
+	@Override
+	public PhysicalEntry getDefaultEntry() {
+		return containerEntryStore.getDefaultEntry();
+	}
+	
 	/**Returns the internal identity of the record.
 	 * 
 	 * @param containerEntry ContainerEntry

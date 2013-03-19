@@ -1,6 +1,8 @@
 package com.biswa.ep.entities;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -344,7 +346,6 @@ public abstract class CascadeContainer extends AbstractContainer{
 	 * Instance of the attributeMap
 	 */
 	private final AttributeMap attributeMap = new AttributeMap();
-	
 	/**Construct the Cascade Schema with the passed name.
 	 * 
 	 * @param name
@@ -541,12 +542,46 @@ public abstract class CascadeContainer extends AbstractContainer{
 	private void postAdded(Attribute requestedAttribute,
 			AttributeMapEntry attributeMapEntry) {
 		attributeMap.revalidateDependencyGraph();
+		if(isConnected()){
+			reComputeDefaultValues();
+		}
 		if(requestedAttribute.isStatic()){
 			updateStatic(requestedAttribute, requestedAttribute.failSafeEvaluate(requestedAttribute, null),null);	
 		}else{
 			dispatchDataUpdates(attributeMapEntry.attribute);
 		}
 	}
+	
+	@Override
+	public void connected(final ConnectionEvent connectionEvent) {
+		super.connected(connectionEvent);
+		reComputeDefaultValues();
+	}
+	
+	private void reComputeDefaultValues() {
+		if(getPhysicalSize()>0){
+			PhysicalEntry defaultEntry = getDefaultEntry();
+			defaultEntry.reallocate(getPhysicalSize());
+			System.out.println("~~~~~~~~~Recomputing Default Values:"+getName());
+			ArrayList<AttributeMapEntry> attMapEntries = new ArrayList<AttributeMapEntry>();
+			attMapEntries.addAll(attributeMap.attMapStore.values());
+			System.out.println("PreSort:"+attMapEntries);
+			Collections.sort(attMapEntries, new Comparator<AttributeMapEntry>(){
+				@Override
+				public int compare(AttributeMapEntry o1, AttributeMapEntry o2) {
+					return o1.attribute.compareTo(o2.attribute);
+				}
+			});
+			for(AttributeMapEntry oneEntry:attMapEntries){
+				Attribute attribute = oneEntry.attribute;
+				if(!attribute.isStateless() && !attribute.isStatic() && !attribute.isSubscription()){
+					defaultEntry.silentUpdate(attribute,attribute.failSafeEvaluate(attribute, defaultEntry));	
+				}
+			}
+		}
+	}
+
+	public abstract PhysicalEntry getDefaultEntry();
 
 	/**Updates the static substance associated with the container, and the updates 
 	 * are propagated to entries appropriate by the filter.
