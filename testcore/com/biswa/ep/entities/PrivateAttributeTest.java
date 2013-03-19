@@ -44,12 +44,6 @@ public class PrivateAttributeTest{
 	}
 
 	@Test
-	public void testShouldInitializeOnInsert() {
-		PrivateAttribute privateAttribute = new XPrivate("privateAttribute");
-		assertTrue(privateAttribute.initializeOnInsert());
-	}
-
-	@Test
 	public void testSetPropagate() {
 		PrivateAttribute privateAttribute = new XPrivate("privateAttribute");
 		privateAttribute.setPropagate(true);
