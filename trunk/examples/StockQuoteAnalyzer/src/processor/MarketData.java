@@ -42,4 +42,7 @@ public abstract class MarketData {
 		subscriptionSet.remove(object);
 	}
 	protected abstract int updateDelay();
+	public void terminate(){
+		stp.shutdownNow();
+	}
 }
