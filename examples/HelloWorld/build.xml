@@ -1,0 +1,42 @@
+<project name="hello-world-demo" default="build" basedir=".">
+	<description>
+        Hello World Library
+    </description>
+    <path id="ep.class.path">
+		<fileset dir="../../lib">
+			<include name="**/*.jar" />
+		</fileset>
+		<fileset dir="../../dist">
+			<include name="**/*.jar" />
+		</fileset>
+    </path>
+	<target name="build" depends="clean,compile">
+		<jar jarfile="dist/hello_world.jar" basedir="build/sources"/>
+	</target>
+	<target name="compile">
+		<javac destdir="build/sources" includeantruntime="false" debug="true">
+			<src path="src" />
+		    <classpath refid="ep.class.path"/>
+		</javac>
+	</target>
+
+	<target name="clean">
+		<delete dir="build/sources" />
+		<delete dir="dist" />
+		<mkdir dir="build/sources" />
+		<mkdir dir="dist" />
+	</target>
+
+	<target name="run-server">
+		<java classname="com.biswa.ep.deployment.Deployer" fork="true">
+			<jvmarg value="-Ddeployment.desc=HelloWorld.xml">
+			</jvmarg>
+		    <classpath>
+		    	<path refid="ep.class.path"/>
+				<fileset dir="dist">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</java>
+	</target>
+</project>
