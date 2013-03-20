@@ -562,7 +562,6 @@ public abstract class CascadeContainer extends AbstractContainer{
 		if(getPhysicalSize()>0){
 			PhysicalEntry defaultEntry = getDefaultEntry();
 			defaultEntry.reallocate(getPhysicalSize());
-			System.out.println("~~~~~~~~~Recomputing Default Values:"+getName());
 			ArrayList<AttributeMapEntry> attMapEntries = new ArrayList<AttributeMapEntry>();
 			attMapEntries.addAll(attributeMap.attMapStore.values());
 			System.out.println("PreSort:"+attMapEntries);
