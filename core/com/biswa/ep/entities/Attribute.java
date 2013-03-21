@@ -413,7 +413,7 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 		if (getDependencyDepth() < o.getDependencyDepth()) {
 			return -1;
 		} else if (getDependencyDepth() == o.getDependencyDepth()) {
-			return 0;
+			return getName().compareTo(o.getName());
 		} else {
 			return +1;
 		}
