@@ -1,8 +1,10 @@
 package com.biswa.ep.entities;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TreeSet;
 
 import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.store.ContainerEntryStore;
@@ -122,7 +124,7 @@ public class ConcreteContainer extends CascadeContainer{
 			TransportEntry transportEntry, ContainerEntry containerEntry, boolean merge) {
 		if(transportEntry.getEntryQualifier()!=null){
 			//Pass 1 Set all the incoming values and prepare the dirty list
-			Attribute[] dependents = new Attribute[getPhysicalSize()];
+			Collection<Attribute> dependents = new TreeSet<Attribute>();
 			for(Attribute attribute:transportEntry.getEntryQualifier().keySet()){
 				attribute = attribute.getRegisteredAttribute();
 				if(attribute!=null){
@@ -132,7 +134,7 @@ public class ConcreteContainer extends CascadeContainer{
 					}
 					for (Attribute notifiedAttribute : attribute.getDependents()) {		
 						if(!notifiedAttribute.isStateless()){
-							dependents[notifiedAttribute.getOrdinal()]=notifiedAttribute;
+							dependents.add(notifiedAttribute);
 						}else{
 							if(merge){
 								ContainerContext.STATELESS_QUEUE.get().add(notifiedAttribute);
@@ -142,14 +144,11 @@ public class ConcreteContainer extends CascadeContainer{
 				}
 			}
 			//Pass 2 Compute all the dependencies
-			//TODO depth should be used ordinal is reallocated when attributes are inserted.
 			for(Attribute attribute:dependents){
-				if(attribute!=null){
-					Substance substance = attribute.failSafeEvaluate(attribute, containerEntry); 
-					containerEntry.silentUpdate(attribute, substance);
-					if(merge){
-						dispatchEntryUpdated(attribute,substance,containerEntry);
-					}
+				Substance substance = attribute.failSafeEvaluate(attribute, containerEntry); 
+				containerEntry.silentUpdate(attribute, substance);
+				if(merge){
+					dispatchEntryUpdated(attribute,substance,containerEntry);
 				}
 			}
 		}
