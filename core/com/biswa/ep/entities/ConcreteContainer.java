@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.store.ContainerEntryStore;
 import com.biswa.ep.entities.store.ContainerStoreFactory;
 import com.biswa.ep.entities.store.PhysicalEntry;
@@ -82,7 +83,7 @@ public class ConcreteContainer extends CascadeContainer{
 				case 2://Ignore
 						return;
 				case 1://Merge
-						performMergeModeAttribution(transportEntry, containerEntry);
+						performAttributionOnInitialEntrySet(transportEntry, containerEntry,true);
 						performPostUpdateStatelessAttribution(containerEntry);
 						break;
 				case 0://Delete & Insert
@@ -106,7 +107,7 @@ public class ConcreteContainer extends CascadeContainer{
 		ContainerEntry containerEntry = containerEntryStore.create(transportEntry.getIdentitySequence());
 		//Manage the internal identity for the concrete entry 
 		storeInternalIdentity(containerEntry);
-		performAttributionOnInitialEntrySet(transportEntry, containerEntry);
+		performAttributionOnInitialEntrySet(transportEntry, containerEntry,false);
 		dispatchEntryAdded(containerEntry);
 	}
 	
@@ -118,52 +119,42 @@ public class ConcreteContainer extends CascadeContainer{
 	 * @param containerEntry ContainerEntry
 	 */
 	private void performAttributionOnInitialEntrySet(
-			TransportEntry transportEntry, ContainerEntry containerEntry) {
-		if(transportEntry.getEntryQualifier()!=null){			
-			//For each incoming attribute attribute the dependency
+			TransportEntry transportEntry, ContainerEntry containerEntry, boolean merge) {
+		if(transportEntry.getEntryQualifier()!=null){
+			//Pass 1 Set all the incoming values and prepare the dirty list
+			Attribute[] dependents = new Attribute[getPhysicalSize()];
 			for(Attribute attribute:transportEntry.getEntryQualifier().keySet()){
 				attribute = attribute.getRegisteredAttribute();
 				if(attribute!=null){
-					containerEntry.silentUpdate(attribute, transportEntry.getEntryQualifier().get(attribute));
-					//Update dependent Attributes and notify listeners
-					//TODO Can we update all and perform the attribution just once?
-					for (Attribute notifiedAttribute : attribute.getDependents()) {
+					Substance initialSubstance = containerEntry.silentUpdate(attribute, transportEntry.getEntryQualifier().get(attribute));
+					if(merge){
+						dispatchEntryUpdated(attribute,initialSubstance,containerEntry);
+					}
+					for (Attribute notifiedAttribute : attribute.getDependents()) {		
 						if(!notifiedAttribute.isStateless()){
-							Substance substance = notifiedAttribute.failSafeEvaluate(attribute, containerEntry); 
-							containerEntry.silentUpdate(notifiedAttribute, substance);			
+							dependents[notifiedAttribute.getOrdinal()]=notifiedAttribute;
+						}else{
+							if(merge){
+								ContainerContext.STATELESS_QUEUE.get().add(notifiedAttribute);
+							}
 						}
+					}
+				}
+			}
+			//Pass 2 Compute all the dependencies
+			//TODO depth should be used ordinal is reallocated when attributes are inserted.
+			for(Attribute attribute:dependents){
+				if(attribute!=null){
+					Substance substance = attribute.failSafeEvaluate(attribute, containerEntry); 
+					containerEntry.silentUpdate(attribute, substance);
+					if(merge){
+						dispatchEntryUpdated(attribute,substance,containerEntry);
 					}
 				}
 			}
 		}
 	}
 
-	/**Method performs the attribution on initial entry set in merge mode. In merge mode the 
-	 * the incoming record is not sent over but only the changes are sent. During attribution 
-	 * any stateless attributes are encountered are deferred for stateless attribution cycle. 
-	 * 
-	 * @param transportEntry TransportEntry
-	 * @param containerEntry ContainerEntry
-	 */
-	private void performMergeModeAttribution(
-			TransportEntry transportEntry, ContainerEntry containerEntry) {
-		if(transportEntry.getEntryQualifier()!=null){
-			//For each incoming attribute attribute the dependency
-			for(Attribute attribute:transportEntry.getEntryQualifier().keySet()){
-				attribute = attribute.getRegisteredAttribute();
-				if(attribute!=null){
-					Substance initialSubstance = containerEntry.silentUpdate(attribute, transportEntry.getEntryQualifier().get(attribute));
-					dispatchEntryUpdated(attribute,initialSubstance,containerEntry);
-					//Update dependent Attributes and notify listeners
-					//TODO Can we update all and perform the attribution just once?
-					for (Attribute notifiedAttribute : attribute.getDependents()) {
-						processNotifiedAttribute(attribute,containerEntry,notifiedAttribute);
-					}
-				}
-			}
-		}
-	}
-	
 	@Override
 	public void entryRemoved(ContainerEvent ce) {
 		assert log("Removing Entry"+ce.toString());
