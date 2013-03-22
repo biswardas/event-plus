@@ -1,18 +1,18 @@
 package com.biswa.ep.entities;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
 import com.biswa.ep.ClientToken;
 import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.identity.ConcreteIdentityGenerator;
 import com.biswa.ep.entities.spec.FilterSpec;
-import com.biswa.ep.entities.spec.Spec;
 import com.biswa.ep.entities.spec.SortSpec.SortOrder;
+import com.biswa.ep.entities.spec.Spec;
 import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.entities.transaction.Agent;
 import com.biswa.ep.entities.transaction.FeedbackAgent;
@@ -473,10 +473,10 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 * @param containerEntry CotnainerEntry
 	 */
 	protected void performExclusiveStatelessAttribution(final Agent receiver,ContainerEntry containerEntry) {
-		Queue<Attribute> queue = ContainerContext.STATELESS_QUEUE.get(); 
-		if(!queue.isEmpty()){ 
-			recomputeStatelessAttributes(receiver,containerEntry,queue.toArray(Attribute.ZERO_DEPENDENCY));
-			queue.clear();
+		Collection<Attribute> statelessAttributes = ContainerContext.STATELESS_QUEUE.get(); 
+		if(!statelessAttributes.isEmpty()){ 
+			recomputeStatelessAttributes(receiver,containerEntry,statelessAttributes.toArray(Attribute.ZERO_DEPENDENCY));
+			statelessAttributes.clear();
 		}
 	}
 	
@@ -486,10 +486,10 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 * @param containerEntry ContainerEntry
 	 */
 	protected void performPostUpdateStatelessAttribution(ContainerEntry containerEntry) {
-		Queue<Attribute> queue = ContainerContext.STATELESS_QUEUE.get();
-		if(!listenerMap.isEmpty() && !queue.isEmpty()){ 
+		Collection<Attribute> statelessAttributes = ContainerContext.STATELESS_QUEUE.get();
+		if(!listenerMap.isEmpty() && !statelessAttributes.isEmpty()){ 
 			StatelessContainerEntry slcEntry = prepareStatelessProcessing(containerEntry);
-			for (Attribute notifiedAttribute : queue) {
+			for (Attribute notifiedAttribute : statelessAttributes) {
 				Substance substance = notifiedAttribute.failSafeEvaluate(notifiedAttribute, slcEntry); 
 				substance = slcEntry.silentUpdate(notifiedAttribute, substance);
 				if(notifiedAttribute.propagate()){
@@ -502,7 +502,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 				}
 			}
 		}
-		queue.clear();
+		statelessAttributes.clear();
 	}
 	
 	private void dispatchFilteredEntryAdded(
