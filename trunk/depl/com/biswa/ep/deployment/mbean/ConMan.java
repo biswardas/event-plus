@@ -1,7 +1,5 @@
 package com.biswa.ep.deployment.mbean;
 
-import javax.xml.bind.JAXBException;
-
 import com.biswa.ep.deployment.ContainerManager;
 import com.biswa.ep.deployment.Deployer;
 
@@ -19,13 +17,13 @@ public class ConMan implements ConManMBean {
 			try{
 				containerManager.mergeGraph(fileName);
 			}catch(Exception e){
-				throw new RuntimeException("Error deploying add on graph");
+				throw new RuntimeException("Error deploying add on graph",e);
 			}
 		}else{
 			try {
 				Deployer.deploy(fileName);
-			} catch (JAXBException e) {
-				throw new RuntimeException("Error while creating new graph");
+			} catch (Exception e) {
+				throw new RuntimeException("Error while creating new graph",e);
 			}
 		}
 	}

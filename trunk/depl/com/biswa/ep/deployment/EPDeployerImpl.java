@@ -14,13 +14,16 @@ import com.biswa.ep.deployment.util.Container;
 import com.biswa.ep.deployment.util.Context;
 import com.biswa.ep.deployment.util.Listen;
 import com.biswa.ep.deployment.util.Publish;
+import com.biswa.ep.deployment.util.Subscribe;
 
 public class EPDeployerImpl implements EPDeployer {
-
-
+	private String name = null;
+	public EPDeployerImpl(String name) {
+		this.name = name;
+	}
 	@Override
 	public String getName() throws RemoteException {
-		return Deployer.getSufix();
+		return name;
 	}
 	@Override
 	public void deploy(String deploymentDescriptor) throws RemoteException {
@@ -37,10 +40,15 @@ public class EPDeployerImpl implements EPDeployer {
 			for(Container oneContainer:context.getContainer()){
 				oneContainer.setName(oneContainer.getName()+getName());
 				oneContainer.setType(EPConType.Basic.name());
-				
+
 				//Slave is always remote
 				for(Listen oneListen:oneContainer.getListen()){
 					oneListen.setMethod(EPPublish.RMI.name());
+				}
+				
+				//Slave is always remote change the local subscriptions to remote
+				for(Subscribe oneSubscribe:oneContainer.getSubscribe()){
+					oneSubscribe.setMethod(EPPublish.RMI.name());
 				}
 				
 				//No feedback from Slaves
