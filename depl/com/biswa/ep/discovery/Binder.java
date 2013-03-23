@@ -9,7 +9,7 @@ import java.rmi.RemoteException;
  * @author biswa
  *
  */
-public interface Binder extends Remote {
+public interface Binder extends EPService {
 	/**
 	 * Name of the Binder it self bound in registry.
 	 */
