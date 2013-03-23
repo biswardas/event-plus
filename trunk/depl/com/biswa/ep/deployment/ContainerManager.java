@@ -49,7 +49,7 @@ public class ContainerManager {
 	public void mergeGraph(String fileName) {
 		try {
 			Context context = Deployer.buildContext(fileName);
-			Deployer.deployer.execute(new DeploymentTask(context, this));
+			Deployer.deployer.execute(new DeploymentTask(context, this,false));
 		} catch (JAXBException e) {
 			e.printStackTrace();
 		}		
