@@ -27,5 +27,14 @@ public interface Binder extends EPService {
 	 * 
 	 * @param acceptName String
 	 */
-	void unbind(String acceptName) throws RemoteException;
+	void unbind(String acceptName) throws RemoteException;	
+	
+	/**This method binds a slave in registry.
+	 * 
+	 * @param acceptName String
+	 * @param obj Remote
+	 */
+	void bindSlave(Remote obj) throws RemoteException;
+	
+	Remote getSlave() throws RemoteException;
 }

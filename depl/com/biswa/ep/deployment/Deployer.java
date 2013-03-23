@@ -9,6 +9,8 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -40,10 +42,9 @@ public class Deployer extends UncaughtExceptionHandler{
 	final static ExecutorService deployer = Executors
 			.newSingleThreadExecutor(new NamedThreadFactory("Deployer",false));
 
-	//public final static ContainerManager containerManager = new ContainerManager();
 	final static MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 	
-	public static void main(String[] args) throws JAXBException {
+	public static void main(String[] args) throws JAXBException, InterruptedException, ExecutionException {
 		//Register this with mbean server
 		ConManMBean csMbean = new ConMan();
 		try {
@@ -60,20 +61,16 @@ public class Deployer extends UncaughtExceptionHandler{
 			deployer.execute(new Runnable() {				
 				@Override
 				public void run() {
-					if(getSufix()!=null){
-						System.err.println("Starting as Slave. (-Ddeployment.desc=$fileName)");
-						try {
-							Binder binder = RegistryHelper.getBinder();
-							deployerImpl = new EPDeployerImpl();
-							exportedDeployer = (EPDeployer) UnicastRemoteObject
-									.exportObject(deployerImpl, 0);
-							binder.bind(getSufix(), exportedDeployer);
-						} catch (RemoteException e) {
-							throw new RuntimeException(e);
-						}
-					}else{
-						System.err.println("Slave mode not enabled.(-Dep.engine.name=$engineName) (-Ddeployment.desc=$fileName)");		
-						System.exit(0);
+					String name=UUID.randomUUID().toString();
+					System.err.println("Starting as Slave. Name="+name);
+					try {
+						Binder binder = RegistryHelper.getBinder();
+						deployerImpl = new EPDeployerImpl(name);
+						exportedDeployer = (EPDeployer) UnicastRemoteObject
+								.exportObject(deployerImpl, 0);
+						binder.bindSlave(exportedDeployer);
+					} catch (RemoteException e) {
+						throw new RuntimeException(e);
 					}
 				}
 			});
@@ -81,10 +78,11 @@ public class Deployer extends UncaughtExceptionHandler{
 	}
 
 
-	public static void deploy(String fileName) throws JAXBException {
+	public static void deploy(String fileName) throws JAXBException, InterruptedException, ExecutionException {
 		System.out.println("Attempting to deploy "+fileName);
 		Context context = buildContext(fileName);
-		deploy(context,false);
+		Future<?> future = deploy(context,false);
+		future.get();
 		System.out.println(fileName+" deployed.");
 	}
 	
@@ -131,9 +129,5 @@ public class Deployer extends UncaughtExceptionHandler{
 			props.put(oneParam.getName(), oneParam.getValue());
 		}
 		return props;
-	}
-
-	public static String getSufix() {
-		return System.getProperty("ep.engine.name");
 	}
 }
