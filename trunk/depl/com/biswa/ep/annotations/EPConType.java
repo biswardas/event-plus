@@ -2,6 +2,7 @@ package com.biswa.ep.annotations;
 
 import com.biswa.ep.deployment.handler.BasicDeploymentHandler;
 import com.biswa.ep.deployment.handler.FeedbackDeploymentHandler;
+import com.biswa.ep.deployment.handler.ForkJoinDeploymentHandler;
 import com.biswa.ep.deployment.handler.IDeployerHandler;
 import com.biswa.ep.deployment.handler.JoinDeploymentHandler;
 import com.biswa.ep.deployment.handler.PivotDeploymentHandler;
@@ -15,6 +16,7 @@ public enum EPConType {
 	None(),
 	Basic(BasicDeploymentHandler.class),
 	Split(SplitDeploymentHandler.class), 
+	ForkJoin(ForkJoinDeploymentHandler.class), 
 	Feedback(FeedbackDeploymentHandler.class,true), 
 	Timed(TimedDeploymentHandler.class),
 	Pivot(PivotDeploymentHandler.class), 
