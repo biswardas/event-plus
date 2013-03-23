@@ -1,9 +1,8 @@
 package com.biswa.ep.discovery;
 
-import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-public interface IdentityGenerator extends Remote {
+public interface IdentityGenerator extends EPService {
 	/**
 	 * Name of the Binder it self bound in registry.
 	 */
