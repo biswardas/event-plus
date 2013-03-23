@@ -12,6 +12,7 @@
         <pathelement location="C:/Users/Biswa/Downloads/jquantlib-0.2.4.jar"/>
     </path>
 	<target name="build" depends="clean,compile">
+		<echo>You need JQuantLib library to compile this. Follow this link http://www.jquantlib.com/downloads/binaries/ </echo>
 		<jar jarfile="dist/opt_val.jar" basedir="build/sources"/>
 	</target>
 	<target name="compile">
