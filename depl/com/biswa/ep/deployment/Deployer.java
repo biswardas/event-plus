@@ -172,4 +172,15 @@ public class Deployer extends UncaughtExceptionHandler{
 		Source source = new SAXSource(reader,new InputSource(ins));
 		return source;
 	}
+	
+	public static String slaveName(){
+		if(deployerImpl!=null){
+			try {
+				return deployerImpl.getName();
+			} catch (RemoteException e) {
+				return null;
+			}
+		}
+		return null;
+	}
 }
