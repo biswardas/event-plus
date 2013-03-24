@@ -35,4 +35,12 @@ public class ConMan implements ConManMBean {
 		containerManager.destroyAllContainers();
 		return "Attempting to destroy this Context";
 	}
+	@Override
+	public String shutDown() {
+		if(containerManager!=null){
+			return "Can not shut Down from Non Root Context..";
+		}
+		Deployer.shutDown();
+		return "Shutting Down in 5 Seconds...";
+	}
 }
