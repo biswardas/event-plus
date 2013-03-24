@@ -1,0 +1,36 @@
+<?xml version='1.0'?>
+<!DOCTYPE Context SYSTEM 'http://code.google.com/p/event-plus'>
+<Context name='ForkJoin' xmlns='http://code.google.com/p/event-plus'>
+<Container type='Split' name='InputStocks'>
+<Publish method='RMI'/>
+<Attribute className='epimpl.schema.ForkJoin$InputStocks$symbol'/>
+<Source className='epimpl.schema.ForkJoin$InputStocks$Inlet'/>
+</Container>
+<Container type='Subscription' name='Reuters'>
+<Publish method='RMI'/>
+<Attribute className='epimpl.schema.ForkJoin$Reuters$marketData'/>
+</Container>
+<Container type='ForkJoin' name='InputOptions'>
+<Publish method='LOCAL'/>
+<Listen container='InputStocks' context='ForkJoin' method='LOCAL'>
+</Listen>
+<Attribute className='epimpl.schema.ForkJoin$InputOptions$stockPrice'/>
+<Listen container='Reuters' context='ForkJoin' method='LOCAL'>
+</Listen>
+<Feedback container='Reuters' context='ForkJoin' method='LOCAL'/>
+<Subscribe container='Reuters' context='ForkJoin' method='LOCAL' depends='symbol' response='stockPrice'>
+</Subscribe>
+<Attribute className='epimpl.schema.ForkJoin$InputOptions$optionSymbol'/>
+<Attribute className='epimpl.schema.ForkJoin$InputOptions$optionPrice'/>
+<Subscribe container='Reuters' context='ForkJoin' method='LOCAL' depends='optionSymbol' response='optionPrice'>
+</Subscribe>
+<Param Name='ep.slave.count' Value='&slavecount;'/>
+</Container>
+<Container type='Basic' name='Viewer'>
+<Publish method='LOCAL'/>
+<Listen container='InputOptions' context='ForkJoin' method='LOCAL'>
+</Listen>
+<Attribute className='epimpl.schema.ForkJoin$Viewer$launchViewer'/>
+<Param Name='verbose' Value='true'/>
+</Container>
+</Context>
