@@ -33,8 +33,8 @@ public class EPDeployerImpl implements EPDeployer {
 			Unmarshaller unmarshaller = jc.createUnmarshaller();
 			@SuppressWarnings("unchecked")
 			JAXBElement<Context> jaxbElement = (JAXBElement<Context>) unmarshaller
-					.unmarshal(new ByteArrayInputStream(deploymentDescriptor
-							.getBytes()));
+					.unmarshal(Deployer.getSource(new ByteArrayInputStream(deploymentDescriptor
+							.getBytes())));
 			
 			Context context = jaxbElement.getValue();
 			for(Container oneContainer:context.getContainer()){

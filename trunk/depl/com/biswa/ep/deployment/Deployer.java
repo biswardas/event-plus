@@ -1,5 +1,6 @@
 package com.biswa.ep.deployment;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -7,8 +8,11 @@ import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.MissingResourceException;
 import java.util.Properties;
+import java.util.ResourceBundle;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -21,6 +25,14 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.Source;
+import javax.xml.transform.sax.SAXSource;
+
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
 
 import com.biswa.ep.NamedThreadFactory;
 import com.biswa.ep.UncaughtExceptionHandler;
@@ -103,7 +115,7 @@ public class Deployer extends UncaughtExceptionHandler{
 				ins = ClassLoader.getSystemResourceAsStream(fileName);
 			}
 			rootObj = (JAXBElement<Context>) unmarshaller
-					.unmarshal(ins);
+					.unmarshal(getSource(ins));
 		}catch(Exception e){
 			throw new RuntimeException(e);
 		}finally{
@@ -129,5 +141,35 @@ public class Deployer extends UncaughtExceptionHandler{
 			props.put(oneParam.getName(), oneParam.getValue());
 		}
 		return props;
+	}
+	
+	public static Source getSource(InputStream ins) throws SAXException{
+		XMLReader reader = XMLReaderFactory.createXMLReader();
+		reader.setEntityResolver(new EntityResolver() {
+			@Override
+			public InputSource resolveEntity(String publicId, String systemId)
+					throws SAXException, IOException {
+				StringBuilder sb = new StringBuilder();
+				ResourceBundle rb = null;
+				try{
+					rb = ResourceBundle.getBundle("ep");
+					Enumeration<String> keys=rb.getKeys();
+					while(keys.hasMoreElements()){
+						String key = keys.nextElement();
+						sb.append("<!ENTITY ");
+						sb.append(key);
+						sb.append(" '");
+						sb.append(rb.getString(key));
+						sb.append("'>");
+					}
+				}catch(MissingResourceException mre){
+					System.err.println("Could not locate ep.properties can not resolve entities...");
+				}
+				InputSource ins = new InputSource(new ByteArrayInputStream(sb.toString().getBytes()));
+				return ins;
+			}
+		});
+		Source source = new SAXSource(reader,new InputSource(ins));
+		return source;
 	}
 }
