@@ -34,6 +34,7 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 		if (annot != null) {
 			context = e.getSimpleName().toString();
 			write("<?xml version='1.0'?>");
+			write("<!DOCTYPE Context SYSTEM 'http://code.google.com/p/event-plus/ep.dtd'>");
 			write("<Context name='" + context
 					+ "' xmlns='http://code.google.com/p/event-plus'>");
 			visitContainers(e);
