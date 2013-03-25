@@ -2,6 +2,8 @@ package com.biswa.ep.discovery;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+
+import com.biswa.ep.deployment.EPDeployer;
 /**Remote interface exposes the Binder responsible to bind all remote
  * handles in the registry. All participating process must use the binder
  * to bind their remote handles.
@@ -34,7 +36,20 @@ public interface Binder extends EPService {
 	 * @param acceptName String
 	 * @param obj Remote
 	 */
-	void bindSlave(Remote obj) throws RemoteException;
+	void bindSlave(EPDeployer obj) throws RemoteException;	
 	
-	Remote getSlave() throws RemoteException;
+	/**This method binds application in registry.
+	 * 
+	 * @param acceptName String
+	 * @param obj Remote
+	 */
+	void bindApp(EPDeployer obj) throws RemoteException;
+	
+	
+	/**This method binds a slave in registry.
+	 * 
+	 * @param acceptName String
+	 * @param obj Remote
+	 */
+	EPDeployer getSlave() throws RemoteException;
 }
