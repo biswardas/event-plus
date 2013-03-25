@@ -27,7 +27,7 @@
 		<mkdir dir="dist" />
 	</target>
 
-	<target name="run-server">
+	<target name="discovery">
 		<echo>Step1:Starting Discovery Server</echo>
 		<java classname="com.biswa.ep.discovery.RMIDiscoveryManager" fork="true" spawn="true">
 		    <classpath>
@@ -37,6 +37,8 @@
 				</fileset>
 			</classpath>
 		</java>
+	</target>
+	<target name="worker1">
 		<echo>Step2:Starting Slave Instance 1</echo>
 		<java classname="com.biswa.ep.deployment.Deployer" fork="true" spawn="true">
 		    <classpath>
@@ -46,7 +48,9 @@
 				</fileset>
 			</classpath>
 		</java>
-		<echo>Step3:Starting Slave Instance 2</echo>
+	</target>
+	<target name="worker2">
+		<echo>Step2:Starting Slave Instance 2</echo>
 		<java classname="com.biswa.ep.deployment.Deployer" fork="true" spawn="true">
 		    <classpath>
 		    	<path refid="ep.class.path"/>
@@ -55,6 +59,8 @@
 				</fileset>
 			</classpath>
 		</java>
+	</target>
+	<target name="application">
 		<echo>Step4:Starting Application Instance</echo>
 		<java classname="com.biswa.ep.deployment.Deployer" fork="true">
 			<jvmarg value="-Ddeployment.desc=ForkJoin.xml">
@@ -66,5 +72,7 @@
 				</fileset>
 			</classpath>
 		</java>
+	</target>
+	<target name="run-server" depends="discovery,worker1,worker2,application">
 	</target>
 </project>
