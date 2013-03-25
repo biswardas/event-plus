@@ -9,10 +9,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.management.ObjectName;
 
+import com.biswa.ep.deployment.EPDeployer;
 import com.biswa.ep.deployment.mbean.Discovery;
 
 public class BinderImpl implements Binder {
-	private CopyOnWriteArrayList<Remote> slaveList = new CopyOnWriteArrayList<Remote>();
+	private CopyOnWriteArrayList<EPDeployer> slaveList = new CopyOnWriteArrayList<EPDeployer>();
 	@Override
 	public void bind(String name, Remote obj) throws RemoteException {
 		RegistryHelper.getRegistry().rebind(name, obj);
@@ -46,12 +47,18 @@ public class BinderImpl implements Binder {
 	}
 
 	@Override
-	public void bindSlave(Remote obj) throws RemoteException {
+	public void bindSlave(EPDeployer obj) throws RemoteException {
 		slaveList.add(obj);
+	}
+
+
+	@Override
+	public void bindApp(EPDeployer obj) throws RemoteException {
+		// TODO Dont know what to do with it now?
 	}
 	
 	@Override
-	public Remote getSlave() throws RemoteException {
+	public EPDeployer getSlave() throws RemoteException {
 		if(!slaveList.isEmpty()){
 			return slaveList.remove(0);
 		}

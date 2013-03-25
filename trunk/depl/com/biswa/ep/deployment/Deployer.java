@@ -47,7 +47,6 @@ public class Deployer extends UncaughtExceptionHandler{
 	private static final ContainerManager containerManager = new ContainerManager();
 
 	private static EPDeployerImpl deployerImpl = null;
-	private static EPDeployer exportedDeployer = null;
 	
 	private static final String DEPLOYMENT_DESC = "deployment.desc";
 
@@ -68,25 +67,35 @@ public class Deployer extends UncaughtExceptionHandler{
 		
 		String fileName = System.getProperty(DEPLOYMENT_DESC);
 		if(fileName!=null){
+			bindTheDeployer(false);
 			deploy(fileName);
 		}else{
-			deployer.execute(new Runnable() {				
-				@Override
-				public void run() {
-					String name=UUID.randomUUID().toString();
-					System.err.println("Starting as Slave. Name="+name);
-					try {
-						Binder binder = RegistryHelper.getBinder();
-						deployerImpl = new EPDeployerImpl(name);
-						exportedDeployer = (EPDeployer) UnicastRemoteObject
-								.exportObject(deployerImpl, 0);
-						binder.bindSlave(exportedDeployer);
-					} catch (RemoteException e) {
-						throw new RuntimeException(e);
-					}
-				}
-			});
+			bindTheDeployer(true);
 		}
+	}
+
+
+	protected static void bindTheDeployer(final boolean slave) {
+		deployer.execute(new Runnable() {				
+			@Override
+			public void run() {
+				String name=UUID.randomUUID().toString();
+				try {
+					Binder binder = RegistryHelper.getBinder();
+					deployerImpl = new EPDeployerImpl(name);
+					EPDeployer exportedDeployer = (EPDeployer) UnicastRemoteObject
+							.exportObject(deployerImpl, 0);
+					if(slave){
+						System.err.println("Starting as Slave. Name="+name);
+						binder.bindSlave(exportedDeployer);
+					}else{
+						binder.bindApp(exportedDeployer);						
+					}
+				} catch (RemoteException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		});
 	}
 
 
