@@ -65,4 +65,8 @@ public class EPDeployerImpl implements EPDeployer {
 			throw new RuntimeException(e);
 		}
 	}
+	@Override
+	public boolean isAlive() throws RemoteException {
+		return true;		
+	}
 }

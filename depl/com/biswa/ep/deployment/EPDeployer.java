@@ -10,4 +10,5 @@ import java.rmi.RemoteException;
 public interface EPDeployer extends Remote{	
 	public String getName() throws RemoteException;
 	public void deploy(String deploymentDescriptor) throws RemoteException;
+	public boolean isAlive() throws RemoteException;
 }
