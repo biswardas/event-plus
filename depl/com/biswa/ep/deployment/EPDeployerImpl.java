@@ -2,6 +2,7 @@ package com.biswa.ep.deployment;
 
 import java.io.ByteArrayInputStream;
 import java.rmi.RemoteException;
+import java.util.Collection;
 import java.util.concurrent.Future;
 
 import javax.xml.bind.JAXBContext;
@@ -68,5 +69,14 @@ public class EPDeployerImpl implements EPDeployer {
 	@Override
 	public boolean isAlive() throws RemoteException {
 		return true;		
+	}
+	@Override
+	public void peerDied(String name, Collection<String> containers)
+			throws RemoteException {
+		Deployer.peerDied(name,containers);
+	}
+	@Override
+	public void shutDown() throws RemoteException {
+		Deployer.shutDown();		
 	}
 }

@@ -44,7 +44,7 @@ public class RMIDiscoveryManager extends UncaughtExceptionHandler{
 							.exportObject(binderimpl, 0);
 					registry.rebind(Binder.BINDER, binder);
 					ObjectName bindName = new ObjectName("Services:name="+Binder.BINDER);
-					MBS.registerMBean(new Discovery(binder), bindName);
+					MBS.registerMBean(binderimpl, bindName);
 					
 					transgenImpl = new TransactionGeneratorImpl();
 					TransactionGenerator transgen = (TransactionGenerator) UnicastRemoteObject

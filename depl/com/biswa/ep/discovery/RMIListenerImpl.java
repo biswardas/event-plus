@@ -8,6 +8,7 @@ import java.util.concurrent.Semaphore;
 
 import bak.pcj.list.IntArrayList;
 
+import com.biswa.ep.deployment.Deployer;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.ContainerEvent;
@@ -250,5 +251,10 @@ public class RMIListenerImpl implements RMIListener, Connector, EntryReader {
 		});
 		s.acquireUninterruptibly();
 		return holder.toArray();
+	}
+
+	@Override
+	public String getDeployerName() throws RemoteException {
+		return Deployer.getName();
 	}
 }

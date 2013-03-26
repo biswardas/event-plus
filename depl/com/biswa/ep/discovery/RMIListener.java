@@ -27,4 +27,5 @@ public interface RMIListener extends Remote {
 	void connected(ConnectionEvent ce) throws RemoteException;
 	void disconnected(ConnectionEvent ce) throws RemoteException;
 	void invokeOperation(ContainerTask task) throws RemoteException;
+	String getDeployerName() throws RemoteException;;
 }

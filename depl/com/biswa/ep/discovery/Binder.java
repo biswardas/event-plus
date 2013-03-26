@@ -1,6 +1,5 @@
 package com.biswa.ep.discovery;
 
-import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 import com.biswa.ep.deployment.EPDeployer;
@@ -20,10 +19,10 @@ public interface Binder extends EPService {
 	/**Method binds the remote object to the registry.
 	 * 
 	 * @param name String Name of the remote object used to bind object to registry.
-	 * @param obj Remote Object performing remote function.
+	 * @param obj RMIListener Object performing remote function.
 	 * @throws RemoteException
 	 */
-	void bind(String name, Remote obj) throws RemoteException;
+	void bind(String name, RMIListener obj) throws RemoteException;
 	
 	/**This method unbinds an name from the registry.
 	 * 

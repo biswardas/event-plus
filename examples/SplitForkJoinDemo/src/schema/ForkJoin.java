@@ -30,7 +30,7 @@ public interface ForkJoin {
 		@EPAttribute(type=EPAttrType.Subscriber,depends="optionSymbol",container="Reuters")
 		public double optionPrice = 0.0;
 		
-		public String executingOnSlave=Deployer.slaveName();
+		public String executingOnSlave=Deployer.getName();
 	}
 	@EPContainer()
 	public interface Viewer extends InputOptions{
