@@ -121,6 +121,13 @@ public class BinderImpl implements Binder,BinderImplMBean {
 				//throw new RuntimeException(e);
 			}
 		}
+		for(String key:containerDeployerNameMap.keySet()){
+			try {
+				RegistryHelper.getRegistry().unbind(key);
+			} catch (Exception e) {
+				//throw new RuntimeException(e);
+			}
+		}
 		containerDeployerNameMap.clear();
 		instanceMap.clear();
 		slaveList.clear();
