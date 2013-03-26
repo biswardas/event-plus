@@ -12,10 +12,6 @@ import java.util.Properties;
 import java.util.Queue;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import bak.pcj.list.IntArrayList;
-import bak.pcj.list.IntList;
-
 import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.store.PhysicalEntry;
@@ -47,7 +43,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 		/**
 		 * Oridinals which are returned to storage can be reused.
 		 */
-		private IntList returnedOrdinalList = new IntArrayList(0);
+		private ArrayList<Integer> returnedOrdinalList = new ArrayList<Integer>(0);
 		/**
 		 * All attributes present in this container
 		 */
@@ -117,8 +113,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 			if(returnedOrdinalList.isEmpty()){
 				assignedOrdinal=ordinal++;	
 			}else{
-				assignedOrdinal = returnedOrdinalList.get(0);
-				returnedOrdinalList.removeElementAt(0);
+				assignedOrdinal = returnedOrdinalList.remove(0);
 			}
 			return assignedOrdinal;
 		}

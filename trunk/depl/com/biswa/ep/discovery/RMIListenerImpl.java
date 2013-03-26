@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
-import bak.pcj.list.IntArrayList;
-
 import com.biswa.ep.deployment.Deployer;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerEntry;
@@ -228,7 +226,7 @@ public class RMIListenerImpl implements RMIListener, Connector, EntryReader {
 
 	@Override
 	public int[] getIDs() throws RemoteException {
-		final IntArrayList holder = new IntArrayList();
+		final ArrayList<Integer> holder = new ArrayList<Integer>();
 		final Semaphore s = new Semaphore(1);
 		s.drainPermits();
 		getAgent().invokeOperation(new ContainerTask() {
@@ -250,7 +248,12 @@ public class RMIListenerImpl implements RMIListener, Connector, EntryReader {
 			}
 		});
 		s.acquireUninterruptibly();
-		return holder.toArray();
+		Integer[] objectIds =  holder.toArray(new Integer[0]);
+		int[] ids = new int[objectIds.length];
+		for(int index=0;index<objectIds.length;index++){
+			ids[index]=objectIds[index];
+		}
+		return ids;
 	}
 
 	@Override
