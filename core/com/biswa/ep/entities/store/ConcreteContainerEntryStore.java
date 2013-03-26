@@ -1,7 +1,7 @@
 package com.biswa.ep.entities.store;
 
-import bak.pcj.map.IntKeyMap;
-import bak.pcj.map.IntKeyOpenHashMap;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.biswa.ep.entities.ConcreteContainer;
 
@@ -15,10 +15,10 @@ class ConcreteContainerEntryStore implements ContainerEntryStore{
 	/**
 	 * Record Store which keeps the concrete records.
 	 */
-	final IntKeyMap containerDataEntries;
+	final Map<Integer,PhysicalEntry> containerDataEntries;
 	final ConcreteContainer concreteContainer;
 	public ConcreteContainerEntryStore(ConcreteContainer concreteContainer) {
-		containerDataEntries = new IntKeyOpenHashMap(concreteContainer.expectedRowCount,concreteContainer.memOptimize);
+		containerDataEntries = new HashMap<Integer,PhysicalEntry>(concreteContainer.expectedRowCount,concreteContainer.memOptimize);
 		this.concreteContainer=concreteContainer;
 	}
 
@@ -49,7 +49,6 @@ class ConcreteContainerEntryStore implements ContainerEntryStore{
 		containerDataEntries.put(containerEntry.getIdentitySequence(), containerEntry);		
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public PhysicalEntry[] getEntries() {
 		return (PhysicalEntry[]) containerDataEntries.values().toArray(new PhysicalEntry[0]);
