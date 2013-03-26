@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.MissingResourceException;
@@ -182,7 +183,7 @@ public class Deployer extends UncaughtExceptionHandler{
 		return source;
 	}
 	
-	public static String slaveName(){
+	public static String getName(){
 		if(deployerImpl!=null){
 			try {
 				return deployerImpl.getName();
@@ -193,7 +194,10 @@ public class Deployer extends UncaughtExceptionHandler{
 		return null;
 	}
 
-
+	public static void peerDied(String name, Collection<String> containers) {
+		// TODO Auto-generated method stub		
+	}
+	
 	public static void shutDown() {
 		deployer.execute(new Runnable() {			
 			@Override
@@ -207,4 +211,5 @@ public class Deployer extends UncaughtExceptionHandler{
 			}
 		});
 	}
+
 }
