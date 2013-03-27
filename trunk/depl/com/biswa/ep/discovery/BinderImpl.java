@@ -108,7 +108,7 @@ public class BinderImpl implements Binder,BinderImplMBean {
 			try {
 				oneDeployer.peerDied(name, containers);
 			} catch (RemoteException e) {
-				throw new RuntimeException(e);
+				//throw new RuntimeException(e);
 			}
 		}
 	}

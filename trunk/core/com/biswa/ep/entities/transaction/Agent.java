@@ -1,7 +1,9 @@
 package com.biswa.ep.entities.transaction;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 import com.biswa.ep.entities.AbstractContainer;
@@ -116,7 +118,9 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 						checkQueuedTransaction();
 					}
 				};
-				executeOrEnque(r);
+				//We may be still in middle of transaction
+				//Directly execute this task dont enque
+				taskHandler.executeNow(r);
 			}
 		};
 		executeInListenerThread(outer);
@@ -386,5 +390,10 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 
 	public String getName() {
 		return cl.getName();
+	}
+	
+	public Set<String> upStreamSources(){
+		//TODO check thread safety
+		return Collections.unmodifiableSet(expectationsMap.keySet());
 	}
 }

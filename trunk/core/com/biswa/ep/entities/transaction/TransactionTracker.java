@@ -69,13 +69,13 @@ public final class TransactionTracker {
 			}
 			return toCommit;
 		}
-		/** Is this source participating in this transaction?
-		 * 
+		/** If this source participating in this transaction? return the state for the transaction
+		 * of this source.
 		 * @param source
-		 * @return boolean
+		 * @return State
 		 */
-		boolean isParticipating(String source){
-			return currentStateMap.containsKey(source);
+		State stateForTheSource(String source){
+			return currentStateMap.get(source);
 		}
 		//Enque the task
 		void enque(ContainerTask transactionAwareOperation) {
@@ -245,8 +245,9 @@ public final class TransactionTracker {
 		for (Entry<Integer, TransactionState> oneTransactionEntry : transactionStateMap
 				.entrySet()) {
 			TransactionState oneTransaction = oneTransactionEntry.getValue();
-			if (oneTransaction.isParticipating(sourceName)) {
-				switch (oneTransaction.currentState) {
+			State currentState = oneTransaction.stateForTheSource(sourceName);
+			if (currentState!=null) {
+				switch (currentState) {
 				case INIT:
 					trackBeginTransaction(new TransactionEvent(sourceName,
 							oneTransaction.getOrigin(),

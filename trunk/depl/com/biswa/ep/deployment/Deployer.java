@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -43,6 +44,8 @@ import com.biswa.ep.deployment.util.Context;
 import com.biswa.ep.deployment.util.Param;
 import com.biswa.ep.discovery.Binder;
 import com.biswa.ep.discovery.RegistryHelper;
+import com.biswa.ep.entities.AbstractContainer;
+import com.biswa.ep.entities.ConnectionEvent;
 
 public class Deployer extends UncaughtExceptionHandler{	
 	private static final ContainerManager containerManager = new ContainerManager();
@@ -194,8 +197,16 @@ public class Deployer extends UncaughtExceptionHandler{
 		return null;
 	}
 
-	public static void peerDied(String name, Collection<String> containers) {
-		// TODO Auto-generated method stub		
+	public static void peerDied(String name, Collection<String> deadContainers) {
+		for(AbstractContainer abs:containerManager.getAllContainers()){
+			Set<String> listeningContainers = abs.agent().upStreamSources();
+			for(String oneDeadContainer:deadContainers){
+				if(listeningContainers.contains(oneDeadContainer)){
+					//TODO Do we always need to remove Source?
+					abs.agent().dropSource(new ConnectionEvent(oneDeadContainer, abs.getName()));
+				}
+			}	
+		}
 	}
 	
 	public static void shutDown() {
