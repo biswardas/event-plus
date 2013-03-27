@@ -419,6 +419,54 @@ public class TransactionTrackerTest {
 		//Invalid Operation will be discarded with NPE
 		abs.agent().entryAdded(new ContainerInsertEvent(SRCA,new TransportEntry(1), 12345));
 	}
+
+	@Test
+	public void testDropSourceWhileTIP() {
+		AbstractContainer abs = getConnectedContainer();
+		TransactionTracker tracker = abs.agent().transactionTracker;
+		Assert.assertTrue(abs.isConnected());
+		checkInitialState(tracker);
+		abs.agent().beginTran(new TransactionEvent(SRCA, 12345));
+		abs.agent().waitForEventQueueToDrain();
+		checkOneValidTransactionFrom(CON,0,0,1,true,new Integer[]{12345},expectedList,tracker);
+		abs.agent().dropSource(new ConnectionEvent(SRCB, CON));
+		abs.agent().waitForEventQueueToDrain();
+		checkOneValidTransactionFrom(SRCA,12345,0,0,false,new Integer[]{12345},new String[]{SRCA,CON},tracker);
+		abs.agent().commitTran(new TransactionEvent(SRCA, 12345));
+		abs.agent().waitForEventQueueToDrain();
+		checkOneValidTransactionFrom(CON,0,0,0,true,new Integer[]{},new String[]{SRCA,CON},tracker);
+	}
+	@Test
+	public void testDropSourceWhileAwaitingCommit() {
+		AbstractContainer abs = getConnectedContainer();
+		TransactionTracker tracker = abs.agent().transactionTracker;
+		Assert.assertTrue(abs.isConnected());
+		checkInitialState(tracker);
+		abs.agent().beginTran(new TransactionEvent(SRCA, 12345));
+		abs.agent().beginTran(new TransactionEvent(SRCB,SRCA, 12345));
+		abs.agent().waitForEventQueueToDrain();
+		checkOneValidTransactionFrom(SRCA,12345,0,0,false,new Integer[]{12345},expectedList,tracker);
+		abs.agent().dropSource(new ConnectionEvent(SRCB, CON));
+		abs.agent().waitForEventQueueToDrain();
+		checkOneValidTransactionFrom(SRCA,12345,0,0,false,new Integer[]{12345},new String[]{SRCA,CON},tracker);
+		abs.agent().commitTran(new TransactionEvent(SRCA, 12345));
+		abs.agent().waitForEventQueueToDrain();
+		checkOneValidTransactionFrom(CON,0,0,0,true,new Integer[]{},new String[]{SRCA,CON},tracker);
+	}
+	@Test
+	public void testDropSource() {
+		AbstractContainer abs = getConnectedContainer();
+		TransactionTracker tracker = abs.agent().transactionTracker;
+		Assert.assertTrue(abs.isConnected());
+		checkInitialState(tracker);		
+		abs.agent().dropSource(new ConnectionEvent(SRCB, CON));
+		abs.agent().beginTran(new TransactionEvent(SRCA, 12345));
+		abs.agent().waitForEventQueueToDrain();
+		checkOneValidTransactionFrom(SRCA,12345,0,0,false,new Integer[]{12345},new String[]{SRCA,CON},tracker);
+		abs.agent().commitTran(new TransactionEvent(SRCA, 12345));
+		abs.agent().waitForEventQueueToDrain();
+		checkOneValidTransactionFrom(CON,0,0,0,true,new Integer[]{},new String[]{SRCA,CON},tracker);
+	}
 	
 	@Test(expected=IllegalStateException.class)
 	public void canNotOverrideTransaction() {
@@ -506,12 +554,12 @@ public class TransactionTrackerTest {
 		checkOneValidTransactionFrom(origin,tracker.getCurrentTransactionID(),0,0,false,tranInProgress,expectedList,tracker);
 	}
 	
-	private void checkOneValidTransactionFrom(String origin,int transactionId,int readyQueueSize,int opsInTransQueue,boolean trackerState,Integer[] tranInProgress,String[] expectedSources,TransactionTracker tracker) {
+	private void checkOneValidTransactionFrom(String origin,int transactionId,int readyQueueSize,int opsInTransQueue,boolean idle,Integer[] tranInProgress,String[] expectedSources,TransactionTracker tracker) {
 		Assert.assertEquals(transactionId,tracker.getCurrentTransactionID());
 		Assert.assertEquals(origin,tracker.getCurrentTransactionOrigin());
 		Assert.assertEquals(readyQueueSize,tracker.getTransactionReadyQueue().size());
 		Assert.assertEquals(opsInTransQueue,tracker.getOpsInTransactionQueue());
-		Assert.assertEquals(trackerState,tracker.isIdle());		
+		Assert.assertEquals(idle,tracker.isIdle());		
 		Assert.assertEquals(tranInProgress.length,tracker.transactionsInProgress().length);
 		Assert.assertTrue(orginListSame(Arrays.asList(tranInProgress),Arrays.asList(tracker.transactionsInProgress())));
 		Assert.assertEquals(expectedSources.length,tracker.getKnownTransactionOrigins().length);
