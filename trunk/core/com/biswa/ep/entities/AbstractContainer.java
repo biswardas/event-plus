@@ -712,11 +712,17 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	
 	@Override
 	abstract public void updateStatic(Attribute attribute,Substance substance,FilterSpec appliedFilter);
-	
+
 	@Override
 	final public void addSource(final ConnectionEvent connectionEvent){
 		//No Operation as Agent will manage this.
 		throw new UnsupportedOperationException("Add Source operation is managed by agent");
+	}
+	
+	@Override
+	final public void dropSource(final ConnectionEvent connectionEvent){
+		//No Operation as Agent will manage this.
+		throw new UnsupportedOperationException("Drop Source operation is managed by agent");
 	}
 	
 	@Override
