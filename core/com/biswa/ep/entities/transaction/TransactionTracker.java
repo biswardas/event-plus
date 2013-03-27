@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +29,7 @@ public final class TransactionTracker {
 		private final Map<String,State> currentStateMap = new HashMap<String,State>();
 		//Operations which has been queued in this transaction
 		private final Queue<ContainerTask> operationQueue = new LinkedList<ContainerTask>();
-		private State currentState;
+		private State currentState=State.INIT;
 		private long startedAt=0;
 		//Constructor to start a transaction state
 		TransactionState(String origin,int transactionID, Map<String,State> initialState){
@@ -68,7 +69,14 @@ public final class TransactionTracker {
 			}
 			return toCommit;
 		}
-
+		/** Is this source participating in this transaction?
+		 * 
+		 * @param source
+		 * @return boolean
+		 */
+		boolean isParticipating(String source){
+			return currentStateMap.containsKey(source);
+		}
 		//Enque the task
 		void enque(ContainerTask transactionAwareOperation) {
 			operationQueue.add(transactionAwareOperation);
@@ -99,8 +107,11 @@ public final class TransactionTracker {
 		}
 	}
 	private static final class OriginToSourceManager{
+		private Map<String,String[]> sourceToOriginMap = new HashMap<String,String[]>();
 		private Map<String,Map<String,State>> originToSourcesMap = new HashMap<String,Map<String,State>>();
 		private void buildCircuit(String source,String[] transactionOrigin){
+			sourceToOriginMap.put(source, transactionOrigin);
+			//Build reverse Map
 			for(String oneOrigin:transactionOrigin){
 				Map<String,State> sourceMap=originToSourcesMap.get(oneOrigin);
 				if(sourceMap==null){
@@ -110,6 +121,17 @@ public final class TransactionTracker {
 				sourceMap.put(source, State.INIT);
 			}
 		};
+
+		private void dropSource(String sourceName) {
+			for(String origin:sourceToOriginMap.get(sourceName)){
+				Map<String, State> sourceMap = originToSourcesMap.get(origin);
+				sourceMap.remove(sourceName);
+				if(sourceMap.isEmpty()){
+					originToSourcesMap.remove(origin);
+				}
+			}
+			sourceToOriginMap.remove(sourceName);
+		}
 
 		private void buildCircuit(String source,String transactionOrigin){
 			Map<String,State> sourceMap = new HashMap<String,State>();
@@ -212,6 +234,33 @@ public final class TransactionTracker {
 	 */
 	protected void addSource(String sourceName,String[] transactionOrigin) {
 		originToSourceManager.buildCircuit(sourceName,transactionOrigin);
+	}
+	
+	/**Source and the group they belong
+	 * 
+	 * @param sourceName
+	 * @param transactionGroup
+	 */
+	protected void dropSource(String sourceName) {
+		for (Entry<Integer, TransactionState> oneTransactionEntry : transactionStateMap
+				.entrySet()) {
+			TransactionState oneTransaction = oneTransactionEntry.getValue();
+			if (oneTransaction.isParticipating(sourceName)) {
+				switch (oneTransaction.currentState) {
+				case INIT:
+					trackBeginTransaction(new TransactionEvent(sourceName,
+							oneTransaction.getOrigin(),
+							oneTransactionEntry.getKey()));
+				case READY:
+					trackCommitTransaction(new TransactionEvent(sourceName,
+							oneTransaction.getOrigin(),
+							oneTransactionEntry.getKey()));
+				default:
+					break;
+				}
+			}
+		}
+		originToSourceManager.dropSource(sourceName);
 	}
 	
 	/**Track transaction begin.

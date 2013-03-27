@@ -75,8 +75,6 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
-				//No Need to implement default transaction as it is not supposed to
-				//generate data events.
 				ContainerTask r = new ContainerTask() {
 					/**
 					 * 
@@ -91,6 +89,31 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 							//Turn off connected status if it was already connected.
 							cl.disconnected(ce);
 						}
+					}
+				};
+				executeOrEnque(r);
+			}
+		};
+		executeInListenerThread(outer);
+	}
+	
+	@Override
+	public void dropSource(final ConnectionEvent ce) {
+		OuterTask outer = new OuterTask(){
+			@Override
+			public void runouter() {
+				assert log("Received source drop:"+ce);
+				expectationsMap.remove(ce.getSource());
+				transactionTracker.dropSource(ce.getSource());
+				ContainerTask r = new ContainerTask() {
+
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = 2838421606291516488L;
+
+					public void runtask() {
+						checkQueuedTransaction();
 					}
 				};
 				executeOrEnque(r);

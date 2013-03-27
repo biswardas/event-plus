@@ -49,6 +49,11 @@ interface Sink{
 	 */
 	public void addSource(ConnectionEvent ce);
 	
+	/**Method notifies sink container to not expect any more events routed through this container.
+	 * @param ce ConnectionEvent
+	 */
+	public void dropSource(ConnectionEvent ce);
+	
 	/**Source sends the event to sink confirming the connection. This method is
 	 * executed in the context of sink.
 	 * @param ce ConnectionEvent
