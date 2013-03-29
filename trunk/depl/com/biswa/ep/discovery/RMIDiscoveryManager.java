@@ -39,7 +39,7 @@ public class RMIDiscoveryManager extends UncaughtExceptionHandler{
 					else
 					registry = LocateRegistry.createRegistry(port);
 					
-					binderimpl = new BinderImpl();
+					binderimpl = new BinderImpl(registry);
 					Binder binder = (Binder) UnicastRemoteObject
 							.exportObject(binderimpl, 0);
 					registry.rebind(Binder.BINDER, binder);

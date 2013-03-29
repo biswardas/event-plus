@@ -46,6 +46,7 @@ import com.biswa.ep.discovery.Binder;
 import com.biswa.ep.discovery.RegistryHelper;
 import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.ConnectionEvent;
+import com.biswa.ep.entities.ContainerTask;
 
 public class Deployer extends UncaughtExceptionHandler{	
 	private static final ContainerManager containerManager = new ContainerManager();
@@ -199,6 +200,7 @@ public class Deployer extends UncaughtExceptionHandler{
 
 	public static void peerDied(String name, Collection<String> deadContainers) {
 		for(AbstractContainer abs:containerManager.getAllContainers()){
+			healthCheck(abs);
 			Set<String> listeningContainers = abs.agent().upStreamSources();
 			for(String oneDeadContainer:deadContainers){
 				if(listeningContainers.contains(oneDeadContainer)){
@@ -207,6 +209,22 @@ public class Deployer extends UncaughtExceptionHandler{
 				}
 			}	
 		}
+	}
+
+
+	protected static void healthCheck(final AbstractContainer abs) {
+		abs.agent().invokeOperation(new ContainerTask() {				
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = -7020229819863137742L;
+
+			@Override
+			protected void runtask() throws Throwable {
+				abs.agent().beginDefaultTran();
+				abs.agent().commitDefaultTran();					
+			}
+		});
 	}
 	
 	public static void shutDown() {

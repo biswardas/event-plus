@@ -37,16 +37,11 @@ public class RegistryHelperTest {
 	}
 
 	@Test
-	public void testGetRegistry() {
-		Assert.assertNotNull(RegistryHelper.getRegistry());
-	}
-
-	@Test
 	public void testGetBinder() {
 		Assert.assertNotNull(RegistryHelper.getBinder());
 	}
 	@AfterClass
 	public static void cleanUp() throws Exception {
-		RegistryHelper.getRegistry().unbind("foo");
+		RegistryHelper.getBinder().unbind("foo");
 	}
 }

@@ -4,6 +4,7 @@ import static com.biswa.ep.discovery.RMIDiscoveryManager.MBS;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -22,7 +23,9 @@ public class BinderImpl implements Binder,BinderImplMBean {
 	private ConcurrentHashMap<String,String> containerDeployerNameMap = new ConcurrentHashMap<String,String>();
 	private ConcurrentHashMap<String,EPDeployer> instanceMap = new ConcurrentHashMap<String,EPDeployer>();
 	private CopyOnWriteArrayList<EPDeployer> slaveList = new CopyOnWriteArrayList<EPDeployer>();
-	public BinderImpl(){
+	private Registry registry;
+	public BinderImpl(Registry registry){
+		this.registry=registry;
 		Timer t = new Timer("HealthCheckThread",true);
 		t.scheduleAtFixedRate(new TimerTask(){
 			public void run(){
@@ -38,10 +41,15 @@ public class BinderImpl implements Binder,BinderImplMBean {
 			}
 		},DELAY,DELAY);
 	}
+	
 	@Override
 	public void bind(String name, RMIListener obj) throws RemoteException {
-		RegistryHelper.getRegistry().rebind(name, obj);
+		registry.rebind(name, obj);
 		containerDeployerNameMap.put(name, obj.getDeployerName());
+		addToMBeanServer(name, obj);
+	}
+	
+	protected void addToMBeanServer(String name, RMIListener obj) {
 		try {
 			ObjectName bindName = new ObjectName("ContainerSchema:name="+name);
 			if(MBS.isRegistered(bindName)){
@@ -59,11 +67,15 @@ public class BinderImpl implements Binder,BinderImplMBean {
 	public void unbind(String acceptName) throws RemoteException {
 		System.out.println("Unregistering"+acceptName);
 		try {
-			RegistryHelper.getRegistry().unbind(acceptName);
+			registry.unbind(acceptName);
 			containerDeployerNameMap.remove(acceptName);
 		} catch (NotBoundException e) {
 			System.err.println("Error while unbinding from registry: "+acceptName);
 		}
+		removeFromMBeanServer(acceptName);
+	}
+	
+	protected void removeFromMBeanServer(String acceptName) {
 		try {
 			ObjectName bindName = new ObjectName("ContainerSchema:name="+acceptName);
 			MBS.unregisterMBean(bindName);
@@ -98,7 +110,14 @@ public class BinderImpl implements Binder,BinderImplMBean {
 		while(iter.hasNext()){
 			Entry<String, String> containerDeployerEntry = iter.next();
 			if(containerDeployerEntry.getValue().equals(name)){
-				containers.add(containerDeployerEntry.getKey());
+				String containerName = containerDeployerEntry.getKey();
+				try {
+					registry.unbind(containerName);
+					removeFromMBeanServer(containerName);
+				} catch (Exception e) {
+					//throw new RuntimeException(e);
+				}
+				containers.add(containerName);
 				iter.remove();
 			}
 		}
@@ -113,7 +132,7 @@ public class BinderImpl implements Binder,BinderImplMBean {
 		}
 	}
 	@Override
-	public void shutDownAllDeployers() {
+	public void shutDownAllDeployers(boolean terminateSelf) {
 		for(EPDeployer epDeployer:instanceMap.values()){
 			try {
 				epDeployer.shutDown();
@@ -121,15 +140,8 @@ public class BinderImpl implements Binder,BinderImplMBean {
 				//throw new RuntimeException(e);
 			}
 		}
-		for(String key:containerDeployerNameMap.keySet()){
-			try {
-				RegistryHelper.getRegistry().unbind(key);
-			} catch (Exception e) {
-				//throw new RuntimeException(e);
-			}
+		if(terminateSelf){
+			System.exit(0);
 		}
-		containerDeployerNameMap.clear();
-		instanceMap.clear();
-		slaveList.clear();
 	}
 }

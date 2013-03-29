@@ -5,6 +5,8 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
+import javax.rmi.PortableRemoteObject;
+
 public class RegistryHelper {
 	private static final String PP_REGISTRY_PORT = "pp.registryPort";
 	private static final String PP_REGISTRY_HOST = "pp.registryHost";
@@ -43,40 +45,49 @@ public class RegistryHelper {
 	}
 	
 	public static RMIListener getRMIListener(String name){
-        RMIListener comp;
         try{
-        	comp = (RMIListener) registry.lookup(name);
+        	Object obj = registry.lookup(name);
+        	return (RMIListener)  PortableRemoteObject.narrow(obj, RMIListener.class);
         }catch(Exception e){
         	throw new RuntimeException("Could not obtain the remote handle",e);
         }
-		return comp;
 	}
 	
 	public static Connector getConnecter(String name){
-		Connector connecter;
         try{
-        	connecter = (Connector) registry.lookup(name);
+        	Object obj = registry.lookup(name);
+        	return (Connector) PortableRemoteObject.narrow(obj, Connector.class);
         }catch(Exception e){
         	throw new RuntimeException("Could not obtain the remote handle:"+name,e);
         }
-		return connecter;
 	}
 	
 	public static EntryReader getEntryReader(String name){
-		EntryReader entryReader;
         try{
-        	entryReader = (EntryReader) registry.lookup(name);
+        	Object obj = registry.lookup(name);
+        	return (EntryReader) PortableRemoteObject.narrow(obj, EntryReader.class);
         }catch(Exception e){
         	throw new RuntimeException("Could not obtain the remote handle:"+name,e);
         }
-		return entryReader;
 	}
-
-	public static Registry getRegistry() {
-		return registry;
+	public static IdentityGenerator getIdentityGenerator(){
+		try{
+			Object obj = registry.lookup(IdentityGenerator.IDENTITY_GENERATOR);
+			return (IdentityGenerator) PortableRemoteObject.narrow(obj, IdentityGenerator.class);
+		}catch(Exception e){
+			throw new RuntimeException(e);
+		}
+	}
+	public static TransactionGenerator getTransactionGenerator() {
+		try{
+			Object obj = registry.lookup(TransactionGenerator.TRANSACTION_GENERATOR);
+			return  (TransactionGenerator) PortableRemoteObject.narrow(obj, TransactionGenerator.class);
+		}catch(Exception e){
+			throw new RuntimeException(e);
+		}
 	}
 	
 	public static Binder getBinder() {
 		return binder;
-	}	
+	}
 }

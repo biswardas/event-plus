@@ -25,7 +25,6 @@ public class RMITransactionGeneratorTest {
 
 	@Test
 	public void testGetNextTransactionID() {
-		Assert.assertNotNull(RegistryHelper.getRegistry());
 		RMITransactionGenerator rmitranGen = new RMITransactionGenerator();
 		int current = rmitranGen.getNextTransactionID();
 		System.out.println(current);
