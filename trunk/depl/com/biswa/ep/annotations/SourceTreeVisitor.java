@@ -331,20 +331,22 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			write("class");
 			write(" " + arg0.getSimpleName());
 			if (typeElement.getSuperclass().getKind()==TypeKind.DECLARED) {
+				DeclaredType declaredType = ((DeclaredType) typeElement.getSuperclass());
+				EPContainer superAnnotation = declaredType.asElement().getAnnotation(EPContainer.class);
+				checkPermitted(epContainerAnn,superAnnotation);
 				write(" extends "
-						+ ((DeclaredType) typeElement.getSuperclass())
-								.asElement().getSimpleName() + " ");
+						+ declaredType.asElement().getSimpleName() + " ");
 			}
 			if (arg0.getImplementsClause().size() > 0) {
 				write(" implements ");
-				applyExtends(typeElement);
+				applyExtends(epContainerAnn,typeElement);
 			}
 		} else {
 			write(arg0.getModifiers().toString());
 			write(" " + arg0.getSimpleName());
 			if (arg0.getImplementsClause().size() > 0) {
 				write(" extends ");
-				applyExtends(typeElement);
+				applyExtends(epContainerAnn,typeElement);
 			}
 		}
 		writeln("{");
@@ -358,6 +360,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		}
 		writeln("}");
 	}
+
 
 	private void generateInlet(EPContainer epContainerAnn) {
 		writeln("static public class Inlet extends SimpleInlet{");
@@ -391,12 +394,13 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		writeln("}");
 	}
 
-	private void applyExtends(TypeElement typeElement) {
+	private void applyExtends(EPContainer epContainerAnn,TypeElement typeElement) {
 		List<? extends TypeMirror> interfaceList = typeElement.getInterfaces();
 		Iterator<? extends TypeMirror> iter = interfaceList.iterator();
 		while (iter.hasNext()) {
 			TypeMirror oneInterface = iter.next();
 			Element asElement = ((DeclaredType) oneInterface).asElement();
+			checkPermitted(epContainerAnn,asElement.getAnnotation(EPContainer.class));
 			write(asElement.getSimpleName().toString());
 			if (iter.hasNext()) {
 				write(",");
@@ -404,6 +408,13 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		}
 	}
 
+	private void checkPermitted(EPContainer epContainerAnn,
+			EPContainer superAnnotation) {
+		if(superAnnotation!=null){
+			epContainerAnn.type().handleInheritancce(superAnnotation.type());
+		}
+	}
+	
 	@Override
 	public Boolean visitVariable(VariableTree arg0, Element arg1) {
 		boolean returnValue = true;

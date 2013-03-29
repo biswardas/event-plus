@@ -16,7 +16,17 @@ public enum EPConType {
 	None(),
 	Basic(BasicDeploymentHandler.class),
 	Split(SplitDeploymentHandler.class), 
-	ForkJoin(ForkJoinDeploymentHandler.class), 
+	ForkJoin(ForkJoinDeploymentHandler.class){
+		@Override
+		public boolean handleInheritancce(EPConType type) {
+			switch(type){
+			case Split:return true;
+			case Static:return true;
+			default:
+				throw new RuntimeException("ForkJoin containers can only inherit Split,Static containers.");
+			}
+		}
+	},
 	Feedback(FeedbackDeploymentHandler.class,true), 
 	Timed(TimedDeploymentHandler.class),
 	Pivot(PivotDeploymentHandler.class), 
@@ -52,5 +62,9 @@ public enum EPConType {
 
 	public boolean supportsFeedback() {
 		return feedback;
+	}
+
+	public boolean handleInheritancce(EPConType type) {
+		return true;
 	}
 }
