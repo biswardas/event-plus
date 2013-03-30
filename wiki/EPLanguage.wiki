@@ -1,10 +1,7 @@
 =`EventPlus` Language=
 
 *`EventPlus`* framework can be divided into 3 components. *Language* (just a bit restrictive Java), *Compiler*, and *Runtime*. We can code everything by hand and deploy it in `EventPlus` run-time. Just like a java class can be manufactured from thin air bypassing entire Java Language and Compiler and run in Java run-time its that simple and easy.
-We will cover all 3 sections below however as a event plus user we will spend most of our time in the language section.
-
-==Language==
-`EventPlus` language is just plain old java with some special purpose annotations will be discussed below.
+We will cover all 3 sections below however as a event plus user we will spend most of our time in the language section. `EventPlus` language is just plain old java with some special purpose annotations as discussed here.
 
 === Context ===
   * *`@EPContext`* *Required:* YES
@@ -270,6 +267,3 @@ The annotations above use Sun Compiler API interfaces extensively and can only b
 If you are using ant to build the code then nothing special required.
 
 In future other compiler support will be added.
-
-==Runtime==
-EventPlus runtime deploys the code generated above. Once the code generation cycle is complete the code can be deployed in any compatible JVM. EventPlus uses RMI for intercommunication among processes however can be extended to other communication protocols like JMS/HTTP.
