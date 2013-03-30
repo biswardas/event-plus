@@ -5,10 +5,6 @@ import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.concurrent.Future;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Unmarshaller;
-
 import com.biswa.ep.annotations.EPConType;
 import com.biswa.ep.annotations.EPPublish;
 import com.biswa.ep.deployment.util.Container;
@@ -28,16 +24,9 @@ public class EPDeployerImpl implements EPDeployer {
 	}
 	@Override
 	public void deploy(String deploymentDescriptor) throws RemoteException {
-		JAXBContext jc;
-		try {
-			jc = JAXBContext.newInstance("com.biswa.ep.deployment.util");
-			Unmarshaller unmarshaller = jc.createUnmarshaller();
-			@SuppressWarnings("unchecked")
-			JAXBElement<Context> jaxbElement = (JAXBElement<Context>) unmarshaller
-					.unmarshal(Deployer.getSource(new ByteArrayInputStream(deploymentDescriptor
-							.getBytes())));
-			
-			Context context = jaxbElement.getValue();
+		try {			
+			Context context = Deployer.buildContext(new ByteArrayInputStream(deploymentDescriptor
+					.getBytes()));
 			for(Container oneContainer:context.getContainer()){
 				oneContainer.setName(oneContainer.getName()+getName());
 				oneContainer.setType(EPConType.Basic.name());
