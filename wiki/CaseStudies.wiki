@@ -13,3 +13,5 @@
   * *Margin Calculation* Calculates clients portfolio margin and notifies any additional margin requirement in real time.
 
   * *Portfolio Management* Manages portfolio and computes PNL real time.
+
+  * *Ticker Plant* Run custom ticker plant for synthetic symbols.
