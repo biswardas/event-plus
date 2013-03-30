@@ -134,7 +134,7 @@ public interface StockQuoteAnalyzer {
    # *Proxy* Proxy is a special purpose container is used as the agent of the subscribers in the sink context. It is used to save network bandwidth and memory where lot of entities in the sink container subscribes very few distinct elements from the source container. 
    # *Join* It offers relational join of 2 entries from 2 different containers based on certain criteria.
    # *Split* container partition the entries in its downstream container for parallel processing.
-   # *ForkJoin* This container can only connect to Split container and can split work across hardware and aggregate the result back into the host process.
+   # *ForkJoin* This container can only connect to Split container and can split work across hardware and aggregate the result back into the host process.[http://event-plus.googlecode.com/svn/trunk/examples/SplitForkJoinDemo/forkjoin.png]
    # *Pivot* This is a presentation layer container and needed to be used with user interfaces requiring to pivot/sort/summarize results.
 
 
