@@ -50,6 +50,11 @@ final public class SubscriptionAttribute extends Subscription {
 		this.result=result;
 		addDependency(new LeafAttribute(depends));
 	}
+
+	@Override
+	final public boolean isSubscription() {
+		return true;
+	}
 	
 	@Override
 	public Substance subscribe(Attribute attribute,

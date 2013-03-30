@@ -17,6 +17,7 @@ import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.store.PhysicalEntry;
 import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.subscription.Subscription;
+import com.biswa.ep.subscription.SubscriptionAttribute;
 /**Cascade schema manages the structural integrity of the container. Whenever an attribute is 
  * added/removed this class manages the transitive dependencies for those attributes. 
  * Key Responsibilities
@@ -567,7 +568,9 @@ public abstract class CascadeContainer extends AbstractContainer{
 			});
 			for(AttributeMapEntry oneEntry:attMapEntries){
 				Attribute attribute = oneEntry.attribute;
-				if(!attribute.isStateless() && !attribute.isStatic() && !attribute.isSubscription()){
+				if(attribute.isSubscription()){
+					((SubscriptionAttribute)attribute).getSubAgent().connect();
+				} else if(!attribute.isStateless() && !attribute.isStatic()){
 					defaultEntry.silentUpdate(attribute,attribute.failSafeEvaluate(attribute, defaultEntry));	
 				}
 			}

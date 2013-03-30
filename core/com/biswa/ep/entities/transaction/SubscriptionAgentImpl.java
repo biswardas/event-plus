@@ -20,4 +20,8 @@ public class SubscriptionAgentImpl implements SubscriptionAgent {
 	public void substitute(SubscriptionEvent subscriptionEvent) {
 		agent.substitute(subscriptionEvent);		
 	}
+	@Override
+	public void connect() {
+		//Local Subscriber No OP.
+	}
 }
