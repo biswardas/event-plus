@@ -54,6 +54,7 @@ public class Deployer extends UncaughtExceptionHandler implements DiscProperties
 	private static final ContainerManager containerManager = new ContainerManager();
 	
 	private static EPDeployerImpl deployerImpl = null;
+	private static EPDeployer exportedDeployer = null;
 	static{
 
 		//Register this with mbean server
@@ -63,30 +64,39 @@ public class Deployer extends UncaughtExceptionHandler implements DiscProperties
 		}catch(Exception e){
 			throw new RuntimeException(e);
 		}
-		if(System.getProperty(DEPLOYMENT_DESC)!=null){
-			bindTheDeployer(false);
+		String name=UUID.randomUUID().toString();
+		if(!isSlave()){
+			System.out.println("Starting as Master. Name="+name);
+			bindTheDeployer(name,false);
 		}else{
+			System.out.println("Starting as Slave. Name="+name);
 			System.setProperty(PP_DIS_AUTO_REG,"true");
-			bindTheDeployer(true);
+			bindTheDeployer(name,true);
 		}
 	}
 
-	private static void bindTheDeployer(final boolean slave) {
-		String name=UUID.randomUUID().toString();
+	protected static boolean isSlave() {
+		return System.getProperty(DEPLOYMENT_DESC)==null;
+	}
+
+	private static void bindTheDeployer(String name,final boolean slave) {
 		try {
-			Binder binder = RegistryHelper.getBinder();
 			deployerImpl = new EPDeployerImpl(name);
-			EPDeployer exportedDeployer = (EPDeployer) UnicastRemoteObject
+			exportedDeployer = (EPDeployer) UnicastRemoteObject
 					.exportObject(deployerImpl, 0);
-			if(slave){
-				System.err.println("Starting as Slave. Name="+name);
-				binder.bindSlave(exportedDeployer);
-			}else{
-				binder.bindApp(exportedDeployer);						
-			}
+			registerWithDiscovery(slave);
 		} catch (Throwable e) {
 			asynchronouslyShutDown();
 			throw new RuntimeException(e);
+		}
+	}
+
+	static void registerWithDiscovery(boolean slave) throws RemoteException {
+		Binder binder = RegistryHelper.getBinder();
+		if(slave){
+			binder.bindSlave(exportedDeployer);
+		}else{
+			binder.bindApp(exportedDeployer);						
 		}
 	}
 
@@ -195,8 +205,18 @@ public class Deployer extends UncaughtExceptionHandler implements DiscProperties
 		return null;
 	}
 
-	public static void peerDied(String name, Collection<String> deadContainers) {
-		containerManager.peerDied(name, deadContainers);
+	/**
+	 * Process peer death asynchronously.
+	 * @param name String 
+	 * @param deadContainers Collection<String>
+	 */
+	public static void peerDied(final String name, final Collection<String> deadContainers) {
+		deployer.execute(new Runnable(){
+			@Override
+			public void run(){
+				containerManager.peerDied(name, deadContainers);
+			}
+		});
 	}
 	
 	/**

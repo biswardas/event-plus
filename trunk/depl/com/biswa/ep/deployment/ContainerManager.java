@@ -1,5 +1,6 @@
 package com.biswa.ep.deployment;
 
+import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -101,7 +102,7 @@ public class ContainerManager {
 		} catch (Exception e) {
 			e.printStackTrace();				
 		}
-		accepter.clear();
+		//accepter.clear();
 		sourceMap.clear();
 		nameContainerMap.clear();
 		containerMbeanMap.clear();
@@ -144,8 +145,21 @@ public class ContainerManager {
 			Set<String> listeningContainers = abs.agent().upStreamSources();
 			for(String oneDeadContainer:deadContainers){
 				if(listeningContainers.contains(oneDeadContainer)){
-					//TODO Do we always need to remove Source?
-					abs.agent().dropSource(new ConnectionEvent(oneDeadContainer, abs.getName()));
+					if(Deployer.isSlave()){
+						//Release any resources
+						destroyAllContainers();
+						//Return to registry
+						try {
+							Deployer.registerWithDiscovery(true);
+						} catch (RemoteException e) {
+							Deployer.asynchronouslyShutDown();
+						}
+						//NO need to continue further return if it is a slave..
+						return;
+					}else{
+						//TODO Do we always need to remove Source?
+						abs.agent().dropSource(new ConnectionEvent(oneDeadContainer, abs.getName()));						
+					}
 				}
 			}	
 		}

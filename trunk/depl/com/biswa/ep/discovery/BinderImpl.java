@@ -19,7 +19,7 @@ import com.biswa.ep.deployment.EPDeployer;
 import com.biswa.ep.deployment.mbean.Discovery;
 
 public class BinderImpl implements Binder,BinderImplMBean {
-	private static final long DELAY = 60000;
+	private static final long DELAY = Long.getLong(DiscProperties.PP_REG_HC_INTERVAL, 60000);
 	private ConcurrentHashMap<String,String> containerDeployerNameMap = new ConcurrentHashMap<String,String>();
 	private ConcurrentHashMap<String,EPDeployer> instanceMap = new ConcurrentHashMap<String,EPDeployer>();
 	private CopyOnWriteArrayList<EPDeployer> slaveList = new CopyOnWriteArrayList<EPDeployer>();
@@ -44,6 +44,9 @@ public class BinderImpl implements Binder,BinderImplMBean {
 	
 	@Override
 	public void bind(String name, RMIListener obj) throws RemoteException {
+		if(containerDeployerNameMap.containsKey(name)){
+			throw new RemoteException(name+" instance already exists...");
+		}
 		registry.rebind(name, obj);
 		String memberName = obj.getDeployerName();
 		if(memberName==null){
@@ -53,15 +56,11 @@ public class BinderImpl implements Binder,BinderImplMBean {
 		addToMBeanServer(name, obj);
 	}
 	
-	protected void addToMBeanServer(String name, RMIListener obj) {
+	private void addToMBeanServer(String name, RMIListener obj) {
 		try {
 			ObjectName bindName = new ObjectName("ContainerSchema:name="+name);
-			if(MBS.isRegistered(bindName)){
-				System.out.println("Unregistering"+bindName);
-				MBS.unregisterMBean(bindName);
-			}
-			System.out.println("Registering:"+bindName);
 			MBS.registerMBean(new Discovery(obj), bindName);
+			System.out.println("Registered:"+bindName);
 		}catch(Exception e){
 			System.err.println("Error while registering with JMX: "+name);
 		}
@@ -69,7 +68,6 @@ public class BinderImpl implements Binder,BinderImplMBean {
 
 	@Override
 	public void unbind(String acceptName) throws RemoteException {
-		System.out.println("Unregistering"+acceptName);
 		try {
 			registry.unbind(acceptName);
 			containerDeployerNameMap.remove(acceptName);
@@ -79,10 +77,11 @@ public class BinderImpl implements Binder,BinderImplMBean {
 		removeFromMBeanServer(acceptName);
 	}
 	
-	protected void removeFromMBeanServer(String acceptName) {
+	private void removeFromMBeanServer(String acceptName) {
 		try {
 			ObjectName bindName = new ObjectName("ContainerSchema:name="+acceptName);
 			MBS.unregisterMBean(bindName);
+			System.out.println("Unregistered:"+bindName);
 		} catch (Exception e) {
 			System.err.println("Error while unbinding from JMX: "+acceptName);
 		}
