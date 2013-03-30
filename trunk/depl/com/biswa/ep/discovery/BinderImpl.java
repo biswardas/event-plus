@@ -45,7 +45,11 @@ public class BinderImpl implements Binder,BinderImplMBean {
 	@Override
 	public void bind(String name, RMIListener obj) throws RemoteException {
 		registry.rebind(name, obj);
-		containerDeployerNameMap.put(name, obj.getDeployerName());
+		String memberName = obj.getDeployerName();
+		if(memberName==null){
+			memberName=name;
+		}
+		containerDeployerNameMap.put(name, memberName);
 		addToMBeanServer(name, obj);
 	}
 	
