@@ -12,6 +12,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
 
+import com.biswa.ep.ClientToken;
 import com.biswa.ep.annotations.EPPublish;
 import com.biswa.ep.deployment.ContainerManager;
 import com.biswa.ep.deployment.EPDeployer;
@@ -22,6 +23,7 @@ import com.biswa.ep.deployment.util.Publish;
 import com.biswa.ep.discovery.Binder;
 import com.biswa.ep.discovery.RegistryHelper;
 import com.biswa.ep.entities.ConcreteContainer;
+import com.biswa.ep.entities.PropertyConstants;
 
 public class ForkJoinDeploymentHandler extends DeploymentHandler {
 	@Override
@@ -50,11 +52,12 @@ public class ForkJoinDeploymentHandler extends DeploymentHandler {
 
 			Binder binder = RegistryHelper.getBinder();
 
-			String slaveCountString = getProperties(container.getParam())
-					.getProperty("ep.slave.count", "2");
-			// TODO Max slaves allowed is 31
-			for (int slaveIndex = 0; slaveIndex < Integer
-					.parseInt(slaveCountString); slaveIndex++) {
+			int slaveCount = Integer.parseInt(getProperties(container.getParam())
+					.getProperty(PropertyConstants.EP_SLAVE_COUNT, "2"));
+			if(slaveCount>ClientToken.MAX_TOKENS){
+				throw new RuntimeException("Can not handle more than "+ClientToken.MAX_TOKENS);
+			}
+			for (int slaveIndex = 0; slaveIndex < slaveCount ; slaveIndex++) {
 				try {
 					Remote remote = binder.getSlave();
 					if (remote != null) {
