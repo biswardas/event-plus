@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -45,64 +44,50 @@ import com.biswa.ep.deployment.util.Param;
 import com.biswa.ep.discovery.Binder;
 import com.biswa.ep.discovery.DiscProperties;
 import com.biswa.ep.discovery.RegistryHelper;
-import com.biswa.ep.entities.AbstractContainer;
-import com.biswa.ep.entities.ConnectionEvent;
-import com.biswa.ep.entities.ContainerTask;
 
-public class Deployer extends UncaughtExceptionHandler implements DiscProperties{	
-	private static final ContainerManager containerManager = new ContainerManager();
-
-	private static EPDeployerImpl deployerImpl = null;
-	
-
+public class Deployer extends UncaughtExceptionHandler implements DiscProperties{
 	final static ExecutorService deployer = Executors
 			.newSingleThreadExecutor(new NamedThreadFactory("Deployer",false));
 
-	final static MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+	final static MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();	
 	
-	public static void main(String[] args) throws JAXBException, InterruptedException, ExecutionException {
+	private static final ContainerManager containerManager = new ContainerManager();
+	
+	private static EPDeployerImpl deployerImpl = null;
+	static{
+
 		//Register this with mbean server
 		ConManMBean csMbean = new ConMan();
 		try {
 			Deployer.mbs.registerMBean(csMbean, new ObjectName("RootDeployer:name=Root"));
 		}catch(Exception e){
-			e.printStackTrace();
-			System.err.println("Error deploying root deployer with JMX");
+			throw new RuntimeException(e);
 		}
-		
-		String fileName = System.getProperty(DEPLOYMENT_DESC);
-		if(fileName!=null){
+		if(System.getProperty(DEPLOYMENT_DESC)!=null){
 			bindTheDeployer(false);
-			deploy(fileName);
 		}else{
 			System.setProperty(PP_DIS_AUTO_REG,"true");
 			bindTheDeployer(true);
 		}
 	}
 
-
-	protected static void bindTheDeployer(final boolean slave) {
-		deployer.execute(new Runnable() {				
-			@Override
-			public void run() {
-				String name=UUID.randomUUID().toString();
-				try {
-					Binder binder = RegistryHelper.getBinder();
-					deployerImpl = new EPDeployerImpl(name);
-					EPDeployer exportedDeployer = (EPDeployer) UnicastRemoteObject
-							.exportObject(deployerImpl, 0);
-					if(slave){
-						System.err.println("Starting as Slave. Name="+name);
-						binder.bindSlave(exportedDeployer);
-					}else{
-						binder.bindApp(exportedDeployer);						
-					}
-				} catch (Throwable e) {
-					shutDown();
-					throw new RuntimeException(e);
-				}
+	private static void bindTheDeployer(final boolean slave) {
+		String name=UUID.randomUUID().toString();
+		try {
+			Binder binder = RegistryHelper.getBinder();
+			deployerImpl = new EPDeployerImpl(name);
+			EPDeployer exportedDeployer = (EPDeployer) UnicastRemoteObject
+					.exportObject(deployerImpl, 0);
+			if(slave){
+				System.err.println("Starting as Slave. Name="+name);
+				binder.bindSlave(exportedDeployer);
+			}else{
+				binder.bindApp(exportedDeployer);						
 			}
-		});
+		} catch (Throwable e) {
+			asynchronouslyShutDown();
+			throw new RuntimeException(e);
+		}
 	}
 
 
@@ -143,7 +128,7 @@ public class Deployer extends UncaughtExceptionHandler implements DiscProperties
 
 
 	@SuppressWarnings("unchecked")
-	protected static Context buildContext(InputStream ins)
+	public static Context buildContext(InputStream ins)
 			throws JAXBException, SAXException {
 		Context context;
 		JAXBContext jc = JAXBContext
@@ -211,37 +196,13 @@ public class Deployer extends UncaughtExceptionHandler implements DiscProperties
 	}
 
 	public static void peerDied(String name, Collection<String> deadContainers) {
-		for(AbstractContainer abs:containerManager.getAllContainers()){
-			healthCheck(abs);
-			Set<String> listeningContainers = abs.agent().upStreamSources();
-			for(String oneDeadContainer:deadContainers){
-				if(listeningContainers.contains(oneDeadContainer)){
-					//TODO Do we always need to remove Source?
-					abs.agent().dropSource(new ConnectionEvent(oneDeadContainer, abs.getName()));
-				}
-			}	
-		}
+		containerManager.peerDied(name, deadContainers);
 	}
-
-
-	protected static void healthCheck(final AbstractContainer abs) {
-		abs.agent().invokeOperation(new ContainerTask() {				
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = -7020229819863137742L;
-
-			@Override
-			protected void runtask() throws Throwable {
-				abs.agent().beginDefaultTran();
-				abs.agent().commitDefaultTran();					
-			}
-		});
-	}
+	
 	/**
 	 * Asynchronously shuts down the virtual machine.
 	 */
-	public static void shutDown() {
+	public static void asynchronouslyShutDown() {
 		deployer.execute(new Runnable() {			
 			@Override
 			public void run() {
@@ -255,4 +216,11 @@ public class Deployer extends UncaughtExceptionHandler implements DiscProperties
 		});
 	}
 
+	
+	public static void main(String[] args) throws JAXBException, InterruptedException, ExecutionException{
+		String fileName = System.getProperty(DEPLOYMENT_DESC);
+		if(fileName!=null){
+			deploy(fileName);
+		}
+	}
 }
