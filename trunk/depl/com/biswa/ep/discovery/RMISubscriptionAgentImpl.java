@@ -6,9 +6,10 @@ import com.biswa.ep.entities.transaction.SubscriptionAgent;
 import com.biswa.ep.subscription.SubscriptionEvent;
 
 public class RMISubscriptionAgentImpl implements SubscriptionAgent {
+	private String source;
 	private Connector connecter;
 	public RMISubscriptionAgentImpl(String source){
-		connecter = RegistryHelper.getConnecter(source);
+		this.source=source;
 	}
 	@Override
 	public void subscribe(SubscriptionEvent subscriptionEvent) {
@@ -36,5 +37,9 @@ public class RMISubscriptionAgentImpl implements SubscriptionAgent {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}		
+	}
+	@Override
+	public void connect() {
+		connecter = RegistryHelper.getConnecter(source);
 	}
 }
