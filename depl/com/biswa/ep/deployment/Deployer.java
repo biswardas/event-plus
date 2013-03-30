@@ -43,6 +43,7 @@ import com.biswa.ep.deployment.mbean.ConManMBean;
 import com.biswa.ep.deployment.util.Context;
 import com.biswa.ep.deployment.util.Param;
 import com.biswa.ep.discovery.Binder;
+import com.biswa.ep.discovery.DiscProperties;
 import com.biswa.ep.discovery.RegistryHelper;
 import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.ConnectionEvent;
@@ -75,6 +76,7 @@ public class Deployer extends UncaughtExceptionHandler{
 			bindTheDeployer(false);
 			deploy(fileName);
 		}else{
+			System.setProperty(DiscProperties.PP_DIS_AUTO_REG,"true");
 			bindTheDeployer(true);
 		}
 	}

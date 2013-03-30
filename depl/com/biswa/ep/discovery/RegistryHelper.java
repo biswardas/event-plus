@@ -1,6 +1,5 @@
 package com.biswa.ep.discovery;
-import static com.biswa.ep.discovery.RMIDiscoveryManager.PP_REGISTRY_HOST;
-import static com.biswa.ep.discovery.RMIDiscoveryManager.PP_REGISTRY_PORT;
+import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -8,13 +7,17 @@ import java.rmi.registry.Registry;
 
 import javax.rmi.PortableRemoteObject;
 
-public class RegistryHelper {
-	private static final String PP_REGISTRY_AUTO = "ep.auto.registry.disable";
+public class RegistryHelper implements DiscProperties{
 	private static Registry registry;
 	private static Binder binder;
 	static{
-		boolean auto = Boolean.getBoolean(PP_REGISTRY_AUTO);
-		String registryHost=System.getProperty(PP_REGISTRY_HOST);
+		boolean auto = Boolean.getBoolean(PP_DIS_AUTO_REG);
+		String registryHost=null;
+		try {
+			registryHost=System.getProperty(PP_REGISTRY_HOST,java.net.InetAddress.getLocalHost().getHostName());
+		} catch (UnknownHostException e) {
+			throw new RuntimeException(e);
+		}
 		int port=Integer.getInteger(PP_REGISTRY_PORT,Registry.REGISTRY_PORT);		
 		try{
 			init(registryHost,port);
