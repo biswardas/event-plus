@@ -98,7 +98,8 @@ public class Deployer extends UncaughtExceptionHandler{
 					}else{
 						binder.bindApp(exportedDeployer);						
 					}
-				} catch (RemoteException e) {
+				} catch (Throwable e) {
+					shutDown();
 					throw new RuntimeException(e);
 				}
 			}
@@ -228,7 +229,9 @@ public class Deployer extends UncaughtExceptionHandler{
 			}
 		});
 	}
-	
+	/**
+	 * Asynchronously shuts down the virtual machine.
+	 */
 	public static void shutDown() {
 		deployer.execute(new Runnable() {			
 			@Override

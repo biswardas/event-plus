@@ -27,10 +27,10 @@ public class RegistryHelper implements DiscProperties{
 					RMIDiscoveryManager.main(new  String[0]);
 					init(registryHost,port);
 				} catch (Exception e1) {
-					throw new RuntimeException("Registry not running? Could not launch in process registry "+registryHost+":"+port,e1);
+					throw new RuntimeException("Discovery not running, Could not launch in process discovery "+registryHost+":"+port,e1);
 				}
 			}else{
-				throw new RuntimeException("Is Registry running? Could not connect to registry "+registryHost+":"+port,e);				
+				throw new RuntimeException("Discovery not running at "+registryHost+":"+port+",(Launching embedded discovery is disabled. Note Slave process can not start discovery manager).",e);				
 			}
 		}catch(NotBoundException e){
 			throw new RuntimeException("Is Discovery running? Could not obtain binder from "+registryHost+":"+port,e);
