@@ -1,6 +1,7 @@
 package com.biswa.ep.deployment;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -25,7 +26,9 @@ import javax.management.ObjectName;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.transform.sax.SAXSource;
 
@@ -39,6 +42,7 @@ import com.biswa.ep.NamedThreadFactory;
 import com.biswa.ep.UncaughtExceptionHandler;
 import com.biswa.ep.deployment.mbean.ConMan;
 import com.biswa.ep.deployment.mbean.ConManMBean;
+import com.biswa.ep.deployment.util.Container;
 import com.biswa.ep.deployment.util.Context;
 import com.biswa.ep.deployment.util.Param;
 import com.biswa.ep.discovery.Binder;
@@ -136,6 +140,27 @@ public class Deployer extends UncaughtExceptionHandler implements DiscProperties
 		return context; 
 	}
 
+	public static String generateDescriptor(Container container, Context context){
+		String deploymentDescriptor = null;
+		try{
+			JAXBContext jc = JAXBContext
+					.newInstance("com.biswa.ep.deployment.util");
+			Marshaller marshaller = jc.createMarshaller();
+			Context transportableContext = new Context();
+			transportableContext.setName(context.getName());
+			transportableContext.getContainer().add(container);
+			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,
+					Boolean.TRUE);
+			ByteArrayOutputStream byteArrayOPS = new ByteArrayOutputStream();
+			marshaller.marshal(new JAXBElement<Context>(new QName(
+					"http://code.google.com/p/event-plus", "Context"),
+					Context.class, transportableContext), byteArrayOPS);
+			deploymentDescriptor = byteArrayOPS.toString();
+		}catch(Exception e){
+			throw new RuntimeException(e);
+		}
+		return deploymentDescriptor;
+	}
 
 	@SuppressWarnings("unchecked")
 	public static Context buildContext(InputStream ins)
