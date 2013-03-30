@@ -11,7 +11,6 @@ public class RegistryHelper implements DiscProperties{
 	private static Registry registry;
 	private static Binder binder;
 	static{
-		boolean auto = Boolean.getBoolean(PP_DIS_AUTO_REG);
 		String registryHost=null;
 		try {
 			registryHost=System.getProperty(PP_REGISTRY_HOST,java.net.InetAddress.getLocalHost().getHostName());
@@ -22,18 +21,24 @@ public class RegistryHelper implements DiscProperties{
 		try{
 			init(registryHost,port);
 		}catch(RemoteException e){
-			if(!auto){
-				try {
-					RMIDiscoveryManager.main(new  String[0]);
-					init(registryHost,port);
-				} catch (Exception e1) {
-					throw new RuntimeException("Discovery not running, Could not launch in process discovery "+registryHost+":"+port,e1);
-				}
-			}else{
-				throw new RuntimeException("Discovery not running at "+registryHost+":"+port+",(Launching embedded discovery is disabled. Note Slave process can not start discovery manager).",e);				
-			}
+			startDiscovery(registryHost, port);
 		}catch(NotBoundException e){
-			throw new RuntimeException("Is Discovery running? Could not obtain binder from "+registryHost+":"+port,e);
+			startDiscovery(registryHost, port);
+		}
+	}
+
+	protected static void startDiscovery(String registryHost,
+			int port) {
+		boolean auto = Boolean.getBoolean(PP_DIS_AUTO_REG);
+		if(!auto){
+			try {
+				RMIDiscoveryManager.main(new  String[0]);
+				init(registryHost,port);
+			} catch (Exception e) {
+				throw new RuntimeException("Discovery not running, Could not launch in process discovery "+registryHost+":"+port,e);
+			}
+		}else{
+			throw new RuntimeException("Discovery not running at "+registryHost+":"+port+",(Launching embedded discovery is disabled. Note Slave process can not start discovery manager).");				
 		}
 	}
 	
