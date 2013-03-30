@@ -1,5 +1,5 @@
 package com.biswa.ep.discovery;
 
 public interface BinderImplMBean {
-	void shutDownAllDeployers(boolean terminateSelf);
+	void shutDownAllDeployers(boolean spareRegistry);
 }
