@@ -29,7 +29,7 @@
 
 	<target name="run-server">
 		<java classname="com.biswa.ep.deployment.Deployer" fork="true">
-			<jvmarg value="-Ddeployment.desc=HelloWorld.xml">
+			<jvmarg value="-Dep.deployment.desc=HelloWorld.xml">
 			</jvmarg>
 		    <classpath>
 		    	<path refid="ep.class.path"/>

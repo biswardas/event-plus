@@ -63,7 +63,7 @@
 	<target name="application">
 		<echo>Step4:Starting Application Instance</echo>
 		<java classname="com.biswa.ep.deployment.Deployer" fork="true">
-			<jvmarg value="-Ddeployment.desc=ForkJoin.xml">
+			<jvmarg value="-Dep.deployment.desc=ForkJoin.xml">
 			</jvmarg>
 		    <classpath>
 		    	<path refid="ep.class.path"/>

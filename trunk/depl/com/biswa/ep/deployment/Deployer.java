@@ -49,12 +49,11 @@ import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerTask;
 
-public class Deployer extends UncaughtExceptionHandler{	
+public class Deployer extends UncaughtExceptionHandler implements DiscProperties{	
 	private static final ContainerManager containerManager = new ContainerManager();
 
 	private static EPDeployerImpl deployerImpl = null;
 	
-	private static final String DEPLOYMENT_DESC = "deployment.desc";
 
 	final static ExecutorService deployer = Executors
 			.newSingleThreadExecutor(new NamedThreadFactory("Deployer",false));
@@ -76,7 +75,7 @@ public class Deployer extends UncaughtExceptionHandler{
 			bindTheDeployer(false);
 			deploy(fileName);
 		}else{
-			System.setProperty(DiscProperties.PP_DIS_AUTO_REG,"true");
+			System.setProperty(PP_DIS_AUTO_REG,"true");
 			bindTheDeployer(true);
 		}
 	}
