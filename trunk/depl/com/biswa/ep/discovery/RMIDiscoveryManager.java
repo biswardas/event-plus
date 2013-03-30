@@ -21,6 +21,8 @@ import com.biswa.ep.deployment.mbean.Discovery;
  *
  */
 public class RMIDiscoveryManager extends UncaughtExceptionHandler{
+	static final String PP_REGISTRY_PORT = "ep.registryPort";
+	static final String PP_REGISTRY_HOST = "ep.registryHost";
 	private static BinderImpl binderimpl;
 	private static TransactionGeneratorImpl transgenImpl;
 	private static IdentityGeneratorImpl idGenImpl;
@@ -31,8 +33,8 @@ public class RMIDiscoveryManager extends UncaughtExceptionHandler{
 				String registryHost=null;
 				int port=0;
 				try{
-					registryHost=System.getProperty("pp.registryHost");
-					port=Integer.getInteger("pp.registryPort",Registry.REGISTRY_PORT);
+					registryHost=System.getProperty(PP_REGISTRY_HOST);
+					port=Integer.getInteger(PP_REGISTRY_PORT,Registry.REGISTRY_PORT);
 					Registry registry = null;
 					if(registryHost!=null)					
 					registry = LocateRegistry.getRegistry(registryHost,port);

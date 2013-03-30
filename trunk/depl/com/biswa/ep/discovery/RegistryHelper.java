@@ -1,5 +1,6 @@
 package com.biswa.ep.discovery;
-
+import static com.biswa.ep.discovery.RMIDiscoveryManager.PP_REGISTRY_HOST;
+import static com.biswa.ep.discovery.RMIDiscoveryManager.PP_REGISTRY_PORT;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -8,9 +9,7 @@ import java.rmi.registry.Registry;
 import javax.rmi.PortableRemoteObject;
 
 public class RegistryHelper {
-	private static final String PP_REGISTRY_PORT = "pp.registryPort";
-	private static final String PP_REGISTRY_HOST = "pp.registryHost";
-	private static final String PP_REGISTRY_AUTO = "pp.auto.registry.disable";
+	private static final String PP_REGISTRY_AUTO = "ep.auto.registry.disable";
 	private static Registry registry;
 	private static Binder binder;
 	static{
