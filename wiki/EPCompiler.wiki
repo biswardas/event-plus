@@ -1,0 +1,6 @@
+
+==Compiler==
+The annotations above use Sun Compiler API interfaces extensively and can only be compiled with SUN JDK. JDK 1.7 is recommended however 1.6 will still work. You can not use IBM/Eclipse Compiler to compile above code. You can use eclipse to develop but remember add a custom builder to build the code in your project settings. Standard eclipse compiler will skip these annotations and wont process additional processing required. Even though you can add the annotations in Eclipse project annotation Factory still the compiler will fail as Eclipse does not use Sun compiler Interface API and uses an incremental proprietary compiler.
+If you are using ant to build the code then nothing special required.
+
+In future other compiler support will be added.
