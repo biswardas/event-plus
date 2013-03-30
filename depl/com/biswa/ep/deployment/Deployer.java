@@ -238,9 +238,17 @@ public class Deployer extends UncaughtExceptionHandler implements DiscProperties
 
 	
 	public static void main(String[] args) throws JAXBException, InterruptedException, ExecutionException{
+		boolean started = false;
 		String fileName = System.getProperty(DEPLOYMENT_DESC);
 		if(fileName!=null){
-			deploy(fileName);
+			try{
+				deploy(fileName);
+				started = true;
+			}finally{
+				if(!started){
+					asynchronouslyShutDown();
+				}
+			}
 		}
 	}
 }
