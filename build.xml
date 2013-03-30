@@ -41,7 +41,7 @@
 		<jar jarfile="dist/test.jar" basedir="build/test"/>
 	</target>
 	<target name="services">
-		<jar jarfile="lib/services.jar">
+		<jar jarfile="testlib/services.jar">
 			<service type="com.biswa.ep.entities.transaction.TransactionGenerator">
 				<provider classname="com.biswa.ep.discovery.RMITransactionGenerator" />
 				<!--provider classname="com.biswa.ep.entities.transaction.DefaultTransactionGenerator" /-->
@@ -92,7 +92,6 @@
 
 	<target name="download-dependency">
 		<mkdir dir="lib" />
-		<get src="http://repo1.maven.org/maven2/pcj/pcj/1.2/pcj-1.2.jar" dest="lib" usetimestamp="true" />
 		<get src="http://repo1.maven.org/maven2/junit/junit/4.11/junit-4.11.jar" dest="lib" usetimestamp="true" />
 	</target>
 </project>
