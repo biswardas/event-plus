@@ -115,14 +115,10 @@ public class Deployer extends UncaughtExceptionHandler implements DiscProperties
 	}
 	
 	
-	@SuppressWarnings("unchecked")
 	public static Context buildContext(String fileName) throws JAXBException{
-		JAXBContext jc = JAXBContext
-				.newInstance("com.biswa.ep.deployment.util");
-
-		Unmarshaller unmarshaller = jc.createUnmarshaller();
+		Context context = null;
 		InputStream ins = null;
-		JAXBElement<Context> rootObj = null;
+		
 		try{
 			File file = new File(fileName);
 			if(file.exists()){
@@ -130,8 +126,7 @@ public class Deployer extends UncaughtExceptionHandler implements DiscProperties
 			}else{
 				ins = ClassLoader.getSystemResourceAsStream(fileName);
 			}
-			rootObj = (JAXBElement<Context>) unmarshaller
-					.unmarshal(getSource(ins));
+			context = buildContext(ins);
 		}catch(Exception e){
 			throw new RuntimeException(e);
 		}finally{
@@ -143,7 +138,22 @@ public class Deployer extends UncaughtExceptionHandler implements DiscProperties
 				throw new RuntimeException(e);
 			}
 		}
-		return (Context) rootObj.getValue();
+		return context; 
+	}
+
+
+	@SuppressWarnings("unchecked")
+	protected static Context buildContext(InputStream ins)
+			throws JAXBException, SAXException {
+		Context context;
+		JAXBContext jc = JAXBContext
+				.newInstance("com.biswa.ep.deployment.util");
+
+		Unmarshaller unmarshaller = jc.createUnmarshaller();
+		JAXBElement<Context> rootObj = (JAXBElement<Context>) unmarshaller
+				.unmarshal(getSource(ins));
+		context = rootObj.getValue();
+		return context;
 	}
 
 	public static Future<?> deploy(final Context context,boolean sorted) {
