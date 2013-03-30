@@ -1,10 +1,10 @@
 =EventPlus=
 
-EventPlus framework can be divided into 3 components. *Language* (just a bit restrictive Java), *Compiler*, and *Runtime*. We can code everything by hand and deploy it in EventPlus run-time. Just like a java class can be manufactured from thin air bypassing entire Java Language and Compiler and run in Java run-time its that simple and easy.
+`EventPlus` framework can be divided into 3 components. *Language* (just a bit restrictive Java), *Compiler*, and *Runtime*. We can code everything by hand and deploy it in `EventPlus` run-time. Just like a java class can be manufactured from thin air bypassing entire Java Language and Compiler and run in Java run-time its that simple and easy.
 We will cover all 3 sections below however as a event plus user we will spend most of our time in the language section.
 
 ==Language==
-EventPlus language is just plain old java with some special purpose annotations will be discussed below.
+`EventPlus` language is just plain old java with some special purpose annotations will be discussed below.
 
 === Context ===
   * *`@EPContext`* *Required:* YES
@@ -122,19 +122,19 @@ public interface StockQuoteAnalyzer {
 
 
   * *Container Entry*  Container entry is equivalent to a database record.
-   # *Entry Identity* Each entry in one container has a unique identity which eventplus runtime uses to track the entry during its life cycle. As a developer you need the same id to modify the attribute values or delete the entry from the container.
+   # *Entry Identity* Each entry in one container has a unique identity which `EventPlus` run-time uses to track the entry during its life cycle. As a developer you need the same id to modify the attribute values or delete the entry from the container.
    # *Identity Conflicts* In the event of your container subscribes to more that 2 containers hosting conflicting identity sequence then there is a configuration option `resolve.identity.conflicts` to be used to resolve the conflicts. However we will lose our flexibilities to track the record by our designated identifier in the subsequent downstream containers.
 
   * *Container types*
-   # *Static* Hosts only static attributes.
+   # *Static* Hosts only static attributes. Static attributes do not propagate during inheritance unless defined in a Static container. So this container offers re-usability of static attributes across your solution space.
    # *Basic* This is the foundation container. Unless otherwise specified this is the default container specification used. Most scenarios this will be container under use.
-   # *Timed* This is a time throttled container and dispatches batched updates in a certain configured interval.
-   # *Feedback* This is a feedback based container and will only dispatch updates only after the consuming containers gives feedback to this container for completion of the processing.
-   # *Subscription* container offers subscription services to subscribers interested in specific piece of information.
-   # *Proxy* Proxy is a special purpose container is used as the agent of the subscribers in the sink context. It is used to save network bandwidth and memory where lot of entities in the sink container subscribes very few distinct elements from the source container. 
-   # *Join* It offers relational join of 2 entries from 2 different containers based on certain criteria.
-   # *Split* container partition the entries in its downstream container for parallel processing.
-   # *ForkJoin* This container can only connect to Split container and can split work across hardware and aggregate the result back into the host process.[http://event-plus.googlecode.com/svn/trunk/examples/SplitForkJoinDemo/forkjoin.png]
+   # *Timed* This is a time throttled container and dispatches batched updates as configured `timed.interval`.
+   # *Feedback* As name suggests this is a feedback driven container (flow control) and dispatches updates only after the consuming containers acknowledges to this container for completion of the processing of previous task. This container always generates transactional updates.
+   # *Subscription* is a special purpose feedback container offers subscription services to connecting containers interested in specific piece of information. Connection to the external world is handled through defined `processor`.
+   # *Proxy* is a special purpose container is used as the agent of the subscribers in the sink context. It is used to save network bandwidth and memory where lot of entities in the sink container subscribes very few distinct elements from the source container. i.e Option Series subscribing same underlying price for valuation.
+   # *Join* It offers relational join of 2 entries from 2 different containers based on certain criteria. Performing a true join is extremely expensive its like comparing two flowing water streams. Try to avoid this container whenever other alternatives are available. This will be discussed in detail in run-time section.
+   # *Split* container partition the entries in its downstream container for data parallel processing. Any container connecting is assumed to be a processor node. Do *NOT* connect a viewer to a split container. When a processor node disconnects this container re-balances task among other available processing nodes.
+   # *ForkJoin* This container can only connect to *Split* and Static container and divides work across hardware and aggregate the result back into the host process. This container will try to obtain `ep.slave.count` # of slave process(max 31 allowed will be discussed in run-time section in more detail) to distribute its work. In the event of untimely death of a slave Split will redistribute the work among other available slave processes.[http://event-plus.googlecode.com/svn/trunk/examples/SplitForkJoinDemo/forkjoin.png]
    # *Pivot* This is a presentation layer container and needed to be used with user interfaces requiring to pivot/sort/summarize results.
 
 
