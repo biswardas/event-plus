@@ -1,7 +1,9 @@
 package com.biswa.ep.deployment;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 
 import javax.management.ObjectName;
@@ -15,6 +17,8 @@ import com.biswa.ep.deployment.mbean.ConManMBean;
 import com.biswa.ep.deployment.util.Context;
 import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.ConcreteContainer;
+import com.biswa.ep.entities.ConnectionEvent;
+import com.biswa.ep.entities.ContainerTask;
 import com.biswa.ep.entities.transaction.Inlet;
 
 public class ContainerManager {
@@ -132,5 +136,34 @@ public class ContainerManager {
 
 	public void registerSource(ConcreteContainer cs, Inlet oneInlet) {	
 		sourceMap.put(cs,oneInlet);		
+	}
+	
+	public void peerDied(String name, Collection<String> deadContainers) {
+		for(AbstractContainer abs:getAllContainers()){
+			healthCheck(abs);
+			Set<String> listeningContainers = abs.agent().upStreamSources();
+			for(String oneDeadContainer:deadContainers){
+				if(listeningContainers.contains(oneDeadContainer)){
+					//TODO Do we always need to remove Source?
+					abs.agent().dropSource(new ConnectionEvent(oneDeadContainer, abs.getName()));
+				}
+			}	
+		}
+	}
+
+
+	private static void healthCheck(final AbstractContainer abs) {
+		abs.agent().invokeOperation(new ContainerTask() {				
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = -7020229819863137742L;
+
+			@Override
+			protected void runtask() throws Throwable {
+				abs.agent().beginDefaultTran();
+				abs.agent().commitDefaultTran();					
+			}
+		});
 	}
 }

@@ -40,7 +40,7 @@ public class ConMan implements ConManMBean {
 		if(containerManager!=null){
 			return "Can not shut Down from Non Root Context..";
 		}
-		Deployer.shutDown();
+		Deployer.asynchronouslyShutDown();
 		return "Shutting Down in 5 Seconds...";
 	}
 }

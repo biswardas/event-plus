@@ -66,6 +66,6 @@ public class EPDeployerImpl implements EPDeployer {
 	}
 	@Override
 	public void shutDown() throws RemoteException {
-		Deployer.shutDown();		
+		Deployer.asynchronouslyShutDown();		
 	}
 }
