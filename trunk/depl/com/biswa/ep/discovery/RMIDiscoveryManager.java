@@ -20,9 +20,7 @@ import com.biswa.ep.deployment.mbean.Discovery;
  * @author biswa
  *
  */
-public class RMIDiscoveryManager extends UncaughtExceptionHandler{
-	static final String PP_REGISTRY_PORT = "ep.registryPort";
-	static final String PP_REGISTRY_HOST = "ep.registryHost";
+public class RMIDiscoveryManager extends UncaughtExceptionHandler implements DiscProperties{
 	private static BinderImpl binderimpl;
 	private static TransactionGeneratorImpl transgenImpl;
 	private static IdentityGeneratorImpl idGenImpl;
