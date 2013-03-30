@@ -31,7 +31,7 @@
 
 	<target name="run-server">
 		<java classname="com.biswa.ep.deployment.Deployer" fork="true">
-			<jvmarg value="-Ddeployment.desc=OptionValuation.xml">
+			<jvmarg value="-Dep.deployment.desc=OptionValuation.xml">
 			</jvmarg>
 		    <classpath>
 		    	<path refid="ep.class.path"/>

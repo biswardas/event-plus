@@ -29,7 +29,7 @@
 
 	<target name="run-server">
 		<java classname="com.biswa.ep.deployment.Deployer" fork="true">
-			<jvmarg value="-Ddeployment.desc=StockQuoteAnalyzer.xml">
+			<jvmarg value="-Dep.deployment.desc=StockQuoteAnalyzer.xml">
 			</jvmarg>
 		    <classpath>
 		    	<path refid="ep.class.path"/>
