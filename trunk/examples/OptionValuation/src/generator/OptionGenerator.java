@@ -26,6 +26,8 @@ public class OptionGenerator {
 		addInstrument(call, "IBM", new Date(17, Month.May, 1998), new Date(17,
 				Month.May, 1999), 45.0, 36.0, Option.Type.Call);
 		call.executeBatch();
+		connection.commit();
+		connection.close();
 	}
 
 	protected void addInstrument(CallableStatement call, String symbol,
