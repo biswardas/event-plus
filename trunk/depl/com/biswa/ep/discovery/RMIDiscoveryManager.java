@@ -28,16 +28,10 @@ public class RMIDiscoveryManager extends UncaughtExceptionHandler implements Dis
 	public static void main(String args[]) throws InterruptedException{
 		Thread t = new Thread(new Runnable(){
 			public void run(){
-				String registryHost=null;
 				int port=0;
 				try{
-					registryHost=System.getProperty(PP_REGISTRY_HOST);
 					port=Integer.getInteger(PP_REGISTRY_PORT,Registry.REGISTRY_PORT);
-					Registry registry = null;
-					if(registryHost!=null)					
-					registry = LocateRegistry.getRegistry(registryHost,port);
-					else
-					registry = LocateRegistry.createRegistry(port);
+					Registry registry = LocateRegistry.createRegistry(port);
 					
 					binderimpl = new BinderImpl(registry);
 					Binder binder = (Binder) UnicastRemoteObject
@@ -62,7 +56,7 @@ public class RMIDiscoveryManager extends UncaughtExceptionHandler implements Dis
 					MBS.registerMBean(new Discovery(idGen), idGenName);
 					
 				} catch(Exception e){
-					throw new RuntimeException("Error occured while starting registry"+registryHost+":"+port,e);
+					throw new RuntimeException("Error occured while starting discovery",e);
 				}
 			}
 		},"pp.registryserver"
