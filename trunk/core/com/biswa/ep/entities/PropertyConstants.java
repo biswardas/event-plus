@@ -109,6 +109,11 @@ public interface PropertyConstants {
 	 * Only attributes added in current container cross past this point.
 	 */
 	String ALLOW_ALIEN_ATTRIBUTES = "allow.alien.attributes";
+	/**
+	 * Number recommended slave processes to use. defaults to 2 in absence. max allowed 31.
+	 * 
+	 */
+	String EP_SLAVE_COUNT = "ep.slave.count";
 	
 	public int concurrencySupport();
 	public int getTimeOutPeriodInMillis();

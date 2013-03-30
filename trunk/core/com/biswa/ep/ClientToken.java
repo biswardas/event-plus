@@ -9,6 +9,7 @@ package com.biswa.ep;
  *
  */
 public class ClientToken {
+	public static final int MAX_TOKENS = 32;
 	public static final int ALL_AVAILABLE= Integer.MAX_VALUE; 
 	private int available = ALL_AVAILABLE;
 	/**Gets the next available token.
@@ -17,7 +18,7 @@ public class ClientToken {
 	 */
 	public int getToken(){
 		int current = 0;
-		for(int index=0;index<32;index++){
+		for(int index=0;index<MAX_TOKENS;index++){
 			if((available>>index&1)==1){
 				current=1<<index;
 				available=available&(Integer.MAX_VALUE^current);
