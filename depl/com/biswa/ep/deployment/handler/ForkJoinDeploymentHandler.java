@@ -1,20 +1,15 @@
 package com.biswa.ep.deployment.handler;
 
-import java.io.ByteArrayOutputStream;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 import javax.rmi.PortableRemoteObject;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.namespace.QName;
 
 import com.biswa.ep.ClientToken;
 import com.biswa.ep.annotations.EPPublish;
 import com.biswa.ep.deployment.ContainerManager;
+import com.biswa.ep.deployment.Deployer;
 import com.biswa.ep.deployment.EPDeployer;
 import com.biswa.ep.deployment.util.Container;
 import com.biswa.ep.deployment.util.Context;
@@ -35,53 +30,38 @@ public class ForkJoinDeploymentHandler extends DeploymentHandler {
 
 	private ArrayList<Listen> fork(Container container, Context context) {
 		ArrayList<Listen> listenList = new ArrayList<Listen>();
-		try {
-			JAXBContext jc = JAXBContext
-					.newInstance("com.biswa.ep.deployment.util");
-			Marshaller marshaller = jc.createMarshaller();
-			Context transportableContext = new Context();
-			transportableContext.setName(context.getName());
-			transportableContext.getContainer().add(container);
-			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,
-					Boolean.TRUE);
-			ByteArrayOutputStream byteArrayOPS = new ByteArrayOutputStream();
-			marshaller.marshal(new JAXBElement<Context>(new QName(
-					"http://code.google.com/p/event-plus", "Context"),
-					Context.class, transportableContext), byteArrayOPS);
-			String deploymentDescriptor = byteArrayOPS.toString();
+		String deploymentDescriptor = Deployer.generateDescriptor(container, context);
 
-			Binder binder = RegistryHelper.getBinder();
+		Binder binder = RegistryHelper.getBinder();
 
-			int slaveCount = Integer.parseInt(getProperties(container.getParam())
-					.getProperty(PropertyConstants.EP_SLAVE_COUNT, "2"));
-			if(slaveCount>ClientToken.MAX_TOKENS){
-				throw new RuntimeException("Can not handle more than "+ClientToken.MAX_TOKENS);
-			}
-			for (int slaveIndex = 0; slaveIndex < slaveCount ; slaveIndex++) {
-				try {
-					Remote remote = binder.getSlave();
-					if (remote != null) {
-						EPDeployer epDeployer = (EPDeployer) PortableRemoteObject
-								.narrow(remote, EPDeployer.class);
-						String name = epDeployer.getName();
-						System.out
-								.println("Attempting to Deploy Context in remote VM="+name);
-						epDeployer.deploy(deploymentDescriptor);
-						addToSlaveListenerList(container, context, listenList,
-								name);
-					} else {
-						//No more slaves available this time...
-						break;
-					}
-				} catch (RemoteException re) {
-					throw new RuntimeException(re);
+		int slaveCount = Integer.parseInt(getProperties(container.getParam())
+				.getProperty(PropertyConstants.EP_SLAVE_COUNT, "2"));
+		if(slaveCount>ClientToken.MAX_TOKENS){
+			throw new RuntimeException("Can not handle more than "+ClientToken.MAX_TOKENS);
+		}
+		for (int slaveIndex = 0; slaveIndex < slaveCount ; slaveIndex++) {
+			try {
+				Remote remote = binder.getSlave();
+				if (remote != null) {
+					EPDeployer epDeployer = (EPDeployer) PortableRemoteObject
+							.narrow(remote, EPDeployer.class);
+					String name = epDeployer.getName();
+					System.out
+							.println("Attempting to Deploy Context in remote VM="+name);
+					epDeployer.deploy(deploymentDescriptor);
+					addToSlaveListenerList(container, context, listenList,
+							name);
+				} else {
+					//No more slaves available this time...
+					break;
 				}
+			} catch (RemoteException re) {
+				throw new RuntimeException(re);
 			}
-		} catch (JAXBException e) {
-			throw new RuntimeException(e);
 		}
 		return listenList;
 	}
+
 
 	private ConcreteContainer join(Container container, Context context,
 			ContainerManager containerManager, ArrayList<Listen> listenList) {
