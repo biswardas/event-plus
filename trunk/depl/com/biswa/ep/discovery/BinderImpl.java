@@ -136,7 +136,7 @@ public class BinderImpl implements Binder,BinderImplMBean {
 		}
 	}
 	@Override
-	public void shutDownAllDeployers(boolean terminateSelf) {
+	public void shutDownAllDeployers(boolean spareRegistry) {
 		for(EPDeployer epDeployer:instanceMap.values()){
 			try {
 				epDeployer.shutDown();
@@ -144,7 +144,7 @@ public class BinderImpl implements Binder,BinderImplMBean {
 				//throw new RuntimeException(e);
 			}
 		}
-		if(terminateSelf){
+		if(!spareRegistry){
 			System.exit(0);
 		}
 	}
