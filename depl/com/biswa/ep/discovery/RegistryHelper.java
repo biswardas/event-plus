@@ -23,7 +23,9 @@ public class RegistryHelper implements DiscProperties{
 		}catch(RemoteException e){
 			startDiscovery(registryHost, port);
 		}catch(NotBoundException e){
-			startDiscovery(registryHost, port);
+			//Registry is already running but missing binder. So this is not EPregistry
+			//Do not attempt to start registry. We know it;s going to fail.
+			throw new RuntimeException(e);
 		}
 	}
 
