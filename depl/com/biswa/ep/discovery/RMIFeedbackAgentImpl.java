@@ -4,15 +4,15 @@ import java.rmi.RemoteException;
 
 import com.biswa.ep.entities.transaction.FeedbackAgent;
 
-public class RMIFeedbackAgentImpl implements FeedbackAgent {
+public class RMIFeedbackAgentImpl extends FeedbackAgent {
 	
 	private String producer;
 	private String consumer;
 	private Connector connecter;
-	public RMIFeedbackAgentImpl(String producer, String consumer){
+	public RMIFeedbackAgentImpl(String producer, String consumer,Connector connecter){
 		this.producer = producer;
-		this.consumer = consumer;		
-		connecter = RegistryHelper.getConnecter(consumer);
+		this.consumer = consumer;
+		this.connecter = connecter;
 	}
 	@Override
 	public void completionFeedback(int transactionId) {
@@ -22,5 +22,9 @@ public class RMIFeedbackAgentImpl implements FeedbackAgent {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
+	}
+	@Override
+	public String getFeedBackConsumer() {
+		return consumer;
 	}
 }

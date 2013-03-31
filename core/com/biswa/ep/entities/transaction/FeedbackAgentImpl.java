@@ -4,7 +4,7 @@ package com.biswa.ep.entities.transaction;
  * @author biswa
  *
  */
-public class FeedbackAgentImpl implements FeedbackAgent {
+public class FeedbackAgentImpl extends FeedbackAgent {
 	/**
 	 * Feedback listening container agent.
 	 */
@@ -25,5 +25,9 @@ public class FeedbackAgentImpl implements FeedbackAgent {
 	@Override
 	public void completionFeedback(int transactionId) {
 		agent.receiveFeedback(new FeedbackEvent(originator,transactionId));
+	}
+	@Override
+	public String getFeedBackConsumer() {
+		return agent.getName();
 	}
 }
