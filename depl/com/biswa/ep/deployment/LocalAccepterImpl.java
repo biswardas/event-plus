@@ -14,10 +14,11 @@ public class LocalAccepterImpl extends Accepter {
 		super(scm);
 	}
 	@Override
-	public void listen(Listen listen, AbstractContainer sinkSchema) {
+	public boolean listen(Listen listen, AbstractContainer sinkSchema) {
 		String sourceName = listen.getContext()+"."+listen.getContainer();
 		AbstractContainer sourceSchema = getContainerManager().getSchema(sourceName);
 		sourceSchema.agent().connect(new ConnectionEvent(sourceName,sinkSchema.getName(),sinkSchema.agent(),buildFilter(listen)));
+		return true;
 	}
 	@Override
 	public void replay(Listen listen, AbstractContainer sinkSchema) {
@@ -26,11 +27,12 @@ public class LocalAccepterImpl extends Accepter {
 		sourceSchema.agent().replay(new ConnectionEvent(sourceName,sinkSchema.getName(),sinkSchema.agent(),buildFilter(listen)));
 	}
 	@Override
-	public void addFeedbackSource(Feedback feedback, AbstractContainer sinkSchema) {
+	public boolean addFeedbackSource(Feedback feedback, AbstractContainer sinkSchema) {
 		String listeningSchema = feedback.getContext()+"."+feedback.getContainer();
 		AbstractContainer listeningContainer = getContainerManager().getSchema(listeningSchema);
 		sinkSchema.agent().addFeedbackAgent(new FeedbackAgentImpl(feedbackAs(feedback,sinkSchema), listeningContainer.agent()));
 		listeningContainer.agent().addFeedbackSource(new FeedbackEvent(feedbackAs(feedback,sinkSchema)));
+		return true;
 	}
 	@Override
 	public SubscriptionAgent getSubscriptionAgent(String context,

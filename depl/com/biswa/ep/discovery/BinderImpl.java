@@ -5,7 +5,6 @@ import static com.biswa.ep.discovery.RMIDiscoveryManager.MBS;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Timer;
@@ -20,9 +19,9 @@ import com.biswa.ep.deployment.mbean.Discovery;
 
 public class BinderImpl implements Binder,BinderImplMBean {
 	private static final long DELAY = Long.getLong(DiscProperties.PP_REG_HC_INTERVAL, 60000);
-	private ConcurrentHashMap<String,String> containerDeployerNameMap = new ConcurrentHashMap<String,String>();
+	private ConcurrentHashMap<String,String> containerToInstanceMap = new ConcurrentHashMap<String,String>();
 	private ConcurrentHashMap<String,EPDeployer> instanceMap = new ConcurrentHashMap<String,EPDeployer>();
-	private CopyOnWriteArrayList<EPDeployer> slaveList = new CopyOnWriteArrayList<EPDeployer>();
+	private CopyOnWriteArrayList<EPDeployer> slaveFreePool = new CopyOnWriteArrayList<EPDeployer>();
 	private Registry registry;
 	public BinderImpl(Registry registry){
 		this.registry=registry;
@@ -44,7 +43,7 @@ public class BinderImpl implements Binder,BinderImplMBean {
 	
 	@Override
 	public void bind(String name, RMIListener obj) throws RemoteException {
-		if(containerDeployerNameMap.containsKey(name)){
+		if(containerToInstanceMap.containsKey(name)){
 			throw new RemoteException(name+" instance already exists...");
 		}
 		registry.rebind(name, obj);
@@ -52,8 +51,19 @@ public class BinderImpl implements Binder,BinderImplMBean {
 		if(memberName==null){
 			memberName=name;
 		}
-		containerDeployerNameMap.put(name, memberName);
+		containerToInstanceMap.put(name, memberName);
 		addToMBeanServer(name, obj);
+		broadCastContainerDeployed(name);
+	}
+
+	private void broadCastContainerDeployed(String name) {
+		for(EPDeployer oneDeployer:instanceMap.values()){
+			try {
+				oneDeployer.containerDeployed(name);
+			} catch (RemoteException e) {
+				//throw new RuntimeException(e);
+			}
+		}
 	}
 	
 	private void addToMBeanServer(String name, RMIListener obj) {
@@ -70,11 +80,22 @@ public class BinderImpl implements Binder,BinderImplMBean {
 	public void unbind(String acceptName) throws RemoteException {
 		try {
 			registry.unbind(acceptName);
-			containerDeployerNameMap.remove(acceptName);
+			containerToInstanceMap.remove(acceptName);
 		} catch (NotBoundException e) {
 			System.err.println("Error while unbinding from registry: "+acceptName);
 		}
 		removeFromMBeanServer(acceptName);
+		broadCastContainerDestroyed(acceptName);
+	}
+
+	private void broadCastContainerDestroyed(String name) {
+		for(EPDeployer oneDeployer:instanceMap.values()){
+			try {
+				oneDeployer.containerDestroyed(name);
+			} catch (RemoteException e) {
+				//throw new RuntimeException(e);
+			}
+		}
 	}
 	
 	private void removeFromMBeanServer(String acceptName) {
@@ -89,7 +110,7 @@ public class BinderImpl implements Binder,BinderImplMBean {
 
 	@Override
 	public void bindSlave(EPDeployer obj) throws RemoteException {
-		slaveList.add(obj);
+		slaveFreePool.add(obj);
 		bindApp(obj);
 	}
 
@@ -101,38 +122,27 @@ public class BinderImpl implements Binder,BinderImplMBean {
 	
 	@Override
 	public EPDeployer getSlave() throws RemoteException {
-		if(!slaveList.isEmpty()){
-			return slaveList.remove(0);
+		if(!slaveFreePool.isEmpty()){
+			return slaveFreePool.remove(0);
 		}
 		return null;
 	}
 	protected void handlePeerDeath(String name, EPDeployer epDeployer) {
-		System.err.println("One VM Died:"+name);
-		ArrayList<String> containers = new ArrayList<String>();
-		Iterator<Entry<String, String>> iter = containerDeployerNameMap.entrySet().iterator();
+		System.err.println("One VM terminated(executing cleanup procedure):"+name);
+		Iterator<Entry<String, String>> iter = containerToInstanceMap.entrySet().iterator();
 		while(iter.hasNext()){
 			Entry<String, String> containerDeployerEntry = iter.next();
 			if(containerDeployerEntry.getValue().equals(name)){
 				String containerName = containerDeployerEntry.getKey();
 				try {
-					registry.unbind(containerName);
-					removeFromMBeanServer(containerName);
+					unbind(containerName);
 				} catch (Exception e) {
 					//throw new RuntimeException(e);
 				}
-				containers.add(containerName);
-				iter.remove();
 			}
 		}
 		instanceMap.remove(name);
-		slaveList.remove(epDeployer);
-		for(EPDeployer oneDeployer:instanceMap.values()){
-			try {
-				oneDeployer.peerDied(name, containers);
-			} catch (RemoteException e) {
-				//throw new RuntimeException(e);
-			}
-		}
+		slaveFreePool.remove(epDeployer);
 	}
 	@Override
 	public void shutDownAllDeployers(boolean spareRegistry) {

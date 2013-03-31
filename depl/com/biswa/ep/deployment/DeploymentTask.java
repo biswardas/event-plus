@@ -72,13 +72,11 @@ final class DeploymentTask implements Runnable {
 		}
 		
 		for(Listen listen:container.getListen()){
-			Accepter accepter = containerManager.valueOf(listen.getMethod());
-			accepter.listen(listen, cs);
+			containerManager.listenAsynchronously(listen, cs);
 		}
 
 		for(Feedback feedback:container.getFeedback()){
-			Accepter accepter = containerManager.valueOf(feedback.getMethod());
-			accepter.addFeedbackSource(feedback, cs);	
+			containerManager.addFeedbackSourceAsynchronously(feedback, cs);
 		}
 	}
 	
