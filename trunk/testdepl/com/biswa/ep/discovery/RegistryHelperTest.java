@@ -2,6 +2,9 @@ package com.biswa.ep.discovery;
 
 import static org.junit.Assert.assertTrue;
 
+import java.rmi.AccessException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.util.Properties;
 
 import junit.framework.Assert;
@@ -27,7 +30,7 @@ public class RegistryHelperTest {
 	}
 
 	@Test
-	public void testGetConnecter() {
+	public void testGetConnecter() throws AccessException, RemoteException, NotBoundException {
 		assertTrue(RegistryHelper.getConnecter("foo") instanceof Connector);
 	}
 

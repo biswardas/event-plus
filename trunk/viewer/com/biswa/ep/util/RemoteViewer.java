@@ -1,7 +1,6 @@
 package com.biswa.ep.util;
 
 import java.lang.management.ManagementFactory;
-import java.rmi.RemoteException;
 import java.util.Date;
 
 import javax.management.MBeanServer;
@@ -49,10 +48,10 @@ public class RemoteViewer extends GenericViewer {
 	@Override
 	public void disconnect(ConnectionEvent containerEvent) {
 		String sourceName = sourceContextName+"."+sourceContainerName;
-		Connector connecter = RegistryHelper.getConnecter(sourceName);
 		try {
+			Connector connecter = RegistryHelper.getConnecter(sourceName);
 			connecter.disconnect(sourceName, this.getName());
-		} catch (RemoteException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
