@@ -6,5 +6,5 @@ public interface SubscriptionAgent extends SubscriptionSupport{
 	/**
 	 * Method responsible to connect to source before any subscription attemp is made.
 	 */
-	void connect();
+	boolean connect();
 }

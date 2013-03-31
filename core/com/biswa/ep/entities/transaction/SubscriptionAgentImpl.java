@@ -21,7 +21,7 @@ public class SubscriptionAgentImpl implements SubscriptionAgent {
 		agent.substitute(subscriptionEvent);		
 	}
 	@Override
-	public void connect() {
-		//Local Subscriber No OP.
+	public boolean connect() {
+		return true;
 	}
 }
