@@ -363,6 +363,13 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	}
 	
 	@Override
+	public void removeFeedbackAgent(FeedbackAgent feedbackAgent){
+		Collection<FeedbackAgent> feedbackAgentList=Arrays.asList(feedBackAgents);
+		feedbackAgentList.remove(feedbackAgent);
+		feedBackAgents = feedbackAgentList.toArray(new FeedbackAgent[0]);
+	}
+	
+	@Override
 	public void dispatchAttributeAdded(Attribute requestedAttribute){
 		if(requestedAttribute.propagate()){
 			for(FilterAgent dcl : listenerMap.values()){
