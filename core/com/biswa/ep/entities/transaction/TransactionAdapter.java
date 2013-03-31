@@ -610,6 +610,27 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		};
 		executeInListenerThread(outer);
 	}
+	@Override
+	public void removeFeedbackAgent(final FeedbackAgent feedBackAgent){
+		OuterTask outer = new OuterTask(){
+			@Override
+			public void runouter() {
+				ContainerTask r = new ContainerTask() {
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = 4510373033258245094L;
+
+					public void runtask() {
+						assert ensureExecutingInRightThread();
+						cl.removeFeedbackAgent(feedBackAgent);
+					}
+				};
+				executeOrEnque(r);
+			}
+		};
+		executeInListenerThread(outer);
+	}
 	
 	@Override
 	public void transactionTimedOut(){

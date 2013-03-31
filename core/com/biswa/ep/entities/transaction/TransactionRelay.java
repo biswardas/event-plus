@@ -33,6 +33,11 @@ public interface TransactionRelay {
 	void addFeedbackAgent(FeedbackAgent feedBackAgent);
 	
 	/**
+	 * Method removes a feedback agent from the sink container.
+	 */
+	void removeFeedbackAgent(FeedbackAgent feedBackAgent);
+	
+	/**
 	 * Method returns all known transaction origins known to this container.
 	 * @return String[]
 	 */
