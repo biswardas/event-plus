@@ -39,7 +39,13 @@ public class RMISubscriptionAgentImpl implements SubscriptionAgent {
 		}		
 	}
 	@Override
-	public void connect() {
-		connecter = RegistryHelper.getConnecter(source);
+	public boolean connect() {
+		try {
+			connecter = RegistryHelper.getConnecter(source);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
 	}
 }
