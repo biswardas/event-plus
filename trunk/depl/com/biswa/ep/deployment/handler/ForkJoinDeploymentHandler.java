@@ -16,6 +16,7 @@ import com.biswa.ep.deployment.util.Context;
 import com.biswa.ep.deployment.util.Listen;
 import com.biswa.ep.deployment.util.Publish;
 import com.biswa.ep.discovery.Binder;
+import com.biswa.ep.discovery.DiscProperties;
 import com.biswa.ep.discovery.RegistryHelper;
 import com.biswa.ep.entities.ConcreteContainer;
 import com.biswa.ep.entities.PropertyConstants;
@@ -91,6 +92,7 @@ public class ForkJoinDeploymentHandler extends DeploymentHandler {
 		listen.setContext(context.getName());
 		listen.setContainer(container.getName() + epDeployer);
 		listen.setMethod(EPPublish.RMI.name());
+		listen.setSide(DiscProperties.SLAVE_SIDE);
 		listenList.add(listen);
 	}
 }
