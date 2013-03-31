@@ -236,12 +236,20 @@ public final class TransactionTracker {
 		originToSourceManager.buildCircuit(sourceName,transactionOrigin);
 	}
 	
-	/**Source and the group they belong
+	/**Method drops the source.
 	 * 
 	 * @param sourceName
-	 * @param transactionGroup
 	 */
 	protected void dropSource(String sourceName) {
+		clearTransaction(sourceName);
+		originToSourceManager.dropSource(sourceName);
+	}
+	
+	/**Method clears any outstanding transaction from this source.
+	 * 
+	 * @param sourceName
+	 */
+	protected void clearTransaction(String sourceName) {				
 		for (Entry<Integer, TransactionState> oneTransactionEntry : transactionStateMap
 				.entrySet()) {
 			TransactionState oneTransaction = oneTransactionEntry.getValue();
@@ -261,7 +269,6 @@ public final class TransactionTracker {
 				}
 			}
 		}
-		originToSourceManager.dropSource(sourceName);
 	}
 	
 	/**Track transaction begin.
