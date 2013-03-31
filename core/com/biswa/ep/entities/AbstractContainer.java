@@ -1,5 +1,6 @@
 package com.biswa.ep.entities;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -364,7 +365,8 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	
 	@Override
 	public void removeFeedbackAgent(FeedbackAgent feedbackAgent){
-		Collection<FeedbackAgent> feedbackAgentList=Arrays.asList(feedBackAgents);
+		Collection<FeedbackAgent> feedbackAgentList=new ArrayList<FeedbackAgent>();
+		feedbackAgentList.addAll(Arrays.asList(feedBackAgents));
 		feedbackAgentList.remove(feedbackAgent);
 		feedBackAgents = feedbackAgentList.toArray(new FeedbackAgent[0]);
 	}
