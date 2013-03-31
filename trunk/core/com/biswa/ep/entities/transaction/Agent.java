@@ -1,9 +1,7 @@
 package com.biswa.ep.entities.transaction;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 import com.biswa.ep.entities.AbstractContainer;
@@ -273,9 +271,17 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 			@Override
 			public void runouter() {
 				assert log("Received source connected:"+ce);
-				assert !Boolean.TRUE.equals(expectationsMap.get(ce.getSource())):"This source was already connected but received connected message";
-				expectationsMap.put(ce.getSource(),true);
-				transactionTracker.addSource(ce.getSource(),ce.getTransactionGroup());
+				Boolean status = expectationsMap.get(ce.getSource());
+				status=(status==null)?false:status;
+				if(!status){
+					//It is possible some disconnected source is reconnected so will send the duplicate connected message
+					//so only update the tracker when the source was not connected.
+					expectationsMap.put(ce.getSource(),true);
+					transactionTracker.addSource(ce.getSource(),ce.getTransactionGroup());
+				}else{
+					//Method clears any outstanding transaction from this source
+					transactionTracker.clearTransaction(ce.getSource());
+				}
 				//Not yet Connected return
 				if(expectationsMap.containsValue(false)) return;
 				flushPreconnectedQueue();
@@ -390,10 +396,5 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 
 	public String getName() {
 		return cl.getName();
-	}
-	
-	public Set<String> upStreamSources(){
-		//TODO check thread safety
-		return Collections.unmodifiableSet(expectationsMap.keySet());
 	}
 }
