@@ -539,7 +539,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 			AttributeMapEntry attributeMapEntry) {
 		attributeMap.revalidateDependencyGraph();
 		if(isConnected()){
-			reComputeDefaultValues();
+			reComputeDefaultValues(null);
 		}
 		if(requestedAttribute.isStatic()){
 			updateStatic(requestedAttribute, requestedAttribute.failSafeEvaluate(requestedAttribute, null),null);	
@@ -551,10 +551,14 @@ public abstract class CascadeContainer extends AbstractContainer{
 	@Override
 	public void connected(final ConnectionEvent connectionEvent) {
 		super.connected(connectionEvent);
-		reComputeDefaultValues();
+		reComputeDefaultValues(connectionEvent);
 	}
 	
-	private void reComputeDefaultValues() {
+	/**
+	 * Method computes default values for the container.
+	 * @param connectionEvent
+	 */
+	protected void reComputeDefaultValues(final ConnectionEvent connectionEvent) {
 		if(getPhysicalSize()>0){
 			PhysicalEntry defaultEntry = getDefaultEntry();
 			defaultEntry.reallocate(getPhysicalSize());
@@ -569,7 +573,17 @@ public abstract class CascadeContainer extends AbstractContainer{
 			for(AttributeMapEntry oneEntry:attMapEntries){
 				Attribute attribute = oneEntry.attribute;
 				if(attribute.isSubscription()){
-					((SubscriptionAttribute)attribute).getSubAgent().connect();
+					//TODO revisit the implementation below
+					SubscriptionAttribute subs = (SubscriptionAttribute)attribute;
+					//Subscriptions are needed to be performed again as subscription source disappeared
+					if(connectionEvent!=null && connectionEvent.getSource().equals(subs.getSource())){
+						//Connect the subscription agent
+						if(subs.getSubAgent().connect()){
+							for(ContainerEntry containerEntry:getContainerEntries()){
+								subs.failSafeEvaluate(subs, containerEntry);
+							}
+						}
+					}
 				} else if(!attribute.isStateless() && !attribute.isStatic()){
 					defaultEntry.silentUpdate(attribute,attribute.failSafeEvaluate(attribute, defaultEntry));	
 				}
