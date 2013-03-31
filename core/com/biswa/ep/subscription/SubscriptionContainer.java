@@ -34,7 +34,11 @@ public class SubscriptionContainer extends FeedbackAwareContainer implements Sub
 	@Override
 	public void dispatchAttributeRemoved(Attribute requestedAttribute) {
 	}
-
+	
+	@Override
+	protected void reComputeDefaultValues(final ConnectionEvent connectionEvent) {		
+	}
+	
 	@Override
 	public void dispatchEntryAdded(ContainerEntry containerEntry) {
 		subscriptionHandler.register(containerEntry);
@@ -87,8 +91,6 @@ public class SubscriptionContainer extends FeedbackAwareContainer implements Sub
 			subscriptionHandler.processCollectedUpdates();
 			agent().commitDefaultTran();
 			coalescingTran=false;
-		}else{
-			resetThrottledTransaction();
 		}
 	}
 	

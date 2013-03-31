@@ -242,8 +242,6 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 			agent().commitDefaultTran();
 			coalescingTran=false;
 			pendingUpdates=false;
-		}else{
-			resetThrottledTransaction();
 		}
 	}
 
