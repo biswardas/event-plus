@@ -550,13 +550,14 @@ public abstract class CascadeContainer extends AbstractContainer{
 	
 	@Override
 	public void connected(final ConnectionEvent connectionEvent) {
-		super.connected(connectionEvent);
 		reComputeDefaultValues(connectionEvent);
+		super.connected(connectionEvent);
 	}
 	
 	/**
-	 * Method computes default values for the container.
-	 * @param connectionEvent
+	 * Method computes default values for the container. If a container does not require default values to
+	 * be computed then over ride this to be no op.
+	 * @param connectionEvent ConnectionEvent
 	 */
 	protected void reComputeDefaultValues(final ConnectionEvent connectionEvent) {
 		if(getPhysicalSize()>0){
@@ -575,12 +576,18 @@ public abstract class CascadeContainer extends AbstractContainer{
 				if(attribute.isSubscription()){
 					//TODO revisit the implementation below
 					SubscriptionAttribute subs = (SubscriptionAttribute)attribute;
-					//Subscriptions are needed to be performed again as subscription source disappeared
-					if(connectionEvent!=null && connectionEvent.getSource().equals(subs.getSource())){
-						//Connect the subscription agent
-						if(subs.getSubAgent().connect()){
-							for(ContainerEntry containerEntry:getContainerEntries()){
-								subs.failSafeEvaluate(subs, containerEntry);
+					if(!isConnected()){
+						// First time receiving connected message. Container yet not connected so Just connect the
+						// Subscriber. No need to attempt to subscribe entries which are not there yet.
+						subs.getSubAgent().connect();
+					}else{
+						//Subscriptions are needed to be performed again as subscription source getting reconnected.
+						if(connectionEvent!=null && connectionEvent.getSource().equals(subs.getSource())){
+							//Connect the subscription agent
+							if(subs.getSubAgent().connect()){
+								for(ContainerEntry containerEntry:getContainerEntries()){
+									subs.failSafeEvaluate(subs, containerEntry);
+								}
 							}
 						}
 					}
