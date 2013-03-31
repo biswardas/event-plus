@@ -45,7 +45,7 @@ abstract public class Accepter {
 	 * @param listen Listen Source container to Listen
 	 * @param container CascadeContainer Sink Container
 	 */
-	public abstract void listen(Listen listen, AbstractContainer container);
+	public abstract boolean listen(Listen listen, AbstractContainer container);
 
 	
 	/**Request the source to replay the data This method does not setup any connection
@@ -106,6 +106,12 @@ abstract public class Accepter {
 		}
 	}
 	
-	public abstract void addFeedbackSource(Feedback feedback, AbstractContainer cs);
+	public abstract boolean addFeedbackSource(Feedback feedback, AbstractContainer cs);
 	public abstract SubscriptionAgent getSubscriptionAgent(String context,String container);
+	public static String buildName(Listen listen){
+		return listen.getContext()+"."+listen.getContainer();	
+	}
+	public static String buildName(Feedback feedback){
+		return feedback.getContext()+"."+feedback.getContainer();
+	}
 }

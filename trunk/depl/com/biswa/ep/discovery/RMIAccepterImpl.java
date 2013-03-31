@@ -47,40 +47,42 @@ public class RMIAccepterImpl extends Accepter {
 	}
 
 	@Override
-	public void listen(Listen listen, AbstractContainer cs) {
-		String sourceName = listen.getContext()+"."+listen.getContainer();		
-		Connector connecter = RegistryHelper.getConnecter(sourceName);
-		try {
+	public boolean listen(Listen listen, AbstractContainer cs) {
+		String sourceName = listen.getContext()+"."+listen.getContainer();
+		try {		
+			Connector connecter = RegistryHelper.getConnecter(sourceName);
 			connecter.connect(sourceName, cs.getName(),buildFilter(listen));
-		} catch (RemoteException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}		
+		} catch (Exception e) {
+			System.err.println(sourceName + " not available to connect. will lazily connect." );
+			return false;
+		}
+		return true;
 	}
 
 	@Override
 	public void replay(Listen listen, AbstractContainer cs) {
-		String sourceName = listen.getContext()+"."+listen.getContainer();		
-		Connector connecter = RegistryHelper.getConnecter(sourceName);
-		try {
+		String sourceName = listen.getContext()+"."+listen.getContainer();	
+		try {	
+			Connector connecter = RegistryHelper.getConnecter(sourceName);
 			connecter.replay(sourceName, cs.getName(),buildFilter(listen));
-		} catch (RemoteException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}		
 	}
 
 	@Override
-	public void addFeedbackSource(Feedback feedback, AbstractContainer originatingContainer) {
-		String listeningSchema = feedback.getContext()+"."+feedback.getContainer();		
-		Connector connecter = RegistryHelper.getConnecter(listeningSchema);
-		originatingContainer.agent().addFeedbackAgent(new RMIFeedbackAgentImpl(feedbackAs(feedback,originatingContainer), listeningSchema));
+	public boolean addFeedbackSource(Feedback feedback, AbstractContainer originatingContainer) {
+		String listeningSchema = feedback.getContext()+"."+feedback.getContainer();
 		try {
+			Connector connecter = RegistryHelper.getConnecter(listeningSchema);
+			originatingContainer.agent().addFeedbackAgent(new RMIFeedbackAgentImpl(feedbackAs(feedback,originatingContainer), listeningSchema,connecter));
 			connecter.addFeedbackSource(listeningSchema, feedbackAs(feedback,originatingContainer));
-		} catch (RemoteException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
+		} catch (Exception e) {
+			System.err.println(listeningSchema + " not available to add feedback source. will lazily connect." );
+			return false;
 		}
+		return true;
 	}
 
 	@Override

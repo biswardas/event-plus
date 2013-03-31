@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.MissingResourceException;
@@ -229,20 +228,6 @@ public class Deployer extends UncaughtExceptionHandler implements DiscProperties
 		}
 		return null;
 	}
-
-	/**
-	 * Process peer death asynchronously.
-	 * @param name String 
-	 * @param deadContainers Collection<String>
-	 */
-	public static void peerDied(final String name, final Collection<String> deadContainers) {
-		deployer.execute(new Runnable(){
-			@Override
-			public void run(){
-				containerManager.peerDied(name, deadContainers);
-			}
-		});
-	}
 	
 	/**
 	 * Asynchronously shuts down the virtual machine.
@@ -275,5 +260,23 @@ public class Deployer extends UncaughtExceptionHandler implements DiscProperties
 				}
 			}
 		}
+	}
+
+	public static void containerDeployed(final String sourceName) {
+		deployer.execute(new Runnable(){
+			@Override
+			public void run(){
+				containerManager.containerDeployed(sourceName);
+			}
+		});		
+	}
+
+	public static void containerDestroyed(final String sourceName) {
+		deployer.execute(new Runnable(){
+			@Override
+			public void run(){
+				containerManager.containerDestroyed(sourceName);
+			}
+		});		
 	}
 }

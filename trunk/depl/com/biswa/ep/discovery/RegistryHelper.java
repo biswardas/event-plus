@@ -1,5 +1,6 @@
 package com.biswa.ep.discovery;
 import java.net.UnknownHostException;
+import java.rmi.AccessException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -62,13 +63,9 @@ public class RegistryHelper implements DiscProperties{
         }
 	}
 	
-	public static Connector getConnecter(String name){
-        try{
-        	Object obj = registry.lookup(name);
-        	return (Connector) PortableRemoteObject.narrow(obj, Connector.class);
-        }catch(Exception e){
-        	throw new RuntimeException("Could not obtain the remote handle:"+name,e);
-        }
+	public static Connector getConnecter(String name) throws AccessException, RemoteException, NotBoundException{
+    	Object obj = registry.lookup(name);
+    	return (Connector) PortableRemoteObject.narrow(obj, Connector.class);
 	}
 	
 	public static EntryReader getEntryReader(String name){
