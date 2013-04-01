@@ -7,13 +7,14 @@ import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.management.ObjectName;
 
+import com.biswa.ep.NamedThreadFactory;
 import com.biswa.ep.deployment.EPDeployer;
 import com.biswa.ep.deployment.mbean.Discovery;
 
@@ -23,22 +24,14 @@ public class BinderImpl implements Binder,BinderImplMBean {
 	private ConcurrentHashMap<String,EPDeployer> instanceMap = new ConcurrentHashMap<String,EPDeployer>();
 	private CopyOnWriteArrayList<EPDeployer> slaveFreePool = new CopyOnWriteArrayList<EPDeployer>();
 	private Registry registry;
+	ScheduledThreadPoolExecutor stp = new ScheduledThreadPoolExecutor(1,new NamedThreadFactory("HealthCheckThread",true));
 	public BinderImpl(Registry registry){
 		this.registry=registry;
-		Timer t = new Timer("HealthCheckThread",true);
-		t.scheduleAtFixedRate(new TimerTask(){
+		stp.scheduleAtFixedRate(new Runnable(){
 			public void run(){
-				for(Entry<String, EPDeployer> oneEntry:instanceMap.entrySet()){
-					String name = oneEntry.getKey();
-					EPDeployer epDeployer = oneEntry.getValue();
-					try {
-						epDeployer.isAlive();
-					} catch (RemoteException e) {
-						handlePeerDeath(name, epDeployer);
-					}
-				}
+				checkHealthNow();
 			}
-		},DELAY,DELAY);
+		},DELAY,DELAY,TimeUnit.MILLISECONDS);
 	}
 	
 	@Override
@@ -155,6 +148,27 @@ public class BinderImpl implements Binder,BinderImplMBean {
 		}
 		if(!spareRegistry){
 			System.exit(0);
+		}
+	}
+
+	@Override
+	public synchronized void checkHealth(){
+		stp.execute(new Runnable(){
+			public void run(){
+				checkHealthNow();
+			}
+		});		
+	}
+	
+	private void checkHealthNow(){
+		for(Entry<String, EPDeployer> oneEntry:instanceMap.entrySet()){
+			String name = oneEntry.getKey();
+			EPDeployer epDeployer = oneEntry.getValue();
+			try {
+				epDeployer.isAlive();
+			} catch (RemoteException e) {
+				handlePeerDeath(name, epDeployer);
+			}
 		}
 	}
 }
