@@ -52,6 +52,7 @@ public class RegistryHelper implements DiscProperties{
 			registry = LocateRegistry.getRegistry(port);
 		}
 		binder = (Binder) registry.lookup(Binder.BINDER);
+		binder.checkHealth(true);
 	}
 	
 	public static RMIListener getRMIListener(String name){
@@ -99,7 +100,7 @@ public class RegistryHelper implements DiscProperties{
 	
 	public static void checkHealth() {
 		try{
-			binder.checkHealth();
+			binder.checkHealth(false);
 		}catch(Exception e){
 			throw new RuntimeException(e);
 		}
