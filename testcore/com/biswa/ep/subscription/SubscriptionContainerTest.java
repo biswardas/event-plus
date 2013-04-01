@@ -43,7 +43,7 @@ public class SubscriptionContainerTest {
 		public void commitTran(TransactionEvent te) {
 			System.out.println("TransactionEvent CommitTran:"+te);
 			semaphore.release();
-			subscriptionContainer.agent().completionFeedback(te.getTransactionId());
+			subscriptionContainer.agent().receiveFeedback(new FeedbackEvent(LISTENING_CONTAINER,te.getTransactionId()));
 		}
 
 		@Override
