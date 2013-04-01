@@ -51,4 +51,6 @@ public interface Binder extends EPService {
 	 * @param obj Remote
 	 */
 	EPDeployer getSlave() throws RemoteException;
+
+	void checkHealth() throws RemoteException;;
 }

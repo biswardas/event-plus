@@ -30,7 +30,7 @@ public class RegistryHelper implements DiscProperties{
 		}
 	}
 
-	protected static void startDiscovery(String registryHost,
+	private static void startDiscovery(String registryHost,
 			int port) {
 		boolean auto = Boolean.getBoolean(PP_DIS_AUTO_REG);
 		if(!auto){
@@ -95,5 +95,13 @@ public class RegistryHelper implements DiscProperties{
 	
 	public static Binder getBinder() {
 		return binder;
+	}
+	
+	public static void checkHealth() {
+		try{
+			binder.checkHealth();
+		}catch(Exception e){
+			throw new RuntimeException(e);
+		}
 	}
 }

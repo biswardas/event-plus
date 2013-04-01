@@ -162,6 +162,8 @@ public class RMIRemoteContainer extends AbstractContainer {
 		ConnectionEvent conEvent = new ConnectionEvent(this.source,this.sink,
 				agent());
 		sourceAgent.disconnect(conEvent);
+		//TODO will it be an over kill?
+		RegistryHelper.checkHealth();
 	}
 
 	@Override
