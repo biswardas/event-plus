@@ -37,12 +37,7 @@ public class BinderImpl implements Binder,BinderImplMBean {
 	@Override
 	public void bind(String name, RMIListener obj) throws RemoteException {
 		if(containerToInstanceMap.containsKey(name)){
-			//What is application is trying to make a comeback after death
-			//Do a health check.
-			checkHealthNow();
-			if(containerToInstanceMap.containsKey(name)){
-				throw new RemoteException(name+" instance already exists...");
-			}
+			throw new RemoteException(name+" instance already exists...");
 		}
 		registry.rebind(name, obj);
 		String memberName = obj.getDeployerName();
@@ -140,14 +135,17 @@ public class BinderImpl implements Binder,BinderImplMBean {
 	}
 
 	@Override
-	public synchronized void checkHealth(){
-		stp.execute(new Runnable(){
-			public void run(){
-				checkHealthNow();
-			}
-		});		
-	}
-	
+	public synchronized void checkHealth(boolean waitTillDone){
+		if(waitTillDone){
+			checkHealthNow();
+		}else{
+			stp.execute(new Runnable(){
+				public void run(){
+					checkHealthNow();
+				}
+			});	
+		}
+	} 
 	private synchronized void checkHealthNow(){
 		for(Entry<String, EPDeployer> oneEntry:instanceMap.entrySet()){
 			String name = oneEntry.getKey();
