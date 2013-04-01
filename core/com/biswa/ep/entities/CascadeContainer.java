@@ -574,20 +574,16 @@ public abstract class CascadeContainer extends AbstractContainer{
 			for(AttributeMapEntry oneEntry:attMapEntries){
 				Attribute attribute = oneEntry.attribute;
 				if(attribute.isSubscription()){
-					//TODO revisit the implementation below
+					//TODO revisit the implementation below wrt subscription.
 					SubscriptionAttribute subs = (SubscriptionAttribute)attribute;
-					if(!isConnected()){
-						// First time receiving connected message. Container yet not connected so Just connect the
-						// Subscriber. No need to attempt to subscribe entries which are not there yet.
-						subs.getSubAgent().connect();
-					}else{
-						//Subscriptions are needed to be performed again as subscription source getting reconnected.
-						if(connectionEvent!=null && connectionEvent.getSource().equals(subs.getSource())){
-							//Connect the subscription agent
-							if(subs.getSubAgent().connect()){
-								for(ContainerEntry containerEntry:getContainerEntries()){
-									subs.failSafeEvaluate(subs, containerEntry);
-								}
+					// If Receiving connected message(from any source) while container was disconnected.
+					// OR receiving a re-connected message(from the source) this attribute cares. 
+					//Subscriptions are needed to be performed again as subscription source getting reconnected.
+					if(!isConnected() || (connectionEvent!=null && connectionEvent.getSource().equals(subs.getSource()))){
+						//Connect the subscription agent
+						if(subs.getSubAgent().connect()){
+							for(ContainerEntry containerEntry:getContainerEntries()){
+								subs.failSafeEvaluate(subs, containerEntry);
 							}
 						}
 					}
