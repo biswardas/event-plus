@@ -5,7 +5,6 @@ import com.biswa.ep.deployment.util.Listen;
 import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.transaction.FeedbackAgentImpl;
-import com.biswa.ep.entities.transaction.FeedbackEvent;
 import com.biswa.ep.entities.transaction.SubscriptionAgent;
 import com.biswa.ep.entities.transaction.SubscriptionAgentImpl;
 
