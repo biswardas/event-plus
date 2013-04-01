@@ -356,11 +356,16 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	}
 
 	@Override
-	public void addFeedbackAgent(FeedbackAgent feedbackAgent){
+	public void addFeedbackAgent(final FeedbackAgent feedbackAgent){
 		FeedbackAgent[] newFeedBackAgents=new FeedbackAgent[feedBackAgents.length+1];
 		System.arraycopy(feedBackAgents, 0, newFeedBackAgents, 1, feedBackAgents.length);
 		newFeedBackAgents[0]=feedbackAgent;
 		feedBackAgents = newFeedBackAgents;
+		getEventDispatcher().submit(new Runnable(){
+			public void run(){
+				feedbackAgent.addFeedbackSource();
+			}
+		});
 	}
 	
 	@Override

@@ -7,6 +7,7 @@ package com.biswa.ep.entities.transaction;
  *
  */
 public abstract class FeedbackAgent {
+	public abstract void addFeedbackSource();
 	/**
 	 * Method tells the container that all
 	 * down stream containers have processed 

@@ -30,4 +30,8 @@ public class FeedbackAgentImpl extends FeedbackAgent {
 	public String getFeedBackConsumer() {
 		return agent.getName();
 	}
+	@Override
+	public void addFeedbackSource() {
+		agent.addFeedbackSource(new FeedbackEvent(originator));		
+	}
 }
