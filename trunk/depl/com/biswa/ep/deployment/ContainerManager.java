@@ -203,6 +203,9 @@ public class ContainerManager {
 				Iterator<Acknowledge> iter = existingFeedback.get(oneDeadContainer).iterator(); 
 				while(iter.hasNext()){
 					Acknowledge pc = iter.next();
+					//Send a disconnected message to the applicable container
+					pc.cs.agent().disconnected(new ConnectionEvent(oneDeadContainer, pc.cs.agent().getName()));
+					//Remove any stale feedback agents..
 					pc.cs.agent().removeFeedbackAgent(new FeedbackAgent(){
 						@Override
 						public void completionFeedback(int transactionId) {

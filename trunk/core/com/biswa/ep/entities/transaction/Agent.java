@@ -225,6 +225,8 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 			public void runouter() {
 				assert Boolean.TRUE.equals(expectationsMap.get(ce.getSource())):"This source was not connected but received disconnected message";
 				expectationsMap.put(ce.getSource(),false);
+				//Clear any pending transaction from this source
+				transactionTracker.clearTransaction(ce.getSource());
 				ContainerTask r = new ContainerTask() {
 					/**
 					 * 
@@ -237,6 +239,8 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 					}
 				};
 				executeOrEnque(r);
+				//Check for any outstanding work
+				checkQueuedTransaction();
 			}
 		};
 		executeInListenerThread(outer);
@@ -271,17 +275,9 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 			@Override
 			public void runouter() {
 				assert log("Received source connected:"+ce);
-				Boolean status = expectationsMap.get(ce.getSource());
-				status=(status==null)?false:status;
-				if(!status){
-					//It is possible some disconnected source is reconnected so will send the duplicate connected message
-					//so only update the tracker when the source was not connected.
-					expectationsMap.put(ce.getSource(),true);
-					transactionTracker.addSource(ce.getSource(),ce.getTransactionGroup());
-				}else{
-					//Method clears any outstanding transaction from this source
-					transactionTracker.clearTransaction(ce.getSource());
-				}
+				assert !Boolean.TRUE.equals(expectationsMap.get(ce.getSource())):"This source was already connected but received connected message";
+				expectationsMap.put(ce.getSource(),true);
+				transactionTracker.addSource(ce.getSource(),ce.getTransactionGroup());
 				//Not yet Connected return
 				if(expectationsMap.containsValue(false)) return;
 				flushPreconnectedQueue();
