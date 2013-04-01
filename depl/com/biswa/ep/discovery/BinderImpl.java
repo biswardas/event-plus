@@ -37,7 +37,12 @@ public class BinderImpl implements Binder,BinderImplMBean {
 	@Override
 	public void bind(String name, RMIListener obj) throws RemoteException {
 		if(containerToInstanceMap.containsKey(name)){
-			throw new RemoteException(name+" instance already exists...");
+			//What is application is trying to make a comeback after death
+			//Do a health check.
+			checkHealthNow();
+			if(containerToInstanceMap.containsKey(name)){
+				throw new RemoteException(name+" instance already exists...");
+			}
 		}
 		registry.rebind(name, obj);
 		String memberName = obj.getDeployerName();
@@ -120,23 +125,6 @@ public class BinderImpl implements Binder,BinderImplMBean {
 		}
 		return null;
 	}
-	protected void handlePeerDeath(String name, EPDeployer epDeployer) {
-		System.err.println("One VM terminated(executing cleanup procedure):"+name);
-		Iterator<Entry<String, String>> iter = containerToInstanceMap.entrySet().iterator();
-		while(iter.hasNext()){
-			Entry<String, String> containerDeployerEntry = iter.next();
-			if(containerDeployerEntry.getValue().equals(name)){
-				String containerName = containerDeployerEntry.getKey();
-				try {
-					unbind(containerName);
-				} catch (Exception e) {
-					//throw new RuntimeException(e);
-				}
-			}
-		}
-		instanceMap.remove(name);
-		slaveFreePool.remove(epDeployer);
-	}
 	@Override
 	public void shutDownAllDeployers(boolean spareRegistry) {
 		for(EPDeployer epDeployer:instanceMap.values()){
@@ -160,7 +148,7 @@ public class BinderImpl implements Binder,BinderImplMBean {
 		});		
 	}
 	
-	private void checkHealthNow(){
+	private synchronized void checkHealthNow(){
 		for(Entry<String, EPDeployer> oneEntry:instanceMap.entrySet()){
 			String name = oneEntry.getKey();
 			EPDeployer epDeployer = oneEntry.getValue();
@@ -170,5 +158,22 @@ public class BinderImpl implements Binder,BinderImplMBean {
 				handlePeerDeath(name, epDeployer);
 			}
 		}
+	}
+	private void handlePeerDeath(String name, EPDeployer epDeployer) {
+		System.err.println("One VM terminated(executing cleanup procedure):"+name);
+		Iterator<Entry<String, String>> iter = containerToInstanceMap.entrySet().iterator();
+		while(iter.hasNext()){
+			Entry<String, String> containerDeployerEntry = iter.next();
+			if(containerDeployerEntry.getValue().equals(name)){
+				String containerName = containerDeployerEntry.getKey();
+				try {
+					unbind(containerName);
+				} catch (Exception e) {
+					//throw new RuntimeException(e);
+				}
+			}
+		}
+		instanceMap.remove(name);
+		slaveFreePool.remove(epDeployer);
 	}
 }
