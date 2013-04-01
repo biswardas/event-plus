@@ -208,15 +208,13 @@ public class ContainerManager {
 					//Remove any stale feedback agents..
 					pc.cs.agent().removeFeedbackAgent(new FeedbackAgent(){
 						@Override
-						public void completionFeedback(int transactionId) {
-							//TODO Do we need this crap here
-							throw new UnsupportedOperationException("I am only a stub...");
-						}
-	
+						public void completionFeedback(int transactionId) {}
+						@Override
+						public void addFeedbackSource() {}	
 						@Override
 						public String getFeedBackConsumer() {
 							return oneDeadContainer;
-						}					
+						}				
 					});
 					addToFeedbackTracking(pendingFeedback,pc.feedback, pc.cs);	
 					iter.remove();

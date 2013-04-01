@@ -31,7 +31,6 @@ public class LocalAccepterImpl extends Accepter {
 		String listeningSchema = feedback.getContext()+"."+feedback.getContainer();
 		AbstractContainer listeningContainer = getContainerManager().getSchema(listeningSchema);
 		sinkSchema.agent().addFeedbackAgent(new FeedbackAgentImpl(feedbackAs(feedback,sinkSchema), listeningContainer.agent()));
-		listeningContainer.agent().addFeedbackSource(new FeedbackEvent(feedbackAs(feedback,sinkSchema)));
 		return true;
 	}
 	@Override

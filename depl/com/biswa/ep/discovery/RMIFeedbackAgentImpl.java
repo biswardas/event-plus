@@ -27,4 +27,13 @@ public class RMIFeedbackAgentImpl extends FeedbackAgent {
 	public String getFeedBackConsumer() {
 		return consumer;
 	}
+	@Override
+	public void addFeedbackSource() {
+		try {
+			connecter.addFeedbackSource(consumer,producer);		
+		} catch (RemoteException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
 }

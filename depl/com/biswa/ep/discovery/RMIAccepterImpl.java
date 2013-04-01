@@ -77,7 +77,6 @@ public class RMIAccepterImpl extends Accepter {
 		try {
 			Connector connecter = RegistryHelper.getConnecter(listeningSchema);
 			originatingContainer.agent().addFeedbackAgent(new RMIFeedbackAgentImpl(feedbackAs(feedback,originatingContainer), listeningSchema,connecter));
-			connecter.addFeedbackSource(listeningSchema, feedbackAs(feedback,originatingContainer));
 		} catch (Exception e) {
 			System.err.println(listeningSchema + " not available to add feedback source. will lazily connect." );
 			return false;
