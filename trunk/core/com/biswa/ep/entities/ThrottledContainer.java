@@ -1,9 +1,10 @@
 package com.biswa.ep.entities;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Map.Entry;
 
 import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.substance.Substance;
@@ -21,15 +22,30 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		 * 
 		 */
 		private static final long serialVersionUID = -196177963922732735L;
+		/**
+		 * Is this task queued on the container currently?
+		 */
 		private boolean queued = false;
 		/**
-		 * Is it coalescing currently.
+		 * Is it executing currently.
 		 */
 		private boolean executing = false;
+		/**
+		 * Any connect or replay operation must be dispatched through 
+		 * the throttleTask. So park the operation first then perform
+		 * the operation during throttled execution.
+		 */
+		private ArrayList<ConnectionEvent> pendingTask = new ArrayList<ConnectionEvent>();
+		
 		@Override
 		protected void runtask() {
 			executing = true;
 			throttledDispatch();
+			//Handle the pending operations..
+			for(ConnectionEvent connectionEvent : pendingTask){
+				ThrottledContainer.super.connect(connectionEvent);
+			}
+			pendingTask.clear();
 			executing = false;
 			queued = false;
 		}
@@ -41,6 +57,9 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		}
 		void setQueued(){
 			queued = true;
+		}
+		void holdOperation(ConnectionEvent connectionEvent){
+			pendingTask.add(connectionEvent);
 		}
 	};
 	final protected ThrottleTask throttleTask = new ThrottleTask();
@@ -73,6 +92,12 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		super(name,props);
 	}
 
+	@Override
+	public void connect(final ConnectionEvent connectionEvent) {
+		throttleTask.holdOperation(connectionEvent);
+		check();
+	}
+	
 	@Override
 	public void dispatchAttributeRemoved(Attribute requestedAttribute) {
 		super.dispatchAttributeRemoved(requestedAttribute);
@@ -168,7 +193,7 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		}
 	}
 	@Override
-	public void commitTran() {
+	final public void commitTran() {
 		if(throttleTask.isExecuting()){
 			//Only continue the transaction if it is a throttled dispatch.
 			super.commitTran();
@@ -179,7 +204,7 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 	}
 
 	@Override
-	public void rollbackTran() {
+	final public void rollbackTran() {
 		if(throttleTask.isExecuting()){
 			//Only continue the transaction if it is a throttled dispatch.
 			super.rollbackTran();
