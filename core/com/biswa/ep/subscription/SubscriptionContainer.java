@@ -87,7 +87,6 @@ public class SubscriptionContainer extends FeedbackAwareContainer implements Sub
 		if(subscriptionHandler.hasUpdates()){
 			coalescingTran=true;
 			agent().beginDefaultTran();
-			trackThrottledTransaction();
 			subscriptionHandler.processCollectedUpdates();
 			agent().commitDefaultTran();
 			coalescingTran=false;

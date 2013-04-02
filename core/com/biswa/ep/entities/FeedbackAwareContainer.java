@@ -17,6 +17,10 @@ import com.biswa.ep.entities.transaction.FeedbackEvent;
 
 public class FeedbackAwareContainer extends ThrottledContainer {
 	private final int feedback_time_out;
+	/**
+	 * Last throttled transaction on this container
+	 */
+	private int lastTransactionProcessed = 0;
 	public FeedbackAwareContainer(String name,Properties props) {
 		super(name,props);
 		if(props.getProperty(FEEDBACK_TIME_OUT)!=null){
@@ -37,7 +41,7 @@ public class FeedbackAwareContainer extends ThrottledContainer {
 	public void completionFeedback(int transactionID) {
 		if(transactionID==0 || lastTransactionProcessed==transactionID){//Some client joined the party flush all collected updates
 			assert log("Receiving Feedback= "+transactionID+" at "+ System.currentTimeMillis());
-			resetThrottledTransaction();
+			lastTransactionProcessed =0;
 			if(!throttleTask.isQueued()){
 				agent().invokeOperation(throttleTask);
 				throttleTask.setQueued();
@@ -46,31 +50,36 @@ public class FeedbackAwareContainer extends ThrottledContainer {
 	}
 
 	@Override
-	protected void trackThrottledTransaction() {
-		super.trackThrottledTransaction();
-		if(feedback_time_out>0){
-			final ContainerTask containerTask = new ContainerTask() {
-				/**
-				 * 
-				 */
-				private static final long serialVersionUID = -3941903416147756059L;
-				int transactionBeingTracked = lastTransactionProcessed;
-				@Override
-				protected void runtask() {
-					if(lastTransactionProcessed==transactionBeingTracked){
-						System.err.println("Transaction TimedOut "+transactionBeingTracked);
-						System.err.println("Forcing feedback completion");
-						completionFeedback(0);
+	final public void beginTran() {
+		if(coalescingTran){
+			//Only continue the transaction if it is a throttled dispatch.
+			super.beginTran();
+			assert lastTransactionProcessed==0:"I should never have been invoked while awaiting feedback"+lastTransactionProcessed;
+			lastTransactionProcessed = super.getCurrentTransactionID();
+			if(feedback_time_out>0){
+				final ContainerTask containerTask = new ContainerTask() {
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = -3941903416147756059L;
+					int transactionBeingTracked = lastTransactionProcessed;
+					@Override
+					protected void runtask() {
+						if(lastTransactionProcessed==transactionBeingTracked){
+							System.err.println("Transaction TimedOut "+transactionBeingTracked);
+							System.err.println("Forcing feedback completion");
+							completionFeedback(0);
+						}
 					}
-				}
-			};
-			agent().getEventCollector().schedule(new Runnable() {
-				@Override
-				public void run() {
-					agent().invokeOperation(containerTask);
-				}
-
-			}, feedback_time_out, TimeUnit.SECONDS);	
+				};
+				agent().getEventCollector().schedule(new Runnable() {
+					@Override
+					public void run() {
+						agent().invokeOperation(containerTask);
+					}
+	
+				}, feedback_time_out, TimeUnit.SECONDS);	
+			}
 		}
 	}
 	@Override

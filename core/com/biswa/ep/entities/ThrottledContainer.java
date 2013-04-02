@@ -24,7 +24,6 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		private boolean queued = false;
 		@Override
 		protected void runtask() {
-			assert lastTransactionProcessed==0:"I should never have been invoked while awaiting feedback"+lastTransactionProcessed;
 			throttledDispatch();
 			queued = false;
 		}
@@ -36,10 +35,6 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		}
 	};
 	final protected ThrottleTask throttleTask = new ThrottleTask();
-	/**
-	 * Last throttled transaction on this container
-	 */
-	protected int lastTransactionProcessed = 0;
 	/**
 	 * Is it coalescing currently.
 	 */
@@ -218,9 +213,7 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 	protected void throttledDispatch() {
 		if(pendingUpdates){
 			coalescingTran=true;
-			agent().beginDefaultTran();
-			trackThrottledTransaction();
-			
+			agent().beginDefaultTran();			
 			for(ContainerEntry containerEntry:getContainerEntries()){
 				switch(containerEntry.touchMode()){
 					case ContainerEntry.MARKED_DIRTY:
@@ -253,17 +246,9 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 			pendingUpdates=false;
 		}
 	}
-
-	protected void resetThrottledTransaction() {
-		lastTransactionProcessed =0;
-	}
-
-	protected void trackThrottledTransaction() {
-		lastTransactionProcessed = super.getCurrentTransactionID();
-	}
 	
 	@Override
-	public String[] getKnownTransactionOrigins(){
+	final public String[] getKnownTransactionOrigins(){
 		//Throttled container can not reveal its true origins 
 		//as the downstream container do not see actual transaction 
 		//instead see a coalesced transaction.
@@ -273,8 +258,7 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("ThrottledContainer [lastTransactionProcessed=")
-				.append(lastTransactionProcessed).append(", pendingUpdates=")
+		builder.append("ThrottledContainer [pendingUpdates=")
 				.append(pendingUpdates).append("]\n")
 				.append(super.toString());
 		return builder.toString();
