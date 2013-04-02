@@ -16,7 +16,7 @@ import com.biswa.ep.entities.transaction.Agent;
  *
  */
 public abstract class ThrottledContainer extends ConcreteContainer {
-	protected class ThrottleTask extends ContainerTask{
+	final protected class ThrottleTask extends ContainerTask{
 		/**
 		 * 
 		 */
@@ -35,7 +35,7 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 			queued = true;
 		}
 	};
-	protected ThrottleTask throttleTask = new ThrottleTask();
+	final protected ThrottleTask throttleTask = new ThrottleTask();
 	/**
 	 * Last throttled transaction on this container
 	 */
