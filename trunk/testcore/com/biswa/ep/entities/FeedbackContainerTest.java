@@ -2,6 +2,7 @@ package com.biswa.ep.entities;
 
 
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -275,5 +276,53 @@ public class FeedbackContainerTest {
 		if(s.tryAcquire(1,TimeUnit.SECONDS)){
 			Assert.fail("All above should have been collapsed to Just one insert.");
 		}
+	}
+
+	@Test
+	public void testThrottleQueued() throws InterruptedException{
+		final Semaphore tran = new Semaphore(1);
+		final int lock=100000;
+		final CountDownLatch s = new CountDownLatch(lock*2);
+		Agent agent = new Agent(new StaticContainer(SINK, new Properties())){
+			@Override
+			public void connected(ConnectionEvent ce) {
+				System.out.println("Received ConnectedEvent:"+ce);
+			}
+
+			@Override
+			public void entryAdded(ContainerEvent ce) {
+				System.out.println("Received ContainerEvent:"+ce.getIdentitySequence());
+				s.countDown();
+			}
+
+			@Override
+			public void beginTran(TransactionEvent te) {
+				System.out.println("Received Transaction Started:"+te);
+				tran.acquireUninterruptibly();
+			}
+
+			@Override
+			public void commitTran(TransactionEvent te) {
+				System.out.println("Received Transaction Completed:"+te);
+				source.agent().receiveFeedback(new FeedbackEvent(SINK,te.getTransactionId()));
+				tran.release();
+			}
+			
+		};
+		source.agent().connect(new ConnectionEvent(SOURCE,SINK,agent));
+		source.agent().addFeedbackSource(new FeedbackEvent(SINK));
+		Thread t= new Thread(){
+			public void run(){
+				for(int i=0;i<lock;i++){
+					source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(5000000+i),0));
+				}
+			}
+		};
+		t.start();
+		for(int i=0;i<lock;i++){
+			source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(3000000+i),0));
+		}
+		s.await();
+		tran.acquire();
 	}
 }
