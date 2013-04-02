@@ -4,19 +4,17 @@ package com.biswa.ep.entities;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.Before;
-
 import org.junit.Test;
 
 import com.biswa.ep.entities.substance.InvalidSubstance;
 import com.biswa.ep.entities.transaction.Agent;
-import com.biswa.ep.entities.transaction.FeedbackEvent;
+import com.biswa.ep.entities.transaction.FeedbackAgentImpl;
 import com.biswa.ep.entities.transaction.TransactionEvent;
 public class FeedbackContainerTest {
 	private static final String SOURCE = "SOURCE";
@@ -41,204 +39,93 @@ public class FeedbackContainerTest {
 	
 	@Test
 	public void testNonTransactionalOrigin() throws InterruptedException{
-		final AtomicInteger keeptranID = new AtomicInteger();
+		final AtomicInteger atom = new AtomicInteger();
 		final Semaphore s = new Semaphore(1);
 		s.drainPermits();
-		Agent agent = new Agent(new StaticContainer(SINK, new Properties())){
+		Agent agent = new Agent(new ConcreteContainer(SINK, new Properties())){
 			@Override
 			public void connected(ConnectionEvent ce) {
 				System.out.println("Received ConnectedEvent:"+ce);
-				s.release();
+				super.connected(ce);
 			}
 
 			@Override
 			public void entryAdded(ContainerEvent ce) {
-				System.out.println("Received ContainerEvent:"+ce);				
-				s.release();
+				System.out.println("Received ContainerEvent:"+ce);
 			}
 
 			@Override
 			public void entryRemoved(ContainerEvent ce) {
 				System.out.println("Received ContainerEvent:"+ce);
-				s.release();
 			}
 
 			@Override
 			public void entryUpdated(ContainerEvent ce) {
-				System.out.println("Received ContainerEvent:"+ce);
-				s.release();
-			}
-			
-			@Override
-			public void attributeAdded(ContainerEvent ce) {
 				System.out.println("Received ContainerEvent:"+ce);
 			}
 
 			@Override
 			public void beginTran(TransactionEvent te) {
 				System.out.println("Received Transaction Started:"+te);
+				super.beginTran(te);
 			}
 
 			@Override
 			public void commitTran(TransactionEvent te) {
 				System.out.println("Received Transaction Completed:"+te);
+				s.release();
+				super.commitTran(te);
 			}
 			
 		};
 		source.agent().connect(new ConnectionEvent(SOURCE,SINK,agent));
-		source.agent().addFeedbackSource(new FeedbackEvent(SINK));
-		if(!s.tryAcquire(1,TimeUnit.SECONDS)){
-			Assert.fail("Connected Event is not received");
-		}
-		
+		agent.addFeedbackAgent(new FeedbackAgentImpl(SINK,source.agent()));		
 		source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(10000),0));
-		if(!s.tryAcquire(1,TimeUnit.SECONDS)){
-			Assert.fail("Entry Added Event is not received");
-		}
 		source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(10001),0));
-		if(s.tryAcquire(1,TimeUnit.SECONDS)){
-			Assert.fail("Entry Added Event should not have been received as sink not yet given feedback");
-		}
-		source.agent().receiveFeedback(new FeedbackEvent(SINK,keeptranID.get()));
-		if(!s.tryAcquire(1,TimeUnit.SECONDS)){
-			Assert.fail("Now I have given feedback entitled to receive another Entry Added event");
-		}
-		source.agent().entryRemoved(new ContainerDeleteEvent(SOURCE,10001,0));
-		if(s.tryAcquire(1,TimeUnit.SECONDS)){
-			Assert.fail("Entry Removed Event should not have been received as sink not yet given feedback");
-		}
-		source.agent().receiveFeedback(new FeedbackEvent(SINK,keeptranID.get()));
-		if(!s.tryAcquire(1,TimeUnit.SECONDS)){
-			Assert.fail("Now I have given feedback entitled to receive above Entry Removed event");
-		}
+		
+		source.agent().entryRemoved(new ContainerDeleteEvent(SOURCE,10001,0));		
 		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,InvalidSubstance.INVALID_SUBSTANCE,0));
-		if(s.tryAcquire(1,TimeUnit.SECONDS)){
-			Assert.fail("Entry Removed Event should not have been received as sink not yet given feedback");
-		}
-		source.agent().receiveFeedback(new FeedbackEvent(SINK,keeptranID.get()));
-		if(!s.tryAcquire(1,TimeUnit.SECONDS)){
-			Assert.fail("Now I have given feedback entitled to receive above Entry Updated event");
-		}
-	}
-
-	@Test
-	public void testTransactionalOrigin() throws InterruptedException{
-		final AtomicInteger keeptranID = new AtomicInteger();
-		final Semaphore s = new Semaphore(1);
-		s.drainPermits();
-		Agent agent = new Agent(new StaticContainer(SINK, new Properties())){
-			@Override
-			public void connected(ConnectionEvent ce) {
-				System.out.println("Received ConnectedEvent:"+ce);
-				s.release();
-			}
-
-			@Override
-			public void entryAdded(ContainerEvent ce) {
-				System.out.println("Received ContainerEvent:"+ce);				
-				s.release();
-			}
-
-			@Override
-			public void entryRemoved(ContainerEvent ce) {
-				System.out.println("Received ContainerEvent:"+ce);
-				s.release();
-			}
-
-			@Override
-			public void entryUpdated(ContainerEvent ce) {
-				System.out.println("Received ContainerEvent:"+ce);
-				s.release();
-			}
-			
-			@Override
-			public void attributeAdded(ContainerEvent ce) {
-				System.out.println("Received ContainerEvent:"+ce);
-			}
-
-			@Override
-			public void beginTran(TransactionEvent te) {
-				System.out.println("Received Transaction Started:"+te);
-			}
-
-			@Override
-			public void commitTran(TransactionEvent te) {
-				System.out.println("Received Transaction Completed:"+te);
-			}
-			
-		};
-		source.agent().connect(new ConnectionEvent(SOURCE,SINK,agent));
-		source.agent().addFeedbackSource(new FeedbackEvent(SINK));
-		if(!s.tryAcquire(1,TimeUnit.SECONDS)){
-			Assert.fail("Connected Event is not received");
-		}
-		source.agent().beginTran(new TransactionEvent(SOURCE,987654));
-		//Create
-		source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(10000),987654));
-		//Update
-		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,InvalidSubstance.INVALID_SUBSTANCE,987654));
-		//Delete
-		source.agent().entryRemoved(new ContainerDeleteEvent(SOURCE,10000,987654));
-		if(s.tryAcquire(1,TimeUnit.SECONDS)){
-			Assert.fail("Entry Removed Event should not have been received as sink not yet given feedback");
-		}
+		
+		s.acquireUninterruptibly();
+		source.agent().beginTran(new TransactionEvent(SOURCE,987654));		
+		source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(1234567),0));
 		source.agent().commitTran(new TransactionEvent(SOURCE,987654));
-		if(s.tryAcquire(1,TimeUnit.SECONDS)){
-			Assert.fail("There is really nothing to be received as CRUD wiped everything");
-		}
+		s.acquireUninterruptibly();
+		Thread.sleep(1000);
 	}
-	
+
 	@Test
-	public void testCollapsing() throws InterruptedException{
-		final AtomicInteger keeptranID = new AtomicInteger();
+	public void testTransactionalCollapsing() throws InterruptedException{
+		final AtomicInteger atom = new AtomicInteger();
 		final Semaphore s = new Semaphore(1);
 		s.drainPermits();
-		Agent agent = new Agent(new StaticContainer(SINK, new Properties())){
-			@Override
-			public void connected(ConnectionEvent ce) {
-				System.out.println("Received ConnectedEvent:"+ce);
-				s.release();
-			}
-
+		Agent agent = new Agent(new ConcreteContainer(SINK, new Properties())){
 			@Override
 			public void entryAdded(ContainerEvent ce) {
-				System.out.println("Received ContainerEvent:"+ce);				
-				s.release();
+				System.out.println("Received ContainerEvent:"+ce);
+				atom.incrementAndGet();
 			}
-
 			@Override
 			public void entryRemoved(ContainerEvent ce) {
 				System.out.println("Received ContainerEvent:"+ce);
-				s.release();
+				atom.incrementAndGet();
 			}
-
 			@Override
 			public void entryUpdated(ContainerEvent ce) {
 				System.out.println("Received ContainerEvent:"+ce);
-				s.release();
-			}
-			
-			@Override
-			public void attributeAdded(ContainerEvent ce) {
-				System.out.println("Received ContainerEvent:"+ce);
-			}
-
-			@Override
-			public void beginTran(TransactionEvent te) {
-				System.out.println("Received Transaction Started:"+te);
+				atom.incrementAndGet();
 			}
 
 			@Override
 			public void commitTran(TransactionEvent te) {
-				System.out.println("Received Transaction Completed:"+te);
+				System.out.println("Received Transaction Completed:"+te);			
+				s.release();
+				super.commitTran(te);
 			}
 			
 		};
 		source.agent().connect(new ConnectionEvent(SOURCE,SINK,agent));
-		source.agent().addFeedbackSource(new FeedbackEvent(SINK));
-		if(!s.tryAcquire(1,TimeUnit.SECONDS)){
-			Assert.fail("Connected Event is not received");
-		}
+		agent.addFeedbackAgent(new FeedbackAgentImpl(SINK,source.agent()));
 		source.agent().beginTran(new TransactionEvent(SOURCE,987654));
 		//Create
 		source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(10000),987654));
@@ -266,16 +153,10 @@ public class FeedbackContainerTest {
 		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,InvalidSubstance.INVALID_SUBSTANCE,987654));
 		//Update
 		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,InvalidSubstance.INVALID_SUBSTANCE,987654));
-		if(s.tryAcquire(1,TimeUnit.SECONDS)){
-			Assert.fail("Entry Removed Event should not have been received as sink not yet given feedback");
-		}
 		source.agent().commitTran(new TransactionEvent(SOURCE,987654));
-		if(!s.tryAcquire(1,TimeUnit.SECONDS)){
-			Assert.fail("I was entitled to receive at least one Insert");
-		}
-		if(s.tryAcquire(1,TimeUnit.SECONDS)){
-			Assert.fail("All above should have been collapsed to Just one insert.");
-		}
+		s.acquireUninterruptibly();
+		Assert.assertEquals("All above updates should have been collapsed to just one Insert.",1,atom.get());
+		Thread.sleep(1000);
 	}
 
 	@Test
@@ -283,10 +164,11 @@ public class FeedbackContainerTest {
 		final Semaphore tran = new Semaphore(1);
 		final int lock=100000;
 		final CountDownLatch s = new CountDownLatch(lock*2);
-		Agent agent = new Agent(new StaticContainer(SINK, new Properties())){
+		Agent agent = new Agent(new ConcreteContainer(SINK, new Properties())){
 			@Override
 			public void connected(ConnectionEvent ce) {
 				System.out.println("Received ConnectedEvent:"+ce);
+				super.connected(ce);
 			}
 
 			@Override
@@ -299,18 +181,19 @@ public class FeedbackContainerTest {
 			public void beginTran(TransactionEvent te) {
 				System.out.println("Received Transaction Started:"+te);
 				tran.acquireUninterruptibly();
+				super.beginTran(te);
 			}
 
 			@Override
 			public void commitTran(TransactionEvent te) {
 				System.out.println("Received Transaction Completed:"+te);
-				source.agent().receiveFeedback(new FeedbackEvent(SINK,te.getTransactionId()));
 				tran.release();
+				super.commitTran(te);
 			}
 			
 		};
 		source.agent().connect(new ConnectionEvent(SOURCE,SINK,agent));
-		source.agent().addFeedbackSource(new FeedbackEvent(SINK));
+		agent.addFeedbackAgent(new FeedbackAgentImpl(SINK,source.agent()));
 		Thread t= new Thread(){
 			public void run(){
 				for(int i=0;i<lock;i++){
@@ -324,5 +207,6 @@ public class FeedbackContainerTest {
 		}
 		s.await();
 		tran.acquire();
+		Thread.sleep(1000);
 	}
 }

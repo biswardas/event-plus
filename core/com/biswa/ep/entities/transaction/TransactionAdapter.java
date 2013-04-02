@@ -605,7 +605,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 						cl.addFeedbackAgent(feedBackAgent);
 					}
 				};
-				executeOrEnque(r);
+				executeOrEnquePostConnected(r);
 			}
 		};
 		executeInListenerThread(outer);

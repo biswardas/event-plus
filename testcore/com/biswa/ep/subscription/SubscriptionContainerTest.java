@@ -15,6 +15,7 @@ import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.substance.ObjectSubstance;
 import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.entities.transaction.Agent;
+import com.biswa.ep.entities.transaction.FeedbackAgentImpl;
 import com.biswa.ep.entities.transaction.FeedbackEvent;
 import com.biswa.ep.entities.transaction.TransactionEvent;
 
@@ -37,13 +38,14 @@ public class SubscriptionContainerTest {
 		public void beginTran(TransactionEvent te) {
 			System.out.println("TransactionEvent BeginTran:"+te);
 			semaphore.release();
+			listeningContainer.beginTran();
 		}
 
 		@Override
 		public void commitTran(TransactionEvent te) {
 			System.out.println("TransactionEvent CommitTran:"+te);
 			semaphore.release();
-			subscriptionContainer.agent().receiveFeedback(new FeedbackEvent(LISTENING_CONTAINER,te.getTransactionId()));
+			listeningContainer.commitTran();
 		}
 
 		@Override
@@ -116,7 +118,7 @@ public class SubscriptionContainerTest {
 		subscriptionContainer = new SubscriptionContainer(SUBSCRIPTION_CONTAINER,props);
 		subscriptionContainer.agent().addSource(new ConnectionEvent(subscriptionContainer.getName(), subscriptionContainer.getName()));
 		subscriptionContainer.agent().connected(new ConnectionEvent(subscriptionContainer.getName(), subscriptionContainer.getName()));
-		subscriptionContainer.agent().addFeedbackSource(new FeedbackEvent(LISTENING_CONTAINER));
+		agent.addFeedbackAgent(new FeedbackAgentImpl(LISTENING_CONTAINER,subscriptionContainer.agent()));
 		subscriptionContainer.agent().connect(new ConnectionEvent(SUBSCRIPTION_CONTAINER, LISTENING_CONTAINER, agent));
 		semaphore.acquireUninterruptibly();
 		return subscriptionContainer;
