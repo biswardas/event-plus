@@ -22,23 +22,28 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		 */
 		private static final long serialVersionUID = -196177963922732735L;
 		private boolean queued = false;
+		/**
+		 * Is it coalescing currently.
+		 */
+		private boolean executing = false;
 		@Override
 		protected void runtask() {
+			executing = true;
 			throttledDispatch();
+			executing = false;
 			queued = false;
 		}
 		boolean isQueued(){
 			return queued;
+		}
+		boolean isExecuting(){
+			return executing;
 		}
 		void setQueued(){
 			queued = true;
 		}
 	};
 	final protected ThrottleTask throttleTask = new ThrottleTask();
-	/**
-	 * Is it coalescing currently.
-	 */
-	protected boolean coalescingTran = false;
 	/**
 	 * Are there any pending updates on this container?
 	 */
@@ -69,15 +74,6 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 	}
 
 	@Override
-	public void connect(final ConnectionEvent connectionEvent) {
-		//Dispatch any collected updates to previously registered listeners		
-		throttledDispatch();
-		//Then connect so that the new listener will not get some updates twice
-		//in form of initial insert and subsequent from update buffer.
-		super.connect(connectionEvent);
-	}
-	
-	@Override
 	public void dispatchAttributeRemoved(Attribute requestedAttribute) {
 		super.dispatchAttributeRemoved(requestedAttribute);
 		//Cleanup any updates relevant to the attribute
@@ -99,7 +95,7 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 	
 	@Override
 	protected void performExclusiveStatelessAttribution(final Agent receiver,ContainerEntry containerEntry) {	
-		if(coalescingTran){
+		if(throttleTask.isExecuting()){
 			super.performExclusiveStatelessAttribution(receiver,containerEntry);
 		}else{
 			if(isClientsAttached() && !ContainerContext.STATELESS_QUEUE.get().isEmpty()){ 
@@ -166,14 +162,14 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 
 	@Override
 	public void beginTran() {
-		if(coalescingTran){
+		if(throttleTask.isExecuting()){
 			//Only continue the transaction if it is a throttled dispatch.
 			super.beginTran();
 		}
 	}
 	@Override
 	public void commitTran() {
-		if(coalescingTran){
+		if(throttleTask.isExecuting()){
 			//Only continue the transaction if it is a throttled dispatch.
 			super.commitTran();
 		}else{
@@ -184,7 +180,7 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 
 	@Override
 	public void rollbackTran() {
-		if(coalescingTran){
+		if(throttleTask.isExecuting()){
 			//Only continue the transaction if it is a throttled dispatch.
 			super.rollbackTran();
 		}else{
@@ -212,7 +208,6 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 	 */
 	protected void throttledDispatch() {
 		if(pendingUpdates){
-			coalescingTran=true;
 			agent().beginDefaultTran();			
 			for(ContainerEntry containerEntry:getContainerEntries()){
 				switch(containerEntry.touchMode()){
@@ -242,7 +237,6 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 			
 			collectedUpdates.clear();
 			agent().commitDefaultTran();
-			coalescingTran=false;
 			pendingUpdates=false;
 		}
 	}

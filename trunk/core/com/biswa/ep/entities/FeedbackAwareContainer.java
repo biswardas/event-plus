@@ -51,7 +51,7 @@ public class FeedbackAwareContainer extends ThrottledContainer {
 
 	@Override
 	final public void beginTran() {
-		if(coalescingTran){
+		if(throttleTask.isExecuting()){
 			//Only continue the transaction if it is a throttled dispatch.
 			super.beginTran();
 			assert lastTransactionProcessed==0:"I should never have been invoked while awaiting feedback"+lastTransactionProcessed;
