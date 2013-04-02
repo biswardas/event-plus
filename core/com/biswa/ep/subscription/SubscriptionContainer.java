@@ -85,11 +85,9 @@ public class SubscriptionContainer extends FeedbackAwareContainer implements Sub
 	 */
 	protected void throttledDispatch() {
 		if(subscriptionHandler.hasUpdates()){
-			coalescingTran=true;
 			agent().beginDefaultTran();
 			subscriptionHandler.processCollectedUpdates();
 			agent().commitDefaultTran();
-			coalescingTran=false;
 		}
 	}
 	
