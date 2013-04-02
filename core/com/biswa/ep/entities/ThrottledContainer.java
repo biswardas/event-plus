@@ -16,17 +16,26 @@ import com.biswa.ep.entities.transaction.Agent;
  *
  */
 public abstract class ThrottledContainer extends ConcreteContainer {
-	protected final ContainerTask throttleTask = new ContainerTask() {
+	protected class ThrottleTask extends ContainerTask{
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = -196177963922732735L;
-
+		private boolean queued = false;
 		@Override
 		protected void runtask() {
+			assert lastTransactionProcessed==0:"I should never have been invoked while awaiting feedback"+lastTransactionProcessed;
 			throttledDispatch();
+			queued = false;
+		}
+		boolean isQueued(){
+			return queued;
+		}
+		void setQueued(){
+			queued = true;
 		}
 	};
+	protected ThrottleTask throttleTask = new ThrottleTask();
 	/**
 	 * Last throttled transaction on this container
 	 */
