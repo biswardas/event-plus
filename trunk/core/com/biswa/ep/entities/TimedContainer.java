@@ -13,12 +13,6 @@ public class TimedContainer extends ThrottledContainer{
 		super(name,props);
 		invokePeriodically(throttleTask, 0, getTimedInterval(), TimeUnit.MILLISECONDS);
 	}
-
-	@Override
-	public void connect(final ConnectionEvent connectionEvent) {
-		super.connect(connectionEvent);
-		agent().invokeOperation(throttleTask);
-	}
 	
 	/**Returns the timed interval for this container
 	 * 

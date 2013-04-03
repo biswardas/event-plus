@@ -1,10 +1,9 @@
 package com.biswa.ep.entities;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.substance.Substance;
@@ -32,12 +31,6 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		 * Is it executing currently?
 		 */
 		private boolean executing = false;
-		/**
-		 * Any connect or replay operation must be dispatched through 
-		 * the throttleTask. So park the operation first then perform
-		 * the operation during throttled execution.
-		 */
-		private ArrayList<ConnectionEvent> pendingTask = new ArrayList<ConnectionEvent>();
 		
 		@Override
 		protected void runtask() {
@@ -48,11 +41,6 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 				agent().commitDefaultTran();
 				pendingUpdates=false;
 			}
-			//Handle the pending operations..
-			for(ConnectionEvent connectionEvent : pendingTask){
-				ThrottledContainer.super.connect(connectionEvent);
-			}
-			pendingTask.clear();
 			executing = false;
 			activated = false;
 		}
@@ -64,9 +52,6 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		}
 		void activate(){
 			activated = true;
-		}
-		void holdOperation(ConnectionEvent connectionEvent){
-			pendingTask.add(connectionEvent);
 		}
 	};
 	final protected ThrottleTask throttleTask = new ThrottleTask();
@@ -99,12 +84,6 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		super(name,props);
 	}
 
-	@Override
-	public void connect(final ConnectionEvent connectionEvent) {
-		throttleTask.holdOperation(connectionEvent);
-		check();
-	}
-	
 	@Override
 	public void dispatchAttributeRemoved(Attribute requestedAttribute) {
 		super.dispatchAttributeRemoved(requestedAttribute);
