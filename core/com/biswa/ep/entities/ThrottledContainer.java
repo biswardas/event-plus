@@ -23,11 +23,13 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		 */
 		private static final long serialVersionUID = -196177963922732735L;
 		/**
-		 * Is this task queued on the container currently?
+		 * If this flag is set this indicated the task is already enqueued on the
+		 * current container for execution. At any given point of time this task should
+		 * not be queued more than one time.
 		 */
-		private boolean queued = false;
+		private boolean activated = false;
 		/**
-		 * Is it executing currently.
+		 * Is it executing currently?
 		 */
 		private boolean executing = false;
 		/**
@@ -52,16 +54,16 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 			}
 			pendingTask.clear();
 			executing = false;
-			queued = false;
+			activated = false;
 		}
-		boolean isQueued(){
-			return queued;
+		boolean isActivated(){
+			return activated;
 		}
 		boolean isExecuting(){
 			return executing;
 		}
-		void setQueued(){
-			queued = true;
+		void activate(){
+			activated = true;
 		}
 		void holdOperation(ConnectionEvent connectionEvent){
 			pendingTask.add(connectionEvent);
