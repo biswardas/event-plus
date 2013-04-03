@@ -40,7 +40,12 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		@Override
 		protected void runtask() {
 			executing = true;
-			throttledDispatch();
+			if(pendingUpdates){
+				agent().beginDefaultTran();			
+				throttledDispatch();
+				agent().commitDefaultTran();
+				pendingUpdates=false;
+			}
 			//Handle the pending operations..
 			for(ConnectionEvent connectionEvent : pendingTask){
 				ThrottledContainer.super.connect(connectionEvent);
@@ -232,38 +237,32 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 	 * 
 	 */
 	protected void throttledDispatch() {
-		if(pendingUpdates){
-			agent().beginDefaultTran();			
-			for(ContainerEntry containerEntry:getContainerEntries()){
-				switch(containerEntry.touchMode()){
-					case ContainerEntry.MARKED_DIRTY:
-						Map<Attribute,Substance> attrSubstanceMap = collectedUpdates.get(containerEntry.getIdentitySequence());
-						for(Entry<Attribute,Substance> oneAttrEntry:attrSubstanceMap.entrySet()){
-							super.dispatchEntryUpdated(oneAttrEntry.getKey(), oneAttrEntry.getValue(), containerEntry);
-						}
-						containerEntry.reset();
-						continue;
-	
-					case ContainerEntry.MARKED_REMOVED:
-						//Physically delete the record
-						deletePhysicalEntry(new ContainerDeleteEvent(getName(), containerEntry.getInternalIdentity(), 0));
-						//We consume the removal so force a dispatch. 
-						super.dispatchEntryRemoved(containerEntry);
-						containerEntry.reset();
-						continue;
-	
-					case ContainerEntry.MARKED_ADDED:
-						//Dispatch the addition
-						super.dispatchEntryAdded(containerEntry);
-						containerEntry.reset();
-						continue;
-				}
+		for(ContainerEntry containerEntry:getContainerEntries()){
+			switch(containerEntry.touchMode()){
+				case ContainerEntry.MARKED_DIRTY:
+					Map<Attribute,Substance> attrSubstanceMap = collectedUpdates.get(containerEntry.getIdentitySequence());
+					for(Entry<Attribute,Substance> oneAttrEntry:attrSubstanceMap.entrySet()){
+						super.dispatchEntryUpdated(oneAttrEntry.getKey(), oneAttrEntry.getValue(), containerEntry);
+					}
+					containerEntry.reset();
+					continue;
+
+				case ContainerEntry.MARKED_REMOVED:
+					//Physically delete the record
+					deletePhysicalEntry(new ContainerDeleteEvent(getName(), containerEntry.getInternalIdentity(), 0));
+					//We consume the removal so force a dispatch. 
+					super.dispatchEntryRemoved(containerEntry);
+					containerEntry.reset();
+					continue;
+
+				case ContainerEntry.MARKED_ADDED:
+					//Dispatch the addition
+					super.dispatchEntryAdded(containerEntry);
+					containerEntry.reset();
+					continue;
 			}
-			
-			collectedUpdates.clear();
-			agent().commitDefaultTran();
-			pendingUpdates=false;
 		}
+		collectedUpdates.clear();
 	}
 	
 	@Override

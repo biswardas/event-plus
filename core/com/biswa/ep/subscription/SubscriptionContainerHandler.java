@@ -30,11 +30,6 @@ public class SubscriptionContainerHandler implements SubscriptionSupport {
 	private SubscriptionContainerProcessor processor;
 	
 	/**
-	 * 
-	 */
-	private boolean hasUpdates = false;
-	
-	/**
 	 * Each subject maps to an entry in this container.
 	 */
 	private Map<Substance,Integer> subjectEntryMap =  new HashMap<Substance,Integer>();
@@ -205,7 +200,6 @@ public class SubscriptionContainerHandler implements SubscriptionSupport {
 	public void collectUpdates(Attribute attribute, Substance substance,
 		ContainerEntry containerEntry) {
 		containerEntry.markDirty(true);
-		hasUpdates = true;
 	}
 	
 	/**This method does the actual hand over of entry update to interested subscriber.
@@ -241,14 +235,6 @@ public class SubscriptionContainerHandler implements SubscriptionSupport {
 		entrySubscriptionRequestsMap.remove(containerEntry.getIdentitySequence());
 	}
 	
-	/**Does this handler hold any thing to be sent over?
-	 * 
-	 * @return boolean
-	 */
-	public boolean hasUpdates(){
-		return hasUpdates;
-	}
-	
 	/**
 	 *Dispatch all the collected updates to respective Subscribers. 
 	 */
@@ -263,7 +249,6 @@ public class SubscriptionContainerHandler implements SubscriptionSupport {
 				entry.markDirty(false);
 			}
 		}
-		hasUpdates = false;
 	}
 	
 	/**Remove all subscriptions associated with this sink.
