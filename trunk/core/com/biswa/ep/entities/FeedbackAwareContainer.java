@@ -42,9 +42,9 @@ public class FeedbackAwareContainer extends ThrottledContainer {
 		if(transactionID==0 || lastTransactionProcessed==transactionID){//Some client joined the party flush all collected updates
 			assert log("Receiving Feedback= "+transactionID+" at "+ System.currentTimeMillis());
 			lastTransactionProcessed =0;
-			if(!throttleTask.isQueued()){
+			if(!throttleTask.isActivated()){
 				agent().invokeOperation(throttleTask);
-				throttleTask.setQueued();
+				throttleTask.activate();
 			}
 		}
 	}
