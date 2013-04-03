@@ -54,6 +54,7 @@ public class SubscriptionContainer extends FeedbackAwareContainer implements Sub
 	@Override
 	public void dispatchEntryUpdated(Attribute attribute, Substance substance,
 			ContainerEntry containerEntry) {
+		pendingUpdates = true;
 		subscriptionHandler.collectUpdates(attribute,substance,containerEntry);
 		check();
 	}
@@ -84,11 +85,7 @@ public class SubscriptionContainer extends FeedbackAwareContainer implements Sub
 	 * 
 	 */
 	protected void throttledDispatch() {
-		if(subscriptionHandler.hasUpdates()){
-			agent().beginDefaultTran();
-			subscriptionHandler.processCollectedUpdates();
-			agent().commitDefaultTran();
-		}
+		subscriptionHandler.processCollectedUpdates();
 	}
 	
 	@Override
