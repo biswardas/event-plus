@@ -184,6 +184,7 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 			//Only continue the transaction if it is a throttled dispatch.
 			super.commitTran();
 		}else{
+			dispatchFeedback();
 			//If it is an ordinary transaction and check if qualifies for a direct dispatch.
 			check();
 		}
@@ -195,6 +196,7 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 			//Only continue the transaction if it is a throttled dispatch.
 			super.rollbackTran();
 		}else{
+			dispatchFeedback();
 			//If it is an ordinary transaction and check if qualifies for a direct dispatch.
 			check();
 		}
