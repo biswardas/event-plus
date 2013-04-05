@@ -1,6 +1,5 @@
 package com.biswa.ep.entities;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -67,7 +66,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	/**
 	 * Listeners listening this container
 	 */
-	protected FeedbackAgent[] feedBackAgents = new FeedbackAgent[0];
+	protected Map<String,FeedbackAgent> feedBackAgents = new  HashMap<String,FeedbackAgent>();
 	
 	/**
 	 *Static storage for this container. 
@@ -337,8 +336,9 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 * Dispatches feedback to interested upstream containers about the completion of transaction.
 	 */
 	protected void dispatchFeedback(){
-		for(FeedbackAgent feedbackAgent:feedBackAgents){
-			feedbackDispatched(feedbackAgent,getCurrentTransactionID());
+		String currentOrigin = getCurrentTransactionOrigin();
+		if(feedBackAgents.containsKey(currentOrigin)){
+			feedbackDispatched(feedBackAgents.get(currentOrigin),getCurrentTransactionID());
 		}
 	}
 
@@ -357,10 +357,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 
 	@Override
 	public void addFeedbackAgent(final FeedbackAgent feedbackAgent){
-		FeedbackAgent[] newFeedBackAgents=new FeedbackAgent[feedBackAgents.length+1];
-		System.arraycopy(feedBackAgents, 0, newFeedBackAgents, 1, feedBackAgents.length);
-		newFeedBackAgents[0]=feedbackAgent;
-		feedBackAgents = newFeedBackAgents;
+		feedBackAgents.put(feedbackAgent.getFeedBackConsumer(), feedbackAgent);
 		getEventDispatcher().submit(new Runnable(){
 			public void run(){
 				feedbackAgent.addFeedbackSource();
@@ -370,10 +367,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	
 	@Override
 	public void removeFeedbackAgent(FeedbackAgent feedbackAgent){
-		Collection<FeedbackAgent> feedbackAgentList=new ArrayList<FeedbackAgent>();
-		feedbackAgentList.addAll(Arrays.asList(feedBackAgents));
-		feedbackAgentList.remove(feedbackAgent);
-		feedBackAgents = feedbackAgentList.toArray(new FeedbackAgent[0]);
+		feedBackAgents.remove(feedbackAgent.getFeedBackConsumer());
 	}
 	
 	@Override
