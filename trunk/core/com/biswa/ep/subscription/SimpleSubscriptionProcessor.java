@@ -56,16 +56,11 @@ public abstract class SimpleSubscriptionProcessor extends
 			}
 		};
 		subscriptionThread.start();
-		Thread procthread = new Thread(producerName){
-			public void run() {
-				try {
-					failSafeInit();
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
-			};
-		};
-		procthread.start();
+		try {
+			failSafeInit();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public abstract Object subscribe(Object subject);
