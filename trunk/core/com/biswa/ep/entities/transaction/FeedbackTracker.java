@@ -117,7 +117,6 @@ public final class FeedbackTracker {
 				feedbackMap.put(transactionID, feedbackStatus);
 			} 
 			if(feedbackStatus.isCircuitComplete(sourceNumber)){
-				feedbackMap.remove(transactionID);
 				markFeedbackCycleComplete(transactionID);
 			}
 			
@@ -196,6 +195,7 @@ public final class FeedbackTracker {
 
 	private void markFeedbackCycleComplete(int transactionID) {
 		lastTransactionProcessed=0;
+		feedbackMap.remove(transactionID);
 		feedbackContainer.completionFeedback();
 	}
 	/**Returns the timed interval for this container
