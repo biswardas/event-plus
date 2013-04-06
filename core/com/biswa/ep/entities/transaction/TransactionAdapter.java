@@ -61,7 +61,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	/**
 	 * Tracker responsible to manage feedback
 	 */
-	final FeedbackTracker feedbackTracker;
+	private FeedbackTracker feedbackTracker;
 
 	/**
 	 * The Underlying container on which the events are going to be processed.
@@ -192,11 +192,16 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 			taskHandler = new SwingTaskHandler();
 		}
 		transactionTracker = new TransactionTracker(this);
-		feedbackTracker = new FeedbackTracker(this);
+	}
+	
+	public void setFeedbackTracker(FeedbackTracker feedbackTracker){
+		//TODO fix the possible NPE where someone unintentionally sends feedbacks.
+		this.feedbackTracker = feedbackTracker;
 	}
 	
 	@Override
 	public void addFeedbackSource(final FeedbackEvent feedbackEvent) {
+		//System.out.println("Feedback Source Added:"+feedbackEvent);
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
@@ -582,11 +587,6 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	public void rollbackTran(){
 		assert ensureExecutingInRightThread();
 		cl.rollbackTran();
-	}
-	@Override
-	public void completionFeedback(int transactionID){
-		assert ensureExecutingInRightThread();
-		cl.completionFeedback(transactionID);
 	}
 
 	@Override

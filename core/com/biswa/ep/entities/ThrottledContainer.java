@@ -101,7 +101,6 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		containerEntry.markAdded(true);
 		pendingUpdates = true;
 		dirty = true;
-		check();
 	}
 	
 	@Override
@@ -137,7 +136,6 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 			attrSubstanceMap.put(attribute,substance);
 			containerEntry.markDirty(true);
 		}
-		check();
 	}
 	
 	@Override
@@ -168,39 +166,8 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		collectedUpdates.remove(containerEntry.getIdentitySequence());
 		//Since the physical entry added in the last cycle has been removed
 		//No need to do anything.
-		check();
 	}
 
-	@Override
-	public void beginTran() {
-		if(throttleTask.isExecuting()){
-			//Only continue the transaction if it is a throttled dispatch.
-			super.beginTran();
-		}
-	}
-	@Override
-	final public void commitTran() {
-		if(throttleTask.isExecuting()){
-			//Only continue the transaction if it is a throttled dispatch.
-			super.commitTran();
-		}else{
-			dispatchFeedback();
-			//If it is an ordinary transaction and check if qualifies for a direct dispatch.
-			check();
-		}
-	}
-
-	@Override
-	final public void rollbackTran() {
-		if(throttleTask.isExecuting()){
-			//Only continue the transaction if it is a throttled dispatch.
-			super.rollbackTran();
-		}else{
-			dispatchFeedback();
-			//If it is an ordinary transaction and check if qualifies for a direct dispatch.
-			check();
-		}
-	}
 	
 	@Override
 	final public ContainerEntry[] getContainerEntries() {
@@ -211,10 +178,6 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		return allEntries;
 	}
 
-	/**
-	 * Scenario where no updates are generated before last cycle completed and no transaction in progress.
-	 */
-	protected void check(){};
 	/**Holy grail of a throttled container. Method which dispatches all the accumulated changes 
 	 * on demand.
 	 * 
@@ -254,6 +217,20 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		//as the downstream container do not see actual transaction 
 		//instead see a coalesced transaction.
 		return new String[]{getName()};
+	}
+
+	
+	/**Returns the timed interval for this container
+	 * 
+	 * @return int interval in milli seconds
+	 */
+	final public int getTimedInterval(){
+		String interval = getProperty(TIMED_INTERVAL);
+		int interValDuration = 1000;
+		if(interval!=null){
+			interValDuration = Integer.parseInt(interval);
+		}
+		return interValDuration;
 	}
 	
 	@Override

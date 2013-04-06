@@ -20,13 +20,6 @@ public interface TransactionRelay {
 	void rollbackTran();
 	
 	/**
-	 * Method tells the container that all
-	 * down stream containers have processed 
-	 * the transaction.
-	 */
-	void completionFeedback(int transactionId);
-	
-	/**
 	 * Method adds a feedback agent to the container which can be used to notify the
 	 * container interested in listening the feedback.
 	 */

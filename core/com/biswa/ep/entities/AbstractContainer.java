@@ -351,11 +351,6 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	}
 	
 	@Override
-	public void completionFeedback(int transactionID){
-		assert log("Completion Feedback: "+transactionID);
-	}
-
-	@Override
 	public void addFeedbackAgent(final FeedbackAgent feedbackAgent){
 		feedBackAgents.put(feedbackAgent.getFeedBackConsumer(), feedbackAgent);
 		getEventDispatcher().submit(new Runnable(){
