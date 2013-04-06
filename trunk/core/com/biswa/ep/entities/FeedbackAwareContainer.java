@@ -1,9 +1,9 @@
 package com.biswa.ep.entities;
 
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 import com.biswa.ep.entities.transaction.FeedbackEvent;
+import com.biswa.ep.entities.transaction.FeedbackTracker;
 /**Container which waits for the client to report completion of a 
  * particular transaction, before sending next batch of updates. 
  * The container triggers the updates in following scenarios.<br>
@@ -16,36 +16,21 @@ import com.biswa.ep.entities.transaction.FeedbackEvent;
  */
 
 public class FeedbackAwareContainer extends ThrottledContainer {
-	private final int feedback_time_out;
-	/**
-	 * Last throttled transaction on this container
-	 */
-	private int lastTransactionProcessed = 0;
+	private final FeedbackTracker feedbackTracker;
 	public FeedbackAwareContainer(String name,Properties props) {
 		super(name,props);
+		int feedback_time_out = 0;
 		if(props.getProperty(FEEDBACK_TIME_OUT)!=null){
 			feedback_time_out = Integer.parseInt(props.getProperty(FEEDBACK_TIME_OUT));
-		}else{
-			feedback_time_out = 0;
 		}
+		feedbackTracker = new FeedbackTracker(this,feedback_time_out,getTimedInterval());
+		agent().setFeedbackTracker(feedbackTracker);
 	}
-	
-	@Override
-	final protected void check(){
-		if(lastTransactionProcessed==0){
-			completionFeedback(0);
-		}
-	}
-	
-	@Override
-	public void completionFeedback(int transactionID) {
-		if(transactionID==0 || lastTransactionProcessed==transactionID){//Some client joined the party flush all collected updates
-			assert log("Receiving Feedback= "+transactionID+" at "+ System.currentTimeMillis());
-			lastTransactionProcessed =0;
-			if(!throttleTask.isActivated()){
-				agent().invokeOperation(throttleTask);
-				throttleTask.activate();
-			}
+	 
+	public void completionFeedback() {
+		if(!throttleTask.isActivated()){
+			agent().invokeOperation(throttleTask);
+			throttleTask.activate();
 		}
 	}
 
@@ -54,32 +39,29 @@ public class FeedbackAwareContainer extends ThrottledContainer {
 		if(throttleTask.isExecuting()){
 			//Only continue the transaction if it is a throttled dispatch.
 			super.beginTran();
-			assert lastTransactionProcessed==0:"I should never have been invoked while awaiting feedback"+lastTransactionProcessed;
-			lastTransactionProcessed = super.getCurrentTransactionID();
-			if(feedback_time_out>0){
-				final ContainerTask containerTask = new ContainerTask() {
-					/**
-					 * 
-					 */
-					private static final long serialVersionUID = -3941903416147756059L;
-					int transactionBeingTracked = lastTransactionProcessed;
-					@Override
-					protected void runtask() {
-						if(lastTransactionProcessed==transactionBeingTracked){
-							System.err.println("Transaction TimedOut "+transactionBeingTracked);
-							System.err.println("Forcing feedback completion");
-							completionFeedback(0);
-						}
-					}
-				};
-				agent().getEventCollector().schedule(new Runnable() {
-					@Override
-					public void run() {
-						agent().invokeOperation(containerTask);
-					}
+			feedbackTracker.trackTransaction(super.getCurrentTransactionID());
+		}
+	}
 	
-				}, feedback_time_out, TimeUnit.SECONDS);	
-			}
+	@Override
+	final public void commitTran() {
+		if(throttleTask.isExecuting()){
+			//Only continue the transaction if it is a throttled dispatch.
+			super.commitTran();
+		}else{
+			dispatchFeedback();
+			feedbackTracker.checkAndGo();
+		}
+	}
+
+	@Override
+	final public void rollbackTran() {
+		if(throttleTask.isExecuting()){
+			//Only continue the transaction if it is a throttled dispatch.
+			super.rollbackTran();
+		}else{
+			dispatchFeedback();
+			feedbackTracker.checkAndGo();
 		}
 	}
 	@Override

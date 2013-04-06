@@ -13,17 +13,32 @@ public class TimedContainer extends ThrottledContainer{
 		super(name,props);
 		invokePeriodically(throttleTask, 0, getTimedInterval(), TimeUnit.MILLISECONDS);
 	}
-	
-	/**Returns the timed interval for this container
-	 * 
-	 * @return int interval in milli seconds
-	 */
-	public int getTimedInterval(){
-		String interval = getProperty(TIMED_INTERVAL);
-		int interValDuration = 1000;
-		if(interval!=null){
-			interValDuration = Integer.parseInt(interval);
+
+	@Override
+	final public void beginTran() {
+		if(throttleTask.isExecuting()){
+			//Only continue the transaction if it is a throttled dispatch.
+			super.beginTran();
 		}
-		return interValDuration;
+	}
+	
+	@Override
+	final public void commitTran() {
+		if(throttleTask.isExecuting()){
+			//Only continue the transaction if it is a throttled dispatch.
+			super.commitTran();
+		}else{
+			dispatchFeedback();
+		}
+	}
+
+	@Override
+	final public void rollbackTran() {
+		if(throttleTask.isExecuting()){
+			//Only continue the transaction if it is a throttled dispatch.
+			super.rollbackTran();
+		}else{
+			dispatchFeedback();
+		}
 	}
 }

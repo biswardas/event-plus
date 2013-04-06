@@ -3,19 +3,27 @@ package com.biswa.ep.entities.transaction;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 import com.biswa.ep.ClientToken;
+import com.biswa.ep.entities.ContainerTask;
+import com.biswa.ep.entities.FeedbackAwareContainer;
 /**Feedback tracker which tracks the feedback from the originator.
  * 
  * @author biswa
  *
  */
 public final class FeedbackTracker {
+	private final int feedback_time_out;
+	/**
+	 * Last throttled transaction on this container
+	 */
+	private int lastTransactionProcessed = 0;
 	private final ClientToken CLIENT_TOKEN = new ClientToken();
 	/**
-	 * The transaction adapter it is associated with.
+	 * The Feedbackcontainer it is associated with.
 	 */
-	private TransactionAdapter tranAdapter;
+	private FeedbackAwareContainer feedbackContainer;
 	/**
 	 * Current circuit completion code, used to determine whether all 
 	 * sources have reported transaction completion.
@@ -71,8 +79,26 @@ public final class FeedbackTracker {
 	 * 
 	 * @param tranAdapter TransactionAdapter
 	 */
-	public FeedbackTracker(TransactionAdapter tranAdapter) {
-		this.tranAdapter=tranAdapter;
+	public FeedbackTracker(FeedbackAwareContainer feedbackContainer,int feedback_time_out,int timedInterval) {
+		this.feedbackContainer=feedbackContainer;
+		this.feedback_time_out=feedback_time_out;
+
+		//Since flush is done only when a feedback cycle is complete or
+		//any transaction is committed by upstream there is no easy way 
+		//of propagating changes to downstream containers. This periodically
+		//checks if there is anything dirty need to be propagated.
+		feedbackContainer.agent().getEventCollector().scheduleWithFixedDelay(new ContainerTask(){
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = -1284221022963982658L;
+
+			@Override
+			protected void runtask() throws Throwable {
+				checkAndGo();
+			}
+			
+		}, 0, timedInterval, TimeUnit.MILLISECONDS);
 	}
 	
 	/**Method to track feedback for each transaction.
@@ -91,11 +117,11 @@ public final class FeedbackTracker {
 			} 
 			if(feedbackStatus.isCircuitComplete(sourceNumber)){
 				feedbackMap.remove(transactionID);
-				tranAdapter.completionFeedback(transactionID);
+				markFeedbackCycleComplete(transactionID);
 			}
 			
 		}else{//Lone source of feedback lets go ahead
-			tranAdapter.completionFeedback(transactionID);
+			markFeedbackCycleComplete(transactionID);
 		}
 	}
 	
@@ -109,7 +135,7 @@ public final class FeedbackTracker {
 		//Re addition of the source
 		sourceToNumber.put(source, CLIENT_TOKEN.getToken());
 		circuitCompletionCode = CLIENT_TOKEN.getCurrentState();
-		tranAdapter.completionFeedback(0);
+		markFeedbackCycleComplete(0);
 	}
 	
 	/** The originator ceased to exist. Please treat in store feedback
@@ -127,10 +153,48 @@ public final class FeedbackTracker {
 				Feedback feedback = entry.getValue();
 				if(feedback.awareOf(primeIdentity)){//Seems this feedback was expecting this source
 					if(feedback.isCircuitComplete(primeIdentity)){//Treat this has arrived.
-						tranAdapter.completionFeedback(entry.getKey());
+						markFeedbackCycleComplete(entry.getKey());
 					}
 				}				
 			}
 		}
+	}
+	public void trackTransaction(int transactionID){
+		this.lastTransactionProcessed = transactionID;
+		if(feedback_time_out>0){
+			final ContainerTask containerTask = new ContainerTask() {
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = -3941903416147756059L;
+				int transactionBeingTracked = lastTransactionProcessed;
+				@Override
+				protected void runtask() {
+					if(lastTransactionProcessed==transactionBeingTracked){
+						feedbackContainer.log("Transaction TimedOut "+transactionBeingTracked);
+						feedbackContainer.log("Forcing feedback completion");
+						markFeedbackCycleComplete(0);
+					}
+				}
+			};
+			feedbackContainer.agent().getEventCollector().schedule(new Runnable() {
+				@Override
+				public void run() {
+					feedbackContainer.agent().invokeOperation(containerTask);
+				}
+
+			}, feedback_time_out, TimeUnit.SECONDS);	
+		}
+	}
+
+	public void checkAndGo(){
+		if(lastTransactionProcessed==0){
+			markFeedbackCycleComplete(0);
+		}
+	}
+
+	private void markFeedbackCycleComplete(int transactionID) {
+		lastTransactionProcessed=0;
+		feedbackContainer.completionFeedback();
 	}
 }

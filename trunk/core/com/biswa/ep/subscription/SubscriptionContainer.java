@@ -56,7 +56,6 @@ public class SubscriptionContainer extends FeedbackAwareContainer implements Sub
 			ContainerEntry containerEntry) {
 		pendingUpdates = true;
 		subscriptionHandler.collectUpdates(attribute,substance,containerEntry);
-		check();
 	}
 
 	@Override
