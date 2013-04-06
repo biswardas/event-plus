@@ -66,7 +66,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	/**
 	 * Listeners listening this container
 	 */
-	protected Map<String,FeedbackAgent> feedBackAgents = new  HashMap<String,FeedbackAgent>();
+	final protected Map<String,FeedbackAgent> feedBackAgents = new  HashMap<String,FeedbackAgent>();
 	
 	/**
 	 *Static storage for this container. 
