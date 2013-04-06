@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import com.biswa.ep.ClientToken;
 import com.biswa.ep.entities.ContainerTask;
 import com.biswa.ep.entities.FeedbackAwareContainer;
+import com.biswa.ep.entities.PropertyConstants;
 /**Feedback tracker which tracks the feedback from the originator.
  * 
  * @author biswa
@@ -79,9 +80,9 @@ public final class FeedbackTracker {
 	 * 
 	 * @param tranAdapter TransactionAdapter
 	 */
-	public FeedbackTracker(FeedbackAwareContainer feedbackContainer,int feedback_time_out,int timedInterval) {
+	public FeedbackTracker(FeedbackAwareContainer feedbackContainer) {
 		this.feedbackContainer=feedbackContainer;
-		this.feedback_time_out=feedback_time_out;
+		this.feedback_time_out=getFeedbackTimeout();
 
 		//Since flush is done only when a feedback cycle is complete or
 		//any transaction is committed by upstream there is no easy way 
@@ -98,7 +99,7 @@ public final class FeedbackTracker {
 				checkAndGo();
 			}
 			
-		}, 0, timedInterval, TimeUnit.MILLISECONDS);
+		}, 0, feedbackContainer.getTimedInterval(), TimeUnit.MILLISECONDS);
 	}
 	
 	/**Method to track feedback for each transaction.
@@ -196,5 +197,17 @@ public final class FeedbackTracker {
 	private void markFeedbackCycleComplete(int transactionID) {
 		lastTransactionProcessed=0;
 		feedbackContainer.completionFeedback();
+	}
+	/**Returns the timed interval for this container
+	 * 
+	 * @return int interval in milli seconds
+	 */
+	final private int getFeedbackTimeout(){
+		String feedbackTimeoutStr = feedbackContainer.getProperty(PropertyConstants.FEEDBACK_TIME_OUT);
+		int feedbackTimeout = 1000;
+		if(feedbackTimeoutStr!=null){
+			feedbackTimeout = Integer.parseInt(feedbackTimeoutStr);
+		}
+		return feedbackTimeout;
 	}
 }

@@ -19,11 +19,7 @@ public class FeedbackAwareContainer extends ThrottledContainer {
 	private final FeedbackTracker feedbackTracker;
 	public FeedbackAwareContainer(String name,Properties props) {
 		super(name,props);
-		int feedback_time_out = 0;
-		if(props.getProperty(FEEDBACK_TIME_OUT)!=null){
-			feedback_time_out = Integer.parseInt(props.getProperty(FEEDBACK_TIME_OUT));
-		}
-		feedbackTracker = new FeedbackTracker(this,feedback_time_out,getTimedInterval());
+		feedbackTracker = new FeedbackTracker(this);
 		agent().setFeedbackTracker(feedbackTracker);
 	}
 	 
