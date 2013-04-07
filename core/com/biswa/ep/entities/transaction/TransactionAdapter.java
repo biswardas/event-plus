@@ -814,7 +814,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 
 	/**
 	 * Run it on appropriate container thread. not the worker thread.
-	 * @return
+	 * @return boolean
 	 */
 	protected boolean ensureExecutingInRightThread() {
 		return taskHandler.ensureExecutingInRightThread(false);
