@@ -79,10 +79,7 @@ public class SubscriptionContainer extends FeedbackAwareContainer implements Sub
 		subscriptionHandler.disconnect(connectionEvent);
 	}
 	
-	/**Holy grail of a throttled container. Method which dispatches all the accumulated changes 
-	 * on demand.
-	 * 
-	 */
+	@Override
 	protected void throttledDispatch() {
 		subscriptionHandler.processCollectedUpdates();
 	}
