@@ -78,7 +78,7 @@ public final class FeedbackTracker {
 	
 	/**Feedback Tracker constructor
 	 * 
-	 * @param tranAdapter TransactionAdapter
+	 * @param feedbackContainer FeedbackAwareContainer
 	 */
 	public FeedbackTracker(FeedbackAwareContainer feedbackContainer) {
 		this.feedbackContainer=feedbackContainer;

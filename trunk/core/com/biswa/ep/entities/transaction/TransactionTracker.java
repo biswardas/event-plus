@@ -493,7 +493,7 @@ public final class TransactionTracker {
 
 	/**
 	 * Returns the Current transaction origin
-	 * @return
+	 * @return String
 	 */
 	public String getCurrentTransactionOrigin() {
 		return activeTransaction.getOrigin();

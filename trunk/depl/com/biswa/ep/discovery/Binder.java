@@ -32,7 +32,6 @@ public interface Binder extends EPService {
 	
 	/**This method binds a slave in registry.
 	 * 
-	 * @param acceptName String
 	 * @param obj Remote
 	 */
 	void bindSlave(EPDeployer obj) throws RemoteException;	
@@ -45,10 +44,8 @@ public interface Binder extends EPService {
 	void bindApp(EPDeployer obj) throws RemoteException;
 	
 	
-	/**This method binds a slave in registry.
-	 * 
-	 * @param acceptName String
-	 * @param obj Remote
+	/**
+	 * This method binds a slave in registry.
 	 */
 	EPDeployer getSlave() throws RemoteException;
 
