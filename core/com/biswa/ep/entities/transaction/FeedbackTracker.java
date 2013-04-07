@@ -16,15 +16,11 @@ import com.biswa.ep.entities.PropertyConstants;
  */
 public final class FeedbackTracker {
 	private final int feedback_time_out;
-	/**
-	 * Last throttled transaction on this container
-	 */
-	private int lastTransactionProcessed = 0;
 	private final ClientToken CLIENT_TOKEN = new ClientToken();
 	/**
 	 * The Feedbackcontainer it is associated with.
 	 */
-	private FeedbackAwareContainer feedbackContainer;
+	private final FeedbackAwareContainer feedbackContainer;
 	/**
 	 * Current circuit completion code, used to determine whether all 
 	 * sources have reported transaction completion.
@@ -33,7 +29,7 @@ public final class FeedbackTracker {
 	/**
 	 * Numerical equivalent of the source.
 	 */
-	private Map<String,Integer> sourceToNumber = new HashMap<String,Integer>();
+	private final Map<String,Integer> sourceToNumber = new HashMap<String,Integer>();
 	/**Class which maintains state of each feedback/source.
 	 * 
 	 * @author biswa
@@ -71,6 +67,10 @@ public final class FeedbackTracker {
 			return (expected|sourceNum)>expected;
 		}
 	}
+	/**
+	 * Last throttled transaction on feedbackContainer
+	 */
+	private int lastTransactionProcessed = 0;
 	/**
 	 * Transaction to circuit completion code.
 	 */
@@ -160,39 +160,47 @@ public final class FeedbackTracker {
 		}
 	}
 	public void trackTransaction(int transactionID){
-		this.lastTransactionProcessed = transactionID;
-		if(feedback_time_out>0){
-			final ContainerTask containerTask = new ContainerTask() {
-				/**
-				 * 
-				 */
-				private static final long serialVersionUID = -3941903416147756059L;
-				int transactionBeingTracked = lastTransactionProcessed;
-				@Override
-				protected void runtask() {
-					if(lastTransactionProcessed==transactionBeingTracked){
-						feedbackContainer.log("Transaction TimedOut "+transactionBeingTracked);
-						feedbackContainer.log("Forcing feedback completion");
-						markFeedbackCycleComplete(0);
+		if(!sourceToNumber.isEmpty()){
+			this.lastTransactionProcessed = transactionID;
+			if(feedback_time_out>0){
+				final ContainerTask containerTask = new ContainerTask() {
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = -3941903416147756059L;
+					int transactionBeingTracked = lastTransactionProcessed;
+					@Override
+					protected void runtask() {
+						if(lastTransactionProcessed==transactionBeingTracked){
+							feedbackContainer.log("Transaction TimedOut "+transactionBeingTracked);
+							feedbackContainer.log("Forcing feedback completion");
+							markFeedbackCycleComplete(0);
+						}
 					}
-				}
-			};
-			feedbackContainer.agent().getEventCollector().schedule(new Runnable() {
-				@Override
-				public void run() {
-					feedbackContainer.agent().invokeOperation(containerTask);
-				}
-
-			}, feedback_time_out, TimeUnit.SECONDS);	
+				};
+				feedbackContainer.agent().getEventCollector().schedule(new Runnable() {
+					@Override
+					public void run() {
+						feedbackContainer.agent().invokeOperation(containerTask);
+					}
+	
+				}, feedback_time_out, TimeUnit.SECONDS);	
+			}
 		}
 	}
-
+	/**
+	 * If not awaiting any feedback  from source then dispatch next
+	 * throttled transaction.
+	 */
 	public void checkAndGo(){
 		if(lastTransactionProcessed==0){
 			markFeedbackCycleComplete(0);
 		}
 	}
-
+	/**
+	 * Cleans the transaction and triggers next throttled transaction cycle.
+	 * @param transactionID int
+	 */
 	private void markFeedbackCycleComplete(int transactionID) {
 		lastTransactionProcessed=0;
 		feedbackMap.remove(transactionID);
