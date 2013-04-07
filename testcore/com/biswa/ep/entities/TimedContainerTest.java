@@ -2,9 +2,8 @@ package com.biswa.ep.entities;
 
 
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import junit.framework.Assert;
 
@@ -42,9 +41,7 @@ public class TimedContainerTest {
 	
 	@Test
 	public void testNonTransactionalOrigin() throws InterruptedException{
-		final AtomicInteger insertCounter = new AtomicInteger();
-		final AtomicInteger deleteCounter = new AtomicInteger();
-		final AtomicInteger updateCounter = new AtomicInteger();
+		final CountDownLatch insertCounter = new CountDownLatch(3);
 		final Semaphore s = new Semaphore(1);
 		s.drainPermits();
 		Agent agent = new Agent(new StaticContainer(SINK, new Properties())){
@@ -57,20 +54,8 @@ public class TimedContainerTest {
 			@Override
 			public void entryAdded(ContainerEvent ce) {
 				System.out.println("Received ContainerEvent:"+ce);
-				insertCounter.incrementAndGet();
-			}
-
-			@Override
-			public void entryRemoved(ContainerEvent ce) {
-				System.out.println("Received ContainerEvent:"+ce);
-				deleteCounter.decrementAndGet();
-			}
-
-			@Override
-			public void entryUpdated(ContainerEvent ce) {
-				System.out.println("Received ContainerEvent:"+ce);
-				updateCounter.incrementAndGet();
-			}
+				insertCounter.countDown();
+			} 
 			
 			@Override
 			public void attributeAdded(ContainerEvent ce) {
@@ -90,22 +75,13 @@ public class TimedContainerTest {
 			
 		};
 		source.agent().connect(new ConnectionEvent(SOURCE,SINK,agent));
-		if(!s.tryAcquire(1000,TimeUnit.MILLISECONDS)){
-			Assert.fail("Connected Event is not received");
-		}
+		s.acquireUninterruptibly();
 
 		source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(10000),0));
 		source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(10001),0));
 		source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(10002),0));
-		if(!s.tryAcquire(FLUSH_MILLI_SECS,TimeUnit.MILLISECONDS)){
-			Assert.assertEquals(3,insertCounter.get());
-			Assert.assertEquals(0,updateCounter.get());
-			Assert.assertEquals(0,deleteCounter.get());
-		}
-		
-		insertCounter.set(0);
-		updateCounter.set(0);
-		deleteCounter.set(0);
+		insertCounter.await();
+		s.acquireUninterruptibly();
 		
 		source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(10004),0));
 		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10004,attr,InvalidSubstance.INVALID_SUBSTANCE,0));
@@ -113,18 +89,12 @@ public class TimedContainerTest {
 		source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(10004),0));
 		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10004,attr,InvalidSubstance.INVALID_SUBSTANCE,0));
 		source.agent().entryRemoved(new ContainerDeleteEvent(SOURCE,10004,0));
-		if(!s.tryAcquire(FLUSH_MILLI_SECS,TimeUnit.MILLISECONDS)){
-			Assert.assertEquals(0,insertCounter.get());
-			Assert.assertEquals(0,updateCounter.get());
-			Assert.assertEquals(0,deleteCounter.get());
-		}
+		s.acquireUninterruptibly();
 	}
 	
 	@Test
 	public void testTransactionalOrigin() throws InterruptedException{
-		final AtomicInteger insertCounter = new AtomicInteger();
-		final AtomicInteger deleteCounter = new AtomicInteger();
-		final AtomicInteger updateCounter = new AtomicInteger();
+		final CountDownLatch insertCounter = new CountDownLatch(3);
 		final Semaphore s = new Semaphore(1);
 		s.drainPermits();
 		Agent agent = new Agent(new StaticContainer(SINK, new Properties())){
@@ -137,29 +107,12 @@ public class TimedContainerTest {
 			@Override
 			public void entryAdded(ContainerEvent ce) {
 				System.out.println("Received ContainerEvent:"+ce);
-				insertCounter.incrementAndGet();
-			}
-
-			@Override
-			public void entryRemoved(ContainerEvent ce) {
-				System.out.println("Received ContainerEvent:"+ce);
-				deleteCounter.decrementAndGet();
-			}
-
-			@Override
-			public void entryUpdated(ContainerEvent ce) {
-				System.out.println("Received ContainerEvent:"+ce);
-				updateCounter.incrementAndGet();
+				insertCounter.countDown();
 			}
 			
 			@Override
 			public void attributeAdded(ContainerEvent ce) {
 				System.out.println("Received ContainerEvent:"+ce);
-			}
-
-			@Override
-			public void beginTran(TransactionEvent te) {
-				System.out.println("Received Transaction Started:"+te);
 			}
 
 			@Override
@@ -170,23 +123,14 @@ public class TimedContainerTest {
 			
 		};
 		source.agent().connect(new ConnectionEvent(SOURCE,SINK,agent));
-		if(!s.tryAcquire(1000,TimeUnit.MILLISECONDS)){
-			Assert.fail("Connected Event is not received");
-		}
+		s.acquireUninterruptibly();
 		source.agent().beginTran(new TransactionEvent(SOURCE,TRANID));
 		source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(10000),TRANID));
 		source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(10001),TRANID));
 		source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(10002),TRANID));
 		source.agent().commitTran(new TransactionEvent(SOURCE,TRANID));
-		if(!s.tryAcquire(FLUSH_MILLI_SECS,TimeUnit.MILLISECONDS)){
-			Assert.assertEquals(3,insertCounter.get());
-			Assert.assertEquals(0,updateCounter.get());
-			Assert.assertEquals(0,deleteCounter.get());
-		}		
-		insertCounter.set(0);
-		updateCounter.set(0);
-		deleteCounter.set(0);
-		
+		insertCounter.await();
+		s.acquireUninterruptibly();
 		source.agent().beginTran(new TransactionEvent(SOURCE,TRANID));
 		source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(10004),TRANID));
 		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10004,attr,InvalidSubstance.INVALID_SUBSTANCE,TRANID));
@@ -195,11 +139,6 @@ public class TimedContainerTest {
 		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10004,attr,InvalidSubstance.INVALID_SUBSTANCE,TRANID));
 		source.agent().entryRemoved(new ContainerDeleteEvent(SOURCE,10004,TRANID));
 		source.agent().commitTran(new TransactionEvent(SOURCE,TRANID));
-		
-		if(!s.tryAcquire(FLUSH_MILLI_SECS,TimeUnit.MILLISECONDS)){
-			Assert.assertEquals(0,insertCounter.get());
-			Assert.assertEquals(0,updateCounter.get());
-			Assert.assertEquals(0,deleteCounter.get());
-		}
+		s.acquireUninterruptibly();
 	}
 }
