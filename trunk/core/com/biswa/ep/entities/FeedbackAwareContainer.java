@@ -23,11 +23,8 @@ public class FeedbackAwareContainer extends ThrottledContainer {
 		agent().setFeedbackTracker(feedbackTracker);
 	}
 	 
-	public void completionFeedback() {
-		if(!throttleTask.isActivated()){
-			agent().invokeOperation(throttleTask);
-			throttleTask.activate();
-		}
+	public final void completionFeedback() {
+		throttleTask.activate();
 	}
 
 	@Override

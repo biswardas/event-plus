@@ -44,14 +44,14 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 			executing = false;
 			activated = false;
 		}
-		boolean isActivated(){
-			return activated;
-		}
 		boolean isExecuting(){
 			return executing;
 		}
 		void activate(){
-			activated = true;
+			if(!activated){
+				agent().invokeOperation(this);
+				activated = true;
+			}
 		}
 	};
 	final protected ThrottleTask throttleTask = new ThrottleTask();
