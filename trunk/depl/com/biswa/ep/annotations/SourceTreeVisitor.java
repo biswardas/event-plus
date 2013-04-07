@@ -594,11 +594,9 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 	}
 
 	private boolean checkDependency(EPAttribute dependant, EPAttribute dependee) {
-		int dependentValue = dependant != null ? dependant.type()
-				.depedencyValue() : EPAttrType.Member.depedencyValue();
-		int dependeeValue = dependee != null ? dependee.type().depedencyValue()
-				: EPAttrType.Member.depedencyValue();
-		return dependentValue >= dependeeValue;
+		EPAttrType dependantType=(dependant==null)?EPAttrType.Member:dependant.type();
+		EPAttrType dependeeType=(dependee==null)?EPAttrType.Member:dependee.type();
+		return dependantType.isDependencyAllowed(dependeeType);
 	}
 
 	private void writeln(String str) {

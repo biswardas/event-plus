@@ -10,22 +10,73 @@ import com.biswa.ep.entities.StaticAttribute;
 import com.biswa.ep.subscription.SimpleSubscriptionProcessor;
 
 public enum EPAttrType {
-	Static(StaticAttribute.class, 0), Private(PrivateAttribute.class, 1), Member(
-			Attribute.class, 1), Subscriber(Attribute.class,
-			1), SubProcessor(SimpleSubscriptionProcessor.class,2),Stateless(StatelessAttribute.class, 3), ;
-	private String name = Attribute.class.getName();
-	private int dependency;
+	Static(StaticAttribute.class) {
 
-	EPAttrType(Class<? extends Attribute> className, int dependency) {
+		@Override
+		public boolean isDependencyAllowed(EPAttrType guest) {
+			switch (guest) {
+			case Static:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+	},
+	Private(PrivateAttribute.class) {
+
+		@Override
+		public boolean isDependencyAllowed(EPAttrType guest) {
+			switch (guest) {
+			case Stateless:
+				return false;
+			default:
+				return true;
+			}
+		}
+
+	},
+	Member(Attribute.class) {
+
+		@Override
+		public boolean isDependencyAllowed(EPAttrType guest) {
+			switch (guest) {
+			case Stateless:
+				return false;
+			default:
+				return true;
+			}
+		}
+
+	},
+	Subscriber(Attribute.class) {
+		@Override
+		public boolean isDependencyAllowed(EPAttrType guest) {
+			return false;
+		}
+
+	},
+	SubProcessor(SimpleSubscriptionProcessor.class) {
+		@Override
+		public boolean isDependencyAllowed(EPAttrType guest) {
+			return false;
+		}
+	},
+	Stateless(StatelessAttribute.class) {
+		@Override
+		public boolean isDependencyAllowed(EPAttrType guest) {
+			return true;
+		}
+	};
+	private String name;
+
+	EPAttrType(Class<? extends Attribute> className) {
 		this.name = className.getName();
-		this.dependency = dependency;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public int depedencyValue() {
-		return dependency;
-	}
+	public abstract boolean isDependencyAllowed(EPAttrType guest);
 }
