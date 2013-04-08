@@ -11,7 +11,6 @@ import com.biswa.ep.ClientToken;
 import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.identity.ConcreteIdentityGenerator;
 import com.biswa.ep.entities.spec.FilterSpec;
-import com.biswa.ep.entities.spec.SortSpec.SortOrder;
 import com.biswa.ep.entities.spec.Spec;
 import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.entities.transaction.Agent;
@@ -757,15 +756,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 
 		}, initial, delay, timeUnit);
 	}
-	
-	/**Constructor which accepts sort specification to provided sorting in the container
-	 * 
-	 * @param sortorder SortOrder
-	 */
-	public void applySort(final SortOrder ... sortorder){
-		throw new UnsupportedOperationException("This container does not support sorting");
-	}
-	
+		
 	/**Apply the source filter on the container.
 	 * 
 	 * @param filterSpec FilterSpec
