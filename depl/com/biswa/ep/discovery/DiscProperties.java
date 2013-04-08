@@ -7,4 +7,6 @@ public interface DiscProperties {
 	public static final String PP_REG_HC_INTERVAL= "ep.registry.hc.interval";
 	public static final String DEPLOYMENT_DESC = "ep.deployment.desc";
 	public static final String SLAVE_SIDE = "slave";
+	public static final String LEFT_SIDE = "Left";
+	public static final String RIGHT_SIDE = "Right";
 }

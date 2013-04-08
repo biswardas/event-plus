@@ -13,6 +13,7 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleElementVisitor6;
 
+import com.biswa.ep.discovery.DiscProperties;
 import com.sun.tools.javac.code.Symbol;
 
 public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
@@ -123,7 +124,7 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 		
 		writeListener(containerAnnot.publish(),
 				leftContainer,
-				leftContext, "Left",leftFilter,leftChainMode);
+				leftContext, DiscProperties.LEFT_SIDE,leftFilter,leftChainMode);
 		if(containerManager.supportsFeedback(leftContainer)){
 			EPPublish listenMethod = containerManager.getListenMethod(context,leftContainer,leftContext);
 			writeFeedback(listenMethod, leftContainer, leftContext);
@@ -135,7 +136,7 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 		
 		writeListener(containerAnnot.publish(),
 				rightContainer,
-				rightContext, "Right",rightFilter,rightChainMode);
+				rightContext, DiscProperties.RIGHT_SIDE,rightFilter,rightChainMode);
 		if(containerManager.supportsFeedback(rightContainer)){
 			EPPublish listenMethod = containerManager.getListenMethod(context,leftContainer,leftContext);
 			writeFeedback(listenMethod, rightContainer, rightContext);

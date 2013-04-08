@@ -6,6 +6,7 @@ import com.biswa.ep.deployment.ContainerManager;
 import com.biswa.ep.deployment.util.Container;
 import com.biswa.ep.deployment.util.Context;
 import com.biswa.ep.deployment.util.Listen;
+import com.biswa.ep.discovery.DiscProperties;
 import com.biswa.ep.entities.ConcreteContainer;
 import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.JoinContainer;
@@ -24,7 +25,7 @@ public class JoinDeploymentHandler extends DeploymentHandler {
 		String leftContainer = null;
 		String rightContainer = null;
 		for (Listen listen : container.getListen()) {
-			if ("Left".equals(listen.getSide())) {
+			if (DiscProperties.LEFT_SIDE.equals(listen.getSide())) {
 				leftContainer = listen.getContainer();
 			} else {
 				rightContainer = listen.getContainer();
