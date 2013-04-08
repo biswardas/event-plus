@@ -1,8 +1,8 @@
 package com.biswa.ep.entities.spec;
 
-import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ContainerListener;
+import com.biswa.ep.entities.PivotContainer;
 
 public class SortSpec implements Spec {
 	/**
@@ -32,7 +32,7 @@ public class SortSpec implements Spec {
 	
 	@Override
 	public void apply(ContainerListener listener) {
-		AbstractContainer abs = (AbstractContainer) listener;
+		PivotContainer abs = (PivotContainer) listener;
 		abs.applySort(sortorder);
 	}
 

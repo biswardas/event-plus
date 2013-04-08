@@ -477,7 +477,11 @@ public class PivotContainer extends ConcreteContainer {
 		}
 	}
 	
-	@Override
+
+	/**Constructor which accepts sort specification to provided sorting in the container
+	 * 
+	 * @param sortorder SortOrder
+	 */
 	public void applySort(final SortOrder ... sortorder){
 	}
 	
