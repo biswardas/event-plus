@@ -130,12 +130,17 @@ final public class JoinContainer extends ConcreteContainer {
 	}
 	
 	@Override
-	public ContainerEntry[] getContainerEntries() {
+	final public ContainerEntry[] getContainerEntries() {
 		Collection<ContainerEntry> containerEntries= new ArrayList<ContainerEntry>();
 		for(JoinedEntryIndex.JoinedEntry je :joinedEntryCollection){
 			containerEntries.add(je.joinedEntry);
 		}
 		return containerEntries.toArray(new ContainerEntry[0]);
+	}
+	
+	@Override
+	final public int getEntryCount() {
+		return joinedEntryCollection.size();
 	}
 	
 	/**Method performs the join/rejoin post insert. 

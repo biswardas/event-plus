@@ -14,4 +14,5 @@ public interface ContainerEntryStore{
 	void save(PhysicalEntry containerEntry);
 	PhysicalEntry[] getEntries();
 	PhysicalEntry getDefaultEntry();
+	int getEntryCount();
 }

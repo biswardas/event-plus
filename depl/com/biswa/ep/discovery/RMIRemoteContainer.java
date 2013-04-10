@@ -209,5 +209,10 @@ public class RMIRemoteContainer extends AbstractContainer {
 	public void updateStatic(Attribute attribute, Substance substance,
 			FilterSpec appliedFilter) {
 		throw new UnsupportedOperationException();		
+	}
+
+	@Override
+	public int getEntryCount() {
+		throw new UnsupportedOperationException();
 	};
 }
