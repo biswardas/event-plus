@@ -175,6 +175,11 @@ public class ConcreteContainer extends CascadeContainer{
 	}
 	
 	@Override
+	public int getEntryCount() {
+		return containerEntryStore.getEntryCount();
+	}
+	
+	@Override
 	public void clear() {
 		for (ContainerEntry containerEntry: getContainerEntries()){
 			dispatchEntryRemoved(containerEntry);

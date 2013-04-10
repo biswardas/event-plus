@@ -147,10 +147,12 @@ public class GenericViewer extends PivotContainer {
 
 	@Override
 	public void dispatchEntryAdded(ContainerEntry ce) {
+		vtableModel.recordSetDirty=true;
 	}
 
 	@Override
 	public void dispatchEntryRemoved(ContainerEntry ce) {
+		vtableModel.recordSetDirty=true;
 	}
 
 	@Override
@@ -162,35 +164,52 @@ public class GenericViewer extends PivotContainer {
 		 * 
 		 */
 		private static final long serialVersionUID = 4352652252566957454L;
+		boolean recordSetDirty = true;
 		private GenericViewer cs;
-
+		private ContainerEntry[] containerEntries = null;
+		private Attribute[] attributes = null;
 		public ViewerTableModel(GenericViewer cs) {
 			this.cs = cs;
+			this.attributes = cs.getSubscribedAttributes();
+			this.containerEntries = cs.getContainerEntries();
+			recordSetDirty=false;
 		}
 
 		public String getColumnName(int col) {
 			if(col==0) return "Identity";
-			else return cs.getSubscribedAttributes()[col-1].getName();
+			else return attributes[col-1].getName();
 		}
 
 		@Override
 		public int getColumnCount() {
-			int cnt = cs.getSubscribedAttributes().length;
+			int cnt = attributes.length;
 			return cnt+1;
 		}
 
 		@Override
 		public int getRowCount() {
-			int cnt = cs.getContainerEntries().length;
+			int cnt = cs.getEntryCount();
 			return cnt;
 		}
 
 		@Override
 		public Object getValueAt(int rowIndex, int columnIndex) {
-			if(columnIndex==0) return cs.getContainerEntries()[rowIndex].getIdentitySequence();
+			if(columnIndex==0) return containerEntries[rowIndex].getIdentitySequence();
 			else 
-			return new CellValue(cs.getContainerEntries()[rowIndex].getSubstance(cs
-					.getSubscribedAttributes()[columnIndex-1]));
+			return new CellValue(containerEntries[rowIndex].getSubstance(attributes[columnIndex-1]));
+		}
+		@Override
+		public void fireTableDataChanged(){
+			if(recordSetDirty){
+				this.containerEntries = cs.getContainerEntries();
+				recordSetDirty = false;
+			}
+			super.fireTableDataChanged();
+		}
+		@Override
+		public void fireTableStructureChanged(){
+			this.attributes = cs.getSubscribedAttributes();
+			super.fireTableStructureChanged();
 		}
 	}
 	class CellValue implements Comparable<CellValue>{

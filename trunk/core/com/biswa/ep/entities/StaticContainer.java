@@ -79,6 +79,11 @@ public class StaticContainer extends CascadeContainer {
 	public ContainerEntry[] getContainerEntries() {
 		return null;
 	}
+	
+	@Override
+	public int getEntryCount() {
+		return 0;
+	}
 
 	@Override
 	public ContainerEntry getConcreteEntry(int id) {

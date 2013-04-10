@@ -607,12 +607,19 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 * @return Attribute
 	 */
 	public abstract Attribute getAttributeByName(String attributeName);
-	
-	/** The entries of this container which is seen by external world.
+
+	/** The entries of this container as visible from external world.
 	 * 
 	 * @return ContainerEntry[]
 	 */
 	public abstract ContainerEntry[] getContainerEntries();
+	
+	/** Number of entries this container has must always match to 
+	 * <code>getContainerEntries().length</code>
+	 * 
+	 * @return int
+	 */
+	public abstract int getEntryCount();
 	
 	/**Method returns the concrete container entry.
 	 * 

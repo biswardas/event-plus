@@ -58,4 +58,9 @@ class ConcreteContainerEntryStore implements ContainerEntryStore{
 	public PhysicalEntry getEntry(int id) {
 		return (PhysicalEntry) containerDataEntries.get(id);
 	}
+
+	@Override
+	public int getEntryCount() {
+		return containerDataEntries.size();
+	}
 }
