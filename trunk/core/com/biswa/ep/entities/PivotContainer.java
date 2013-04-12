@@ -218,10 +218,9 @@ public class PivotContainer extends ConcreteContainer {
 		 */
 		private final PivotEntry parent;
 		/**
-		 * Unique identity of this pivot (virtual container entry) in the
-		 * current infrastructure.
+		 * Summary Entry associated with this pivot.
 		 */
-		private final int identity = generateIdentity();
+		private ContainerEntry summaryEntry;
 		/**
 		 * Child pivots this pivot contains.
 		 */
@@ -250,11 +249,13 @@ public class PivotContainer extends ConcreteContainer {
 
 		private void letTheWorldKnow(
 				final Map<Attribute, Substance> entryQualifier) {
+			int identity=generateIdentity();
 			TransportEntry newContainerEntry = new TransportEntry(identity,
 					entryQualifier);
 			ContainerEvent adjEvent = new ContainerInsertEvent(
 					PivotContainer.this.getName(), newContainerEntry,getCurrentTransactionID());
 			PivotContainer.super.entryAdded(adjEvent);
+			summaryEntry = getConcreteEntry(identity);
 		}
 
 		/**
@@ -309,7 +310,7 @@ public class PivotContainer extends ConcreteContainer {
 		private void removePivot(Substance substance) {
 			PivotEntry toBeDeletedEntry = childPivotEntries.remove(substance);
 			ContainerEvent adjEvent = new ContainerDeleteEvent(
-					PivotContainer.this.getName(), toBeDeletedEntry.identity,getCurrentTransactionID());
+					PivotContainer.this.getName(), toBeDeletedEntry.summaryEntry.getIdentitySequence(),getCurrentTransactionID());
 			PivotContainer.super.entryRemoved(adjEvent);
 
 			if (parent != null && childPivotEntries.isEmpty()) {
@@ -363,7 +364,7 @@ public class PivotContainer extends ConcreteContainer {
 					inputSubstances.add(containerEntry.getSubstance(attribute));
 				}
 				ContainerEvent adjEvent = new ContainerUpdateEvent(
-						PivotContainer.this.getName(), identity,
+						PivotContainer.this.getName(), summaryEntry.getIdentitySequence(),
 						attribute, aggregator.failSafeaggregate(inputSubstances
 								.toArray(new Substance[0])),getCurrentTransactionID());
 				PivotContainer.super.entryUpdated(adjEvent);
@@ -379,7 +380,7 @@ public class PivotContainer extends ConcreteContainer {
 
 				containerEntries = new ContainerEntry[pivotEntries.length];
 				for (int i = 0; i < pivotEntries.length; i++) {
-					containerEntries[i] = getConcreteEntry(pivotEntries[i].identity);
+					containerEntries[i] = pivotEntries[i].summaryEntry;
 				}
 
 			} else {// Leaf level Pivot
@@ -468,10 +469,9 @@ public class PivotContainer extends ConcreteContainer {
 		}
 		if (root != null) {
 			root.clear();
-			// Re pivot everything based on new specification			
-			int rootIdentity = root.identity; // TODO check does this ever change?
+			// Re pivot everything based on new specification
 			for (ContainerEntry containerEntry : getContainerDataEntries()) {
-				if(containerEntry.getIdentitySequence()==rootIdentity) continue;
+				if(containerEntry==root.summaryEntry) continue;
 				applyPivot(containerEntry);
 			}
 		}
