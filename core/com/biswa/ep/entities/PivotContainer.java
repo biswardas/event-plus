@@ -375,8 +375,8 @@ public class PivotContainer extends ConcreteContainer {
 		private PivotEntry create(final Substance substanceAtDepth, Map<Attribute, Substance> entryQualifier) {
 			dirty=true;
 			PivotEntry pivEntry = new PivotEntry(substanceAtDepth, this);
+			pivEntry.letTheWorldKnow(entryQualifier);
 			childPivotEntries.put(substanceAtDepth, pivEntry);
-			letTheWorldKnow(entryQualifier);
 			return pivEntry;
 		}		
 			
