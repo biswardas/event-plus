@@ -16,6 +16,6 @@ public class PivotSpec implements Spec {
 	@Override
 	public void apply(ContainerListener listener) {
 		PivotContainer pivotSchema = (PivotContainer)listener;
-		pivotSchema.pivot(pivotArray);
+		pivotSchema.applyPivot(pivotArray);
 	}
 }
