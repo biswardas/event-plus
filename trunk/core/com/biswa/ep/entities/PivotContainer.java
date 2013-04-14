@@ -529,6 +529,26 @@ public class PivotContainer extends ConcreteContainer {
 		}
 	}
 
+
+	private void rePivot() {
+		if (root != null) {
+			root.clear();
+			System.out.println("Total No OF Entries:"+getContainerDataEntries().length);
+			// Re pivot everything based on new specification
+			for (ContainerEntry containerEntry : getContainerDataEntries()) {
+				if(containerEntry==root.summaryEntry) continue;
+				applyPivot(containerEntry);
+			}
+			indexedEntries = root.getContainerEntries();
+		}
+	}
+	
+	/**Behavior method to apply pivot on this container.
+	 * 
+	 * @param pivotArray Attribute[]
+	 * 
+	 * @throws NullPointerException if pivotArray is null
+	 */
 	public void applyPivot(Attribute[] pivotArray) {
 		pivotedAttributes.clear();
 		for(Attribute pivot:pivotArray){
@@ -544,27 +564,15 @@ public class PivotContainer extends ConcreteContainer {
 			aggrMap.remove(attribute);
 		}
 		rePivot();
-	}
+	}	
 
-	private void rePivot() {
-		if (root != null) {
-			root.clear();
-			System.out.println("Total No OF Entries:"+getContainerDataEntries().length);
-			// Re pivot everything based on new specification
-			for (ContainerEntry containerEntry : getContainerDataEntries()) {
-				if(containerEntry==root.summaryEntry) continue;
-				applyPivot(containerEntry);
-			}
-			indexedEntries = root.getContainerEntries();
-		}
-	}
-	
-
-	/**Constructor which accepts sort specification to provided sorting in the container
+	/**Behavior method to apply sort on this container.
 	 * 
 	 * @param sortorder SortOrder
+	 * 
+	 * @throws NullPointerException if sortorder is null
 	 */
-	public void applySort(final Map<Attribute,Boolean> sortorder){
+	public void applySort(final LinkedHashMap<Attribute,Boolean> sortorder){
 		for(Entry<Attribute, Boolean> entry:sortorder.entrySet()){
 			this.sortOrder.put(entry.getKey().getRegisteredAttribute(),entry.getValue());
 		}
@@ -573,11 +581,17 @@ public class PivotContainer extends ConcreteContainer {
 		indexedEntries = root.getContainerEntries();
 	}
 	
-	public void applyAggregation(final Map<Attribute, Aggregator> changeMap) {
+	/**Behavior method to apply aggregation on this container.
+	 * 
+	 * @param aggrSpec LinkedHashMap<Attribute, Aggregator>
+	 * 
+	 * @throws NullPointerException if aggrSpec is null
+	 */
+	public void applyAggregation(final LinkedHashMap<Attribute, Aggregator> aggrSpec) {
 		for(Attribute attribute:pivotedAttributes.keySet()){
-			changeMap.remove(attribute);
+			aggrSpec.remove(attribute);
 		}
-		for(Entry<Attribute, Aggregator> entry:changeMap.entrySet()){
+		for(Entry<Attribute, Aggregator> entry:aggrSpec.entrySet()){
 			this.aggrMap.put(entry.getKey().getRegisteredAttribute(),entry.getValue());
 		}
 		if(root!=null){
