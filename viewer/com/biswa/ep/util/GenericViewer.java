@@ -8,8 +8,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
@@ -165,7 +165,7 @@ public class GenericViewer extends PivotContainer {
 		vtableModel.fireTableStructureChanged();
 	}
 	@Override
-	public void applySort(final Map<Attribute,Boolean> sortorder){
+	public void applySort(final LinkedHashMap<Attribute,Boolean> sortorder){
 		super.applySort(sortorder);
 		vtableModel.recordSetDirty=true;
 	}
