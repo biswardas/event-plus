@@ -1,13 +1,13 @@
 package com.biswa.ep.entities;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -38,7 +38,7 @@ public class PivotContainer extends ConcreteContainer {
 	/**
 	 * Attributes pivoted on
 	 */
-	private final List<Attribute> pivotedAttributes = new ArrayList<Attribute>();
+	private final LinkedHashMap<Attribute,Boolean> pivotedAttributes = new LinkedHashMap<Attribute,Boolean>();
 	
 	private final Map<Attribute,Aggregator> aggrMap=new HashMap<Attribute, Aggregator>();
 
@@ -64,7 +64,7 @@ public class PivotContainer extends ConcreteContainer {
 		if (getName().equals(ce.getSource())) {
 			simpleEntryUpdate(ce);
 		} else {
-			if (pivotedAttributes.contains(ce.getAttribute())) {
+			if (pivotedAttributes.containsKey(ce.getAttribute())) {
 				pivotEntryUpdate(ce);
 			} else {
 				simpleEntryUpdate(ce);
@@ -132,7 +132,7 @@ public class PivotContainer extends ConcreteContainer {
 		PivotEntry pivotEntry = root;
 		// Remove the pivot entries if required, search for the leaf pivot and
 		// remove if required.
-		for (Attribute pivotedAttribute:pivotedAttributes) {
+		for (Attribute pivotedAttribute:pivotedAttributes.keySet()) {
 			Substance substanceAtDepth = containerEntry.getSubstance(pivotedAttribute);
 			if (substanceAtDepth == null) {
 				substanceAtDepth = DEFAULT_SUBSTANCE;
@@ -168,9 +168,9 @@ public class PivotContainer extends ConcreteContainer {
 	public void attributeRemoved(ContainerEvent ce) {
 		super.attributeRemoved(ce);
 		aggrMap.remove(ce.getAttribute());
-		if (pivotedAttributes.contains(ce.getAttribute())) {
+		if (pivotedAttributes.containsKey(ce.getAttribute())) {
 			pivotedAttributes.remove(ce.getAttribute());
-			pivot(pivotedAttributes.toArray(new Attribute[0]));
+			rePivot();
 		}
 	}
 
@@ -183,15 +183,14 @@ public class PivotContainer extends ConcreteContainer {
 		// Create the pivot entries if required, in case exists navigate till
 		// the leaf pivot
 		
-		for (int depth=0;depth<pivotedAttributes.size();depth++) {
-			Attribute pivotedAttribute = pivotedAttributes.get(depth);
+		for (Attribute pivotedAttribute:pivotedAttributes.keySet()) {
 			Substance substanceAtDepth = containerEntry.getSubstance(pivotedAttribute);
 			substanceAtDepth = new PivotedSubstance(substanceAtDepth != null ? substanceAtDepth: DEFAULT_SUBSTANCE);
 
 			entryQualifier.put(pivotedAttribute, substanceAtDepth);
 			PivotEntry tempPivotEntry = pivotEntry.getChild(substanceAtDepth);
 			if (tempPivotEntry == null) {
-				tempPivotEntry = pivotEntry.create(depth, substanceAtDepth);
+				tempPivotEntry = pivotEntry.create(substanceAtDepth);
 				tempPivotEntry.letTheWorldKnow(entryQualifier);
 			}
 			pivotEntry = tempPivotEntry;
@@ -252,7 +251,7 @@ public class PivotContainer extends ConcreteContainer {
 			final Map<Attribute, Substance> entryQualifier = new HashMap<Attribute, Substance>();
 			// Create the pivot entries if required, in case exists navigate till
 			// the leaf pivot
-			for (Attribute pivotedAttribute:pivotedAttributes) {
+			for (Attribute pivotedAttribute:pivotedAttributes.keySet()) {
 				entryQualifier.put(pivotedAttribute, DEFAULT_SUBSTANCE);
 			}
 			letTheWorldKnow(entryQualifier);
@@ -283,13 +282,13 @@ public class PivotContainer extends ConcreteContainer {
 		 * @param parent
 		 *            PivotEntry
 		 */
-		private PivotEntry(int depth, Substance substanceAtDepth,
+		private PivotEntry(Substance substanceAtDepth,
 				PivotEntry parent) {
 			this.substance = substanceAtDepth;
 			this.parent = parent;
 			this.pivotDepth = parent.pivotDepth+1;
 			// Initialize the leaf container only for the leaf pivot
-			if (depth == pivotedAttributes.size() - 1) {
+			if (pivotDepth == pivotedAttributes.size()) {
 				this.childPivotEntries = null;
 				registeredEntries = new ArrayList<ContainerEntry>();
 			} else {
@@ -360,10 +359,9 @@ public class PivotContainer extends ConcreteContainer {
 		 *            create the pivot with this qualifier entry
 		 * @return PivotEntry
 		 */
-		private PivotEntry create(final int depth,
-				final Substance substanceAtDepth) {
+		private PivotEntry create(final Substance substanceAtDepth) {
 			dirty=true;
-			PivotEntry pivEntry = new PivotEntry(depth, substanceAtDepth, this);
+			PivotEntry pivEntry = new PivotEntry(substanceAtDepth, this);
 			childPivotEntries.put(substanceAtDepth, pivEntry);
 			return pivEntry;
 		}		
@@ -468,24 +466,26 @@ public class PivotContainer extends ConcreteContainer {
 		public ContainerEntry[] getContainerEntries() {
 			if(dirty){
 				dirty=false;
-				return computeContainerEntries().toArray(new ContainerEntry[0]);
+				return computeContainerEntries(pivotedAttributes.keySet().toArray(new Attribute[0])).toArray(new ContainerEntry[0]);
 			}else{
 				return indexedEntries;
 			}
 		}
 		
-		private ArrayList<ContainerEntry> computeContainerEntries(){
+		private ArrayList<ContainerEntry> computeContainerEntries(Attribute[] attributes){
 			ArrayList<ContainerEntry> containerEntries = new ArrayList<ContainerEntry>();
 			containerEntries.add(summaryEntry);
 			if(!collapsed){
-				if(registeredEntries!=null && registeredEntries.size()>0){
+				if(attributes.length==0){
 					containerEntries.addAll(registeredEntries);
 				}else{
-					Boolean order = sortOrder.get(pivotedAttributes.get(pivotDepth));
+					Boolean order = sortOrder.get(attributes[0]);
 					//If order not specified it is natural order.
 					order=(order==null)?true:order;
+					Attribute[] innerAttributes=Arrays.copyOfRange(attributes,1,attributes.length);
+					System.arraycopy(attributes, 1, innerAttributes, 0, innerAttributes.length);
 					for(PivotEntry pivotEntry:order?childPivotEntries.values():childPivotEntries.descendingMap().values()){
-						containerEntries.addAll(pivotEntry.computeContainerEntries());
+						containerEntries.addAll(pivotEntry.computeContainerEntries(innerAttributes));
 					}
 				}
 			}
@@ -498,6 +498,10 @@ public class PivotContainer extends ConcreteContainer {
 					@Override
 					public int compare(ContainerEntry o1, ContainerEntry o2) {
 						for(Entry<Attribute, Boolean> oneEntry:sortOrder.entrySet()){
+							if(pivotedAttributes.containsKey(oneEntry.getKey())){
+								//This is already pivoted on this, So skip it during sorting
+								continue;
+							}
 							Substance o1Substance = o1.getSubstance(oneEntry.getKey());
 							Substance o2Substance = o2.getSubstance(oneEntry.getKey());
 							int compareValue = o1Substance.compareTo(o2Substance);
@@ -536,7 +540,7 @@ public class PivotContainer extends ConcreteContainer {
 			Attribute registered = pivot.getRegisteredAttribute();
 			if(registered!=null){
 				//Allow pivoting only on the preadded attributes
-				pivotedAttributes.add(registered);
+				pivotedAttributes.put(registered,true);
 			}
 		}
 		//Can not aggregate on the pivoted columns so remove them from the aggregation
@@ -544,6 +548,10 @@ public class PivotContainer extends ConcreteContainer {
 		for(Attribute attribute:pivotArray){
 			aggrMap.remove(attribute);
 		}
+		rePivot();
+	}
+
+	private void rePivot() {
 		if (root != null) {
 			root.clear();
 			System.out.println("Total No OF Entries:"+getContainerDataEntries().length);
@@ -571,7 +579,7 @@ public class PivotContainer extends ConcreteContainer {
 	}
 	
 	public void aggregate(final Map<Attribute, Aggregator> changeMap) {
-		for(Attribute attribute:pivotedAttributes){
+		for(Attribute attribute:pivotedAttributes.keySet()){
 			changeMap.remove(attribute);
 		}
 		for(Entry<Attribute, Aggregator> entry:changeMap.entrySet()){
