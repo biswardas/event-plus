@@ -491,7 +491,10 @@ public class PivotContainer extends ConcreteContainer {
 		 */
 		private ArrayList<ContainerEntry> computeContainerEntries(Attribute[] attributes){
 			ArrayList<ContainerEntry> containerEntries = new ArrayList<ContainerEntry>();
-			if(attributes.length==0 || childPivotEntries.size()>1){
+			//Root is always included.
+			//Include all non terminals if they contain at least one terminal
+			//Include all non terminals if they contain at least two non terminal 
+			if(this==root || attributes.length==0 || childPivotEntries.size()>1){
 				containerEntries.add(summaryEntry);
 			}
 			if(!collapsed){
