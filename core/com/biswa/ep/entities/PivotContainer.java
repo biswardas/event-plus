@@ -366,13 +366,8 @@ public class PivotContainer extends ConcreteContainer {
 		/**
 		 * factory method to create the pivot and propagate the required
 		 * notifications
-		 * 
-		 * @param depth
-		 *            create the pivot at this depth
 		 * @param substanceAtDepth
 		 *            Substance at the current depth
-		 * @param entryQualifier
-		 *            create the pivot with this qualifier entry
 		 * @return PivotEntry
 		 */
 		private PivotEntry create(final Substance substanceAtDepth) {
@@ -534,7 +529,7 @@ public class PivotContainer extends ConcreteContainer {
 		}
 	}
 
-	public void pivot(Attribute[] pivotArray) {
+	public void applyPivot(Attribute[] pivotArray) {
 		pivotedAttributes.clear();
 		for(Attribute pivot:pivotArray){
 			Attribute registered = pivot.getRegisteredAttribute();
@@ -578,7 +573,7 @@ public class PivotContainer extends ConcreteContainer {
 		indexedEntries = root.getContainerEntries();
 	}
 	
-	public void aggregate(final Map<Attribute, Aggregator> changeMap) {
+	public void applyAggregation(final Map<Attribute, Aggregator> changeMap) {
 		for(Attribute attribute:pivotedAttributes.keySet()){
 			changeMap.remove(attribute);
 		}
