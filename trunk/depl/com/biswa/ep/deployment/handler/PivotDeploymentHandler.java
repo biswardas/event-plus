@@ -17,7 +17,6 @@ import com.biswa.ep.entities.aggregate.Aggregators;
 import com.biswa.ep.entities.spec.AggrSpec;
 import com.biswa.ep.entities.spec.PivotSpec;
 import com.biswa.ep.entities.spec.SortSpec;
-import com.biswa.ep.entities.spec.SortSpec.SortOrder;
 
 public class PivotDeploymentHandler extends DeploymentHandler{
 
@@ -40,12 +39,10 @@ public class PivotDeploymentHandler extends DeploymentHandler{
 	private void applySort(Container container, ConcreteContainer cs) {
 		Sort sort = container.getSort();
 		if(sort!=null){
-			SortOrder[] sortorder = new SortOrder[sort.getAttribute().size()];
-			int index = 0;
+			SortSpec sortSpec = new SortSpec();
 			for(com.biswa.ep.deployment.util.Attribute attribute:sort.getAttribute()){
-				sortorder[index++]=new SortOrder(new LeafAttribute(attribute.getName()),attribute.isDescending());
+				sortSpec.addSortOrder(new LeafAttribute(attribute.getName()),!attribute.isDescending());
 			}
-			SortSpec sortSpec = new SortSpec(sortorder);
 			cs.agent().applySpec(sortSpec);
 		}
 	}

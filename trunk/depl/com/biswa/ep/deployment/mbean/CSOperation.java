@@ -19,7 +19,6 @@ import com.biswa.ep.entities.spec.AggrSpec;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.spec.PivotSpec;
 import com.biswa.ep.entities.spec.SortSpec;
-import com.biswa.ep.entities.spec.SortSpec.SortOrder;
 import com.biswa.ep.entities.substance.ObjectSubstance;
 import com.biswa.ep.util.parser.predicate.PredicateBuilder;
 
@@ -63,13 +62,12 @@ public class CSOperation implements CSOperationMBean {
 	}
 	
 	@Override
-	public void applySort(String pivotString) {
-		StringTokenizer stk = new StringTokenizer(pivotString,",");
-		List<SortOrder> list = new ArrayList<SortOrder>();
+	public void applySort(String sortString) {
+		StringTokenizer stk = new StringTokenizer(sortString,",");
+		SortSpec sortSpec = new SortSpec();
 		while(stk.hasMoreTokens()){
-			list.add(new SortOrder(new LeafAttribute(stk.nextToken()),false));
+			sortSpec.addSortOrder(new LeafAttribute(stk.nextToken()),true);
 		}
-		SortSpec sortSpec = new SortSpec(list.toArray(new SortOrder[0]));
 		cs.agent().applySpec(sortSpec);
 	}
 	
