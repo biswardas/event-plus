@@ -1,35 +1,43 @@
 package com.biswa.ep.util;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.StringTokenizer;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.RowSorter;
+import javax.swing.JTextField;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 
 import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.ContainerEvent;
+import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.PivotContainer;
-import com.biswa.ep.entities.spec.SortSpec.SortOrder;
+import com.biswa.ep.entities.aggregate.Aggregators;
+import com.biswa.ep.entities.spec.AggrSpec;
+import com.biswa.ep.entities.spec.PivotSpec;
+import com.biswa.ep.entities.spec.SortSpec;
 import com.biswa.ep.entities.substance.ObjectSubstance;
 import com.biswa.ep.entities.substance.Substance;
 public class GenericViewer extends PivotContainer {
 	private JFrame jframe = null;
 	private JTable jtable = null;
 	private ViewerTableModel vtableModel = null;
-	private SortOrder[] sortOrder = new SortOrder[0];
 
 	public GenericViewer(String name) {
 		super(name,new Properties(){
@@ -62,15 +70,81 @@ public class GenericViewer extends PivotContainer {
 				});
 			}
 		};
+		jframe.setLayout(new BorderLayout());
 		vtableModel = new ViewerTableModel(GenericViewer.this);
 		jtable = new JTable(vtableModel);
 		jtable.setPreferredScrollableViewportSize(new Dimension(500, 200));
 		jtable.setFillsViewportHeight(true);				
 		JScrollPane jsc = new JScrollPane(jtable);
-		jframe.add(jsc);
+		jframe.add(jsc,BorderLayout.CENTER);
+		addControls();
 		jsc.revalidate();
 		jframe.setVisible(true);
 		jframe.setSize(new Dimension(1200, 500));
+	}
+
+	private void addControls() {
+		JPanel jPanel = new JPanel(new GridLayout(0,2));
+		addPivotControl(jPanel);
+		addAggrControl(jPanel);
+		addSortControl(jPanel);
+		jframe.add(jPanel,BorderLayout.SOUTH);
+	}
+
+	private void addPivotControl(JPanel jPanel) {
+		final JTextField pivotTextField = new JTextField();	
+		final JButton pivotButton = new JButton("Apply Pivot");	
+		jPanel.add(pivotTextField);
+		jPanel.add(pivotButton);
+		pivotButton.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				StringTokenizer stk = new StringTokenizer(pivotTextField.getText(),",");
+				List<Attribute> list = new ArrayList<Attribute>();
+				while(stk.hasMoreTokens()){
+					list.add(new LeafAttribute(stk.nextToken()));
+				}
+				PivotSpec pivotSpec = new PivotSpec(list.toArray(new Attribute[0]));
+				GenericViewer.this.agent().applySpec(pivotSpec);
+			}
+		});
+	}
+	private void addAggrControl(JPanel jPanel) {
+		final JTextField aggrTextField = new JTextField();	
+		final JButton aggrButton = new JButton("Apply Aggr");	
+		jPanel.add(aggrTextField);
+		jPanel.add(aggrButton);
+		aggrButton.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				AggrSpec aggrSpec = new AggrSpec();
+				StringTokenizer stk = new StringTokenizer(aggrTextField.getText(),",");
+				while(stk.hasMoreTokens()){
+					String[] oneAttribute = stk.nextToken().split(":");
+					aggrSpec.add(new LeafAttribute(oneAttribute[0]), Aggregators.valueOf(oneAttribute[1]).AGGR);
+				}
+				GenericViewer.this.agent().applySpec(aggrSpec);
+			}
+		});
+	}
+	private void addSortControl(JPanel jPanel) {
+		final JTextField sortTextField = new JTextField();	
+		final JButton sortButton = new JButton("Apply Sort");	
+		jPanel.add(sortTextField);
+		jPanel.add(sortButton);
+		sortButton.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				StringTokenizer stk = new StringTokenizer(sortTextField.getText(),",");
+				SortSpec sortSpec = new SortSpec();
+				while(stk.hasMoreTokens()){
+					String[] oneAttribute = stk.nextToken().split(":");
+					boolean order = oneAttribute.length>1?Boolean.parseBoolean(oneAttribute[1]):true;
+					sortSpec.addSortOrder(new LeafAttribute(oneAttribute[0]),order);
+				}
+				GenericViewer.this.agent().applySpec(sortSpec);
+			}
+		});
 	}
 
 	@Override
@@ -82,59 +156,24 @@ public class GenericViewer extends PivotContainer {
 	@Override
 	public void attributeAdded(final ContainerEvent ce) {
 		super.attributeAdded(ce);
-			((AbstractTableModel) jtable.getModel())
-					.fireTableStructureChanged();
+		vtableModel.fireTableStructureChanged();
 	}
 
 	@Override
 	public void attributeRemoved(final ContainerEvent ce) {
 		super.attributeRemoved(ce);
-			((AbstractTableModel) jtable.getModel())
-					.fireTableStructureChanged();
+		vtableModel.fireTableStructureChanged();
 	}
-
+	@Override
+	public void applySort(final Map<Attribute,Boolean> sortorder){
+		super.applySort(sortorder);
+		vtableModel.recordSetDirty=true;
+	}
 	@Override
 	public void commitTran(){
-			((AbstractTableModel) jtable.getModel())
-					.fireTableDataChanged();
+		super.commitTran();
+		vtableModel.fireTableDataChanged();
 		jframe.setTitle(getName()+"/"+jtable.getRowCount()+"--"+GenericViewer.this.getCurrentTransactionID());
-	}
-
-	public void sortIt() {
-		if (sortOrder.length > 0) {
-			int lastColumnIndex = -1;
-			TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(
-					jtable.getModel());
-			List<RowSorter.SortKey> sortKeys = new ArrayList<RowSorter.SortKey>();
-			for (SortOrder sortAttrOrder: sortOrder) {
-				Attribute sortAttr = sortAttrOrder.getAttribute();
-				for (int i = 0; i < getSubscribedAttributes().length; i++) {
-					if (sortAttr.getName().equalsIgnoreCase(
-							getSubscribedAttributes()[i].getName())) {
-						sortKeys.add(new RowSorter.SortKey(i + 1,
-								sortAttrOrder.isDescending()?javax.swing.SortOrder.DESCENDING:javax.swing.SortOrder.ASCENDING));
-						lastColumnIndex = i;
-						break;
-					}
-				}
-			}
-			sorter.setComparator(lastColumnIndex + 1,
-					new Comparator<CellValue>() {
-						@Override
-						public int compare(CellValue o1,
-								CellValue o2) {
-							return o1.compareTo(o2);
-						}
-					});
-			sorter.setSortKeys(sortKeys);
-			jtable.setRowSorter(sorter);
-		}
-	}
-
-	@Override
-	public void applySort(final SortOrder ... sortOrder) {
-		GenericViewer.this.sortOrder=sortOrder;
-		sortIt();
 	}
 
 	@Override
@@ -148,11 +187,13 @@ public class GenericViewer extends PivotContainer {
 	@Override
 	public void dispatchEntryAdded(ContainerEntry ce) {
 		vtableModel.recordSetDirty=true;
+		super.dispatchEntryAdded(ce);
 	}
 
 	@Override
 	public void dispatchEntryRemoved(ContainerEntry ce) {
 		vtableModel.recordSetDirty=true;
+		super.dispatchEntryRemoved(ce);
 	}
 
 	@Override
@@ -188,8 +229,7 @@ public class GenericViewer extends PivotContainer {
 
 		@Override
 		public int getRowCount() {
-			int cnt = cs.getEntryCount();
-			return cnt;
+			return cs.getEntryCount();
 		}
 
 		@Override

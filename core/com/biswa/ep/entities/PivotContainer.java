@@ -2,16 +2,19 @@ package com.biswa.ep.entities;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.TreeMap;
 
 import com.biswa.ep.entities.aggregate.Aggregator;
 import com.biswa.ep.entities.aggregate.Aggregators;
-import com.biswa.ep.entities.spec.SortSpec.SortOrder;
 import com.biswa.ep.entities.substance.ObjectSubstance;
 import com.biswa.ep.entities.substance.PivotedSubstance;
 import com.biswa.ep.entities.substance.Substance;
@@ -35,10 +38,11 @@ public class PivotContainer extends ConcreteContainer {
 	/**
 	 * Attributes pivoted on
 	 */
-	private List<Attribute> pivotedAttributes = new ArrayList<Attribute>();
+	private final List<Attribute> pivotedAttributes = new ArrayList<Attribute>();
 	
-	private Map<Attribute, Aggregator> aggrMap=new HashMap<Attribute, Aggregator>();
+	private final Map<Attribute,Aggregator> aggrMap=new HashMap<Attribute, Aggregator>();
 
+	private final Map<Attribute,Boolean> sortOrder = new LinkedHashMap<Attribute,Boolean>();
 	/**
 	 * Create a pivot container with cascade schema and supplied pivot attribute
 	 * array.
@@ -134,7 +138,7 @@ public class PivotContainer extends ConcreteContainer {
 				substanceAtDepth = DEFAULT_SUBSTANCE;
 			}
 			// Obtain the pivot based on substance at depth
-			pivotEntry = pivotEntry.childPivotEntries.get(substanceAtDepth);
+			pivotEntry = pivotEntry.getChild(substanceAtDepth);
 		}
 		return pivotEntry;
 	}
@@ -185,8 +189,7 @@ public class PivotContainer extends ConcreteContainer {
 			substanceAtDepth = new PivotedSubstance(substanceAtDepth != null ? substanceAtDepth: DEFAULT_SUBSTANCE);
 
 			entryQualifier.put(pivotedAttribute, substanceAtDepth);
-			PivotEntry tempPivotEntry = pivotEntry.childPivotEntries
-					.get(substanceAtDepth);
+			PivotEntry tempPivotEntry = pivotEntry.getChild(substanceAtDepth);
 			if (tempPivotEntry == null) {
 				tempPivotEntry = pivotEntry.create(depth, substanceAtDepth);
 				tempPivotEntry.letTheWorldKnow(entryQualifier);
@@ -218,23 +221,31 @@ public class PivotContainer extends ConcreteContainer {
 		 */
 		private final PivotEntry parent;
 		/**
-		 * Summary Entry associated with this pivot.
+		 * Depth of this pivot
 		 */
-		private ContainerEntry summaryEntry;
+		private final int pivotDepth;
 		/**
 		 * Child pivots this pivot contains.
 		 */
-		private final Map<Substance, PivotEntry> childPivotEntries;
-		private final Collection<Integer> registeredEntries;
-
+		private final TreeMap<Substance, PivotEntry> childPivotEntries;
+		private final ArrayList<ContainerEntry> registeredEntries;
+		
+		/**
+		 * Summary Entry associated with this pivot.
+		 */
+		private ContainerEntry summaryEntry;
+		
+		private boolean collapsed=false;
+		private boolean dirty = false;
 		/**
 		 * Constructor to create the Pivot entry. This is the ROOT constructor
 		 */
 		private PivotEntry() {
 			this.parent = null;
+			this.pivotDepth = 0;
 			this.substance = DEFAULT_SUBSTANCE;
-			this.registeredEntries = new ArrayList<Integer>();
-			this.childPivotEntries = new HashMap<Substance, PivotEntry>();
+			this.registeredEntries = new ArrayList<ContainerEntry>();
+			this.childPivotEntries = new TreeMap<Substance, PivotEntry>();
 
 			// Additional pivoted Entry to be created
 			// Create the qualifier entries for the pivot entries
@@ -245,6 +256,10 @@ public class PivotContainer extends ConcreteContainer {
 				entryQualifier.put(pivotedAttribute, DEFAULT_SUBSTANCE);
 			}
 			letTheWorldKnow(entryQualifier);
+		}
+
+		public PivotEntry getChild(Substance substanceAtDepth) {
+			return childPivotEntries.get(substanceAtDepth);
 		}
 
 		private void letTheWorldKnow(
@@ -272,13 +287,14 @@ public class PivotContainer extends ConcreteContainer {
 				PivotEntry parent) {
 			this.substance = substanceAtDepth;
 			this.parent = parent;
+			this.pivotDepth = parent.pivotDepth+1;
 			// Initialize the leaf container only for the leaf pivot
 			if (depth == pivotedAttributes.size() - 1) {
 				this.childPivotEntries = null;
-				registeredEntries = new ArrayList<Integer>();
+				registeredEntries = new ArrayList<ContainerEntry>();
 			} else {
 				this.registeredEntries = null;
-				childPivotEntries = new HashMap<Substance, PivotEntry>();
+				childPivotEntries = new TreeMap<Substance, PivotEntry>();
 			}
 		}
 
@@ -290,8 +306,9 @@ public class PivotContainer extends ConcreteContainer {
 		 * @param containerEntry
 		 */
 		private void unregister(ContainerEntry containerEntry) {
+			dirty=true;
 			// Remove the physical data
-			registeredEntries.remove(containerEntry.getIdentitySequence());
+			registeredEntries.remove(containerEntry);
 			for (Attribute attribute : aggrMap.keySet()) {
 				aggregateAndPropagate(attribute);
 			}
@@ -324,7 +341,8 @@ public class PivotContainer extends ConcreteContainer {
 		 * @param containerEntry
 		 */
 		private void register(ContainerEntry containerEntry) {
-			registeredEntries.add(containerEntry.getIdentitySequence());			
+			dirty=true;
+			registeredEntries.add(containerEntry);			
 			for (Attribute attribute : aggrMap.keySet()) {
 				aggregateAndPropagate(attribute);
 			}
@@ -344,6 +362,7 @@ public class PivotContainer extends ConcreteContainer {
 		 */
 		private PivotEntry create(final int depth,
 				final Substance substanceAtDepth) {
+			dirty=true;
 			PivotEntry pivEntry = new PivotEntry(depth, substanceAtDepth, this);
 			childPivotEntries.put(substanceAtDepth, pivEntry);
 			return pivEntry;
@@ -384,13 +403,7 @@ public class PivotContainer extends ConcreteContainer {
 				}
 
 			} else {// Leaf level Pivot
-				Integer[] containerEntryIdentities = registeredEntries
-						.toArray(new Integer[0]);
-
-				containerEntries = new ContainerEntry[containerEntryIdentities.length];
-				for (int i = 0; i < containerEntryIdentities.length; i++) {
-					containerEntries[i] = getConcreteEntry(containerEntryIdentities[i]);
-				}
+				containerEntries = registeredEntries.toArray(new ContainerEntry[0]);
 			}
 			return containerEntries;
 		}
@@ -451,6 +464,70 @@ public class PivotContainer extends ConcreteContainer {
 				}
 			}
 		}
+
+		public ContainerEntry[] getContainerEntries() {
+			if(dirty){
+				dirty=false;
+				return computeContainerEntries().toArray(new ContainerEntry[0]);
+			}else{
+				return indexedEntries;
+			}
+		}
+		
+		private ArrayList<ContainerEntry> computeContainerEntries(){
+			ArrayList<ContainerEntry> containerEntries = new ArrayList<ContainerEntry>();
+			containerEntries.add(summaryEntry);
+			if(!collapsed){
+				if(registeredEntries!=null && registeredEntries.size()>0){
+					containerEntries.addAll(registeredEntries);
+				}else{
+					Boolean order = sortOrder.get(pivotedAttributes.get(pivotDepth));
+					//If order not specified it is natural order.
+					order=(order==null)?true:order;
+					for(PivotEntry pivotEntry:order?childPivotEntries.values():childPivotEntries.descendingMap().values()){
+						containerEntries.addAll(pivotEntry.computeContainerEntries());
+					}
+				}
+			}
+			return containerEntries;
+		}
+
+		public void applySort() {
+			if(registeredEntries!=null && registeredEntries.size()>0){
+				Collections.sort(registeredEntries,new Comparator<ContainerEntry>() {
+					@Override
+					public int compare(ContainerEntry o1, ContainerEntry o2) {
+						for(Entry<Attribute, Boolean> oneEntry:sortOrder.entrySet()){
+							Substance o1Substance = o1.getSubstance(oneEntry.getKey());
+							Substance o2Substance = o2.getSubstance(oneEntry.getKey());
+							int compareValue = o1Substance.compareTo(o2Substance);
+							if(compareValue==0){
+								continue;
+							}else{
+								return compareValue*(oneEntry.getValue()?1:-1);
+							}
+						}
+						return 0;
+					}
+				});
+			}else{
+				//Recursively sort the children
+				for(PivotEntry pivotEntry:childPivotEntries.values()){
+					pivotEntry.applySort();
+				}
+			}
+		}
+
+		public void aggregateUniverse(PivotEntry pivotEntry){		
+			if (pivotEntry.childPivotEntries != null && pivotedAttributes.size()>0) {
+				for(PivotEntry innerPivot:pivotEntry.childPivotEntries.values()){
+					aggregateUniverse(innerPivot);				
+				}
+			}
+			for(Attribute attribute:aggrMap.keySet()){
+				pivotEntry.aggregate(attribute);
+			}
+		}
 	}
 
 	public void pivot(Attribute[] pivotArray) {
@@ -459,7 +536,7 @@ public class PivotContainer extends ConcreteContainer {
 			Attribute registered = pivot.getRegisteredAttribute();
 			if(registered!=null){
 				//Allow pivoting only on the preadded attributes
-				pivotedAttributes.add(registered);	
+				pivotedAttributes.add(registered);
 			}
 		}
 		//Can not aggregate on the pivoted columns so remove them from the aggregation
@@ -469,11 +546,13 @@ public class PivotContainer extends ConcreteContainer {
 		}
 		if (root != null) {
 			root.clear();
+			System.out.println("Total No OF Entries:"+getContainerDataEntries().length);
 			// Re pivot everything based on new specification
 			for (ContainerEntry containerEntry : getContainerDataEntries()) {
 				if(containerEntry==root.summaryEntry) continue;
 				applyPivot(containerEntry);
 			}
+			indexedEntries = root.getContainerEntries();
 		}
 	}
 	
@@ -482,7 +561,13 @@ public class PivotContainer extends ConcreteContainer {
 	 * 
 	 * @param sortorder SortOrder
 	 */
-	public void applySort(final SortOrder ... sortorder){
+	public void applySort(final Map<Attribute,Boolean> sortorder){
+		for(Entry<Attribute, Boolean> entry:sortorder.entrySet()){
+			this.sortOrder.put(entry.getKey().getRegisteredAttribute(),entry.getValue());
+		}
+		root.dirty=true;
+		root.applySort();
+		indexedEntries = root.getContainerEntries();
 	}
 	
 	public void aggregate(final Map<Attribute, Aggregator> changeMap) {
@@ -493,23 +578,29 @@ public class PivotContainer extends ConcreteContainer {
 			this.aggrMap.put(entry.getKey().getRegisteredAttribute(),entry.getValue());
 		}
 		if(root!=null){
-			Runnable aggrRunnable = new Runnable(){
-				public void run(){
-					aggregateUniverse(root);
-				}
-				private void aggregateUniverse(PivotEntry pivotEntry){		
-					if (pivotEntry.childPivotEntries != null && pivotedAttributes.size()>0) {
-						for(PivotEntry innerPivot:pivotEntry.childPivotEntries.values()){
-							aggregateUniverse(innerPivot);				
-						}
-					}
-					for(Attribute attribute:aggrMap.keySet()){
-						pivotEntry.aggregate(attribute);
-					}
-				}
-			};
-			//Oh I know it has to run in same thread
-			aggrRunnable.run();
+			root.aggregateUniverse(root);
 		}
+	}
+
+	private ContainerEntry[] indexedEntries = null;
+	
+	@Override
+	public ContainerEntry[] getContainerEntries() {
+		return indexedEntries!=null?indexedEntries:new ContainerEntry[0];
+	}
+
+	@Override
+	public int getEntryCount() {
+		return indexedEntries!=null?indexedEntries.length:0;
+	}
+	@Override
+	public void commitTran(){
+		indexedEntries = root.getContainerEntries();
+		super.commitTran();
+	}	
+	@Override
+	public void rollbackTran(){
+		indexedEntries = root.getContainerEntries();
+		super.rollbackTran();
 	}
 }
