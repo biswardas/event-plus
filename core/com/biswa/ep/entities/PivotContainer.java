@@ -3,15 +3,14 @@ package com.biswa.ep.entities;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.biswa.ep.entities.aggregate.Aggregator;
@@ -206,6 +205,26 @@ public class PivotContainer extends ConcreteContainer {
 	 * 
 	 */
 	private final class PivotEntry {
+		private Comparator<ContainerEntry> recordComparator = new Comparator<ContainerEntry>() {
+			@Override
+			public int compare(ContainerEntry o1, ContainerEntry o2) {
+				for(Entry<Attribute, Boolean> oneEntry:sortOrder.entrySet()){
+					if(pivotedAttributes.containsKey(oneEntry.getKey())){
+						//This is already pivoted on this, So skip it during sorting
+						continue;
+					}
+					Substance o1Substance = o1.getSubstance(oneEntry.getKey());
+					Substance o2Substance = o2.getSubstance(oneEntry.getKey());
+					int compareValue = o1Substance.compareTo(o2Substance);
+					if(compareValue==0){
+						continue;
+					}else{
+						return compareValue*(oneEntry.getValue()?1:-1);
+					}
+				}
+				return o1.getIdentitySequence()-o2.getIdentitySequence();
+			}
+		};
 		/**
 		 * Substance on which this pivot has been created
 		 */
@@ -222,7 +241,7 @@ public class PivotContainer extends ConcreteContainer {
 		 * Child pivots this pivot contains.
 		 */
 		private final TreeMap<Substance, PivotEntry> childPivotEntries;
-		private final ArrayList<ContainerEntry> registeredEntries;
+		private final TreeSet<ContainerEntry> registeredEntries;
 		
 		/**
 		 * Summary Entry associated with this pivot.
@@ -238,7 +257,7 @@ public class PivotContainer extends ConcreteContainer {
 			this.parent = null;
 			this.pivotDepth = 0;
 			this.substance = DEFAULT_SUBSTANCE;
-			this.registeredEntries = new ArrayList<ContainerEntry>();
+			this.registeredEntries = new TreeSet<ContainerEntry>(recordComparator);
 			this.childPivotEntries = new TreeMap<Substance, PivotEntry>();
 
 			// Additional pivoted Entry to be created
@@ -287,7 +306,7 @@ public class PivotContainer extends ConcreteContainer {
 			// Initialize the leaf container only for the leaf pivot
 			if (pivotDepth == pivotedAttributes.size()) {
 				this.childPivotEntries = null;
-				registeredEntries = new ArrayList<ContainerEntry>();
+				registeredEntries = new TreeSet<ContainerEntry>(recordComparator);
 			} else {
 				this.registeredEntries = null;
 				childPivotEntries = new TreeMap<Substance, PivotEntry>();
@@ -447,8 +466,7 @@ public class PivotContainer extends ConcreteContainer {
 
 		public void clear() {
 			if (childPivotEntries != null) {
-				HashSet<PivotEntry> set = new HashSet<PivotEntry>(childPivotEntries.values());
-				for (PivotEntry pivotEntry : set) {
+				for (PivotEntry pivotEntry : childPivotEntries.values().toArray(new PivotEntry[0])) {
 					pivotEntry.clear();
 				}
 			}
@@ -491,26 +509,11 @@ public class PivotContainer extends ConcreteContainer {
 
 		public void applySort() {
 			if(registeredEntries!=null && registeredEntries.size()>0){
-				Collections.sort(registeredEntries,new Comparator<ContainerEntry>() {
-					@Override
-					public int compare(ContainerEntry o1, ContainerEntry o2) {
-						for(Entry<Attribute, Boolean> oneEntry:sortOrder.entrySet()){
-							if(pivotedAttributes.containsKey(oneEntry.getKey())){
-								//This is already pivoted on this, So skip it during sorting
-								continue;
-							}
-							Substance o1Substance = o1.getSubstance(oneEntry.getKey());
-							Substance o2Substance = o2.getSubstance(oneEntry.getKey());
-							int compareValue = o1Substance.compareTo(o2Substance);
-							if(compareValue==0){
-								continue;
-							}else{
-								return compareValue*(oneEntry.getValue()?1:-1);
-							}
-						}
-						return 0;
-					}
-				});
+				ContainerEntry[] existingEntries = registeredEntries.toArray(new ContainerEntry[0]);
+				registeredEntries.clear();
+				for(ContainerEntry oneExistingEntry:existingEntries){
+					registeredEntries.add(oneExistingEntry);
+				}
 			}else{
 				//Recursively sort the children
 				for(PivotEntry pivotEntry:childPivotEntries.values()){
