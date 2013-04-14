@@ -183,12 +183,11 @@ public class PivotContainer extends ConcreteContainer {
 			substanceAtDepth = new PivotedSubstance(substanceAtDepth != null ? substanceAtDepth: DEFAULT_SUBSTANCE);
 
 			entryQualifier.put(pivotedAttribute, substanceAtDepth);
-			PivotEntry tempPivotEntry = pivotEntry.getChild(substanceAtDepth);
-			if (tempPivotEntry == null) {
-				tempPivotEntry = pivotEntry.create(substanceAtDepth);
-				tempPivotEntry.letTheWorldKnow(entryQualifier);
+			PivotEntry childEntry = pivotEntry.getChild(substanceAtDepth);
+			if (childEntry == null) {
+				childEntry = pivotEntry.create(substanceAtDepth,entryQualifier);
 			}
-			pivotEntry = tempPivotEntry;
+			pivotEntry = childEntry;
 		}
 		// Register the physical entry reference
 		pivotEntry.register(containerEntry);
@@ -272,22 +271,6 @@ public class PivotContainer extends ConcreteContainer {
 			letTheWorldKnow(entryQualifier);
 		}
 
-		public PivotEntry getChild(Substance substanceAtDepth) {
-			return childPivotEntries.get(substanceAtDepth);
-		}
-
-		private void letTheWorldKnow(
-				final Map<Attribute, Substance> entryQualifier) {
-			lock.lock();
-			int identity=generateIdentity();
-			TransportEntry newContainerEntry = new TransportEntry(identity,
-					entryQualifier);
-			ContainerEvent adjEvent = new ContainerInsertEvent(
-					PivotContainer.this.getName(), newContainerEntry,getCurrentTransactionID());
-			PivotContainer.super.entryAdded(adjEvent);
-			summaryEntry = getConcreteEntry(identity);
-			lock.unlock();
-		}
 
 		/**
 		 * Constructor to create the Pivot entry to contain child pivots
@@ -312,6 +295,23 @@ public class PivotContainer extends ConcreteContainer {
 				this.registeredEntries = null;
 				childPivotEntries = new TreeMap<Substance, PivotEntry>();
 			}
+		}
+		
+		public PivotEntry getChild(Substance substanceAtDepth) {
+			return childPivotEntries.get(substanceAtDepth);
+		}
+
+		private void letTheWorldKnow(
+				final Map<Attribute, Substance> entryQualifier) {
+			lock.lock();
+			int identity=generateIdentity();
+			TransportEntry newContainerEntry = new TransportEntry(identity,
+					entryQualifier);
+			ContainerEvent adjEvent = new ContainerInsertEvent(
+					PivotContainer.this.getName(), newContainerEntry,getCurrentTransactionID());
+			PivotContainer.super.entryAdded(adjEvent);
+			summaryEntry = getConcreteEntry(identity);
+			lock.unlock();
 		}
 
 		/**
@@ -369,12 +369,14 @@ public class PivotContainer extends ConcreteContainer {
 		 * notifications
 		 * @param substanceAtDepth
 		 *            Substance at the current depth
+		 * @param entryQualifier 
 		 * @return PivotEntry
 		 */
-		private PivotEntry create(final Substance substanceAtDepth) {
+		private PivotEntry create(final Substance substanceAtDepth, Map<Attribute, Substance> entryQualifier) {
 			dirty=true;
 			PivotEntry pivEntry = new PivotEntry(substanceAtDepth, this);
 			childPivotEntries.put(substanceAtDepth, pivEntry);
+			letTheWorldKnow(entryQualifier);
 			return pivEntry;
 		}		
 			
