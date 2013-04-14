@@ -15,6 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.biswa.ep.entities.aggregate.Aggregator;
 import com.biswa.ep.entities.aggregate.Aggregators;
+import com.biswa.ep.entities.substance.NullSubstance;
 import com.biswa.ep.entities.substance.ObjectSubstance;
 import com.biswa.ep.entities.substance.PivotedSubstance;
 import com.biswa.ep.entities.substance.Substance;
@@ -493,7 +494,6 @@ public class PivotContainer extends ConcreteContainer {
 					//If order not specified it is natural order.
 					order=(order==null)?true:order;
 					Attribute[] innerAttributes=Arrays.copyOfRange(attributes,1,attributes.length);
-					System.arraycopy(attributes, 1, innerAttributes, 0, innerAttributes.length);
 					for(PivotEntry pivotEntry:order?childPivotEntries.values():childPivotEntries.descendingMap().values()){
 						containerEntries.addAll(pivotEntry.computeContainerEntries(innerAttributes));
 					}
@@ -526,6 +526,13 @@ public class PivotContainer extends ConcreteContainer {
 			for(Attribute attribute:aggrMap.keySet()){
 				pivotEntry.aggregate(attribute);
 			}
+		}
+		public boolean collapse(boolean newCollapsingState){
+			if(!(collapsed==newCollapsingState)){
+				collapsed=newCollapsingState;
+				return true;
+			}
+			return false;
 		}
 	}
 
@@ -597,6 +604,38 @@ public class PivotContainer extends ConcreteContainer {
 		if(root!=null){
 			root.aggregateUniverse(root);
 		}
+	}
+
+	
+	/**Behavior method to apply collapsing on this container. If node already in the state desired 
+	 * then it is no operation.
+	 * 
+	 * @param identity rowNumber to be collapsed
+	 * @param state true to collapse/false to collapse
+	 * 
+	 * @throws NullPointerException if aggrSpec is null
+	 */
+
+	public void applyCollapse(int identity, boolean state) {
+		PivotEntry pivotEntry = root;
+		ContainerEntry containerEntry = getConcreteEntry(identity);
+		if(containerEntry!=null){
+			for (Attribute pivotedAttribute:pivotedAttributes.keySet()) {
+				Substance substanceAtDepth = containerEntry.getSubstance(pivotedAttribute);
+				if(substanceAtDepth==NullSubstance.NULL_SUBSTANCE){
+					break;
+				}
+				pivotEntry = pivotEntry.getChild(substanceAtDepth);
+				if(pivotEntry.summaryEntry.getIdentitySequence()==identity){
+					break;
+				}
+			}
+		}
+		if(pivotEntry.collapse(state)){
+			root.dirty=true;
+			indexedEntries = root.getContainerEntries();
+		}
+		return;
 	}
 	
 	@Override

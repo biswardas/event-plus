@@ -30,6 +30,7 @@ import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.PivotContainer;
 import com.biswa.ep.entities.aggregate.Aggregators;
 import com.biswa.ep.entities.spec.AggrSpec;
+import com.biswa.ep.entities.spec.CollapseSpec;
 import com.biswa.ep.entities.spec.PivotSpec;
 import com.biswa.ep.entities.spec.SortSpec;
 import com.biswa.ep.entities.substance.ObjectSubstance;
@@ -88,6 +89,7 @@ public class GenericViewer extends PivotContainer {
 		addPivotControl(jPanel);
 		addAggrControl(jPanel);
 		addSortControl(jPanel);
+		addCollapsingControl(jPanel);
 		jframe.add(jPanel,BorderLayout.SOUTH);
 	}
 
@@ -146,6 +148,21 @@ public class GenericViewer extends PivotContainer {
 			}
 		});
 	}
+	private void addCollapsingControl(JPanel jPanel) {
+		final JTextField collapserTextField = new JTextField();	
+		final JButton collapserButton = new JButton("Apply Collapse");	
+		jPanel.add(collapserTextField);
+		jPanel.add(collapserButton);
+		collapserButton.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String[] oneNode = collapserTextField.getText().split(":");
+				boolean order = oneNode.length>1?Boolean.parseBoolean(oneNode[1]):true;
+				CollapseSpec collapseSpec = new CollapseSpec(Integer.parseInt(oneNode[0]),order);
+				GenericViewer.this.agent().applySpec(collapseSpec);
+			}
+		});
+	}
 
 	@Override
 	public void disconnected(ConnectionEvent connectionEvent) {
@@ -167,6 +184,11 @@ public class GenericViewer extends PivotContainer {
 	@Override
 	public void applySort(final LinkedHashMap<Attribute,Boolean> sortorder){
 		super.applySort(sortorder);
+		vtableModel.recordSetDirty=true;
+	}
+	@Override
+	public void applyCollapse(int identity,boolean state){
+		super.applyCollapse(identity,state);
 		vtableModel.recordSetDirty=true;
 	}
 	@Override
