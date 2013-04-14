@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.biswa.ep.entities.aggregate.Aggregator;
 import com.biswa.ep.entities.aggregate.Aggregators;
@@ -32,17 +33,22 @@ public class PivotContainer extends ConcreteContainer {
 	 */
 	static final private Substance DEFAULT_SUBSTANCE = new ObjectSubstance("");
 	/**
+	 * Attributes pivoted on
+	 */
+	private final Map<Attribute,Boolean> pivotedAttributes = new LinkedHashMap<Attribute,Boolean>();
+	
+	private final Map<Attribute,Aggregator> aggrMap=new LinkedHashMap<Attribute, Aggregator>();
+
+	private final Map<Attribute,Boolean> sortOrder = new LinkedHashMap<Attribute,Boolean>();
+
+	/**
 	 * Virtual root of all pivot / leaf entry
 	 */
 	private PivotEntry root;
-	/**
-	 * Attributes pivoted on
-	 */
-	private final LinkedHashMap<Attribute,Boolean> pivotedAttributes = new LinkedHashMap<Attribute,Boolean>();
-	
-	private final Map<Attribute,Aggregator> aggrMap=new HashMap<Attribute, Aggregator>();
 
-	private final Map<Attribute,Boolean> sortOrder = new LinkedHashMap<Attribute,Boolean>();
+	private ContainerEntry[] indexedEntries = null;
+
+	private ReentrantLock lock = new ReentrantLock();
 	/**
 	 * Create a pivot container with cascade schema and supplied pivot attribute
 	 * array.
@@ -142,31 +148,20 @@ public class PivotContainer extends ConcreteContainer {
 		}
 		return pivotEntry;
 	}
-	boolean externallyAdded = false;
-	@Override
-	final public void entryAdded(ContainerEvent ce) {
-		externallyAdded = true;
-		// Add the physical entry
-		super.entryAdded(ce);
-	}
+	
 
 	@Override
 	public void dispatchEntryAdded(ContainerEntry containerEntry) {
 		super.dispatchEntryAdded(containerEntry);
-		if(externallyAdded){
-			externallyAdded =false;
+		if(!lock.isHeldByCurrentThread()){
 			applyPivot(containerEntry);
 		}
 	}
 
 	@Override
-	public void attributeAdded(ContainerEvent ce) {
-		super.attributeAdded(ce);
-	}
-
-	@Override
 	public void attributeRemoved(ContainerEvent ce) {
 		super.attributeRemoved(ce);
+		sortOrder.remove(ce.getAttribute());
 		aggrMap.remove(ce.getAttribute());
 		if (pivotedAttributes.containsKey(ce.getAttribute())) {
 			pivotedAttributes.remove(ce.getAttribute());
@@ -263,6 +258,7 @@ public class PivotContainer extends ConcreteContainer {
 
 		private void letTheWorldKnow(
 				final Map<Attribute, Substance> entryQualifier) {
+			lock.lock();
 			int identity=generateIdentity();
 			TransportEntry newContainerEntry = new TransportEntry(identity,
 					entryQualifier);
@@ -270,6 +266,7 @@ public class PivotContainer extends ConcreteContainer {
 					PivotContainer.this.getName(), newContainerEntry,getCurrentTransactionID());
 			PivotContainer.super.entryAdded(adjEvent);
 			summaryEntry = getConcreteEntry(identity);
+			lock.unlock();
 		}
 
 		/**
@@ -589,8 +586,6 @@ public class PivotContainer extends ConcreteContainer {
 			root.aggregateUniverse(root);
 		}
 	}
-
-	private ContainerEntry[] indexedEntries = null;
 	
 	@Override
 	public ContainerEntry[] getContainerEntries() {
