@@ -482,10 +482,18 @@ public class PivotContainer extends ConcreteContainer {
 				return indexedEntries;
 			}
 		}
-		
+		/**Method responsible to generate view for the given collapsed structure.
+		 * This list is strictly for viewing. Dont execute any operation on this
+		 * list.
+		 * 
+		 * @param attributes pivotedAttributed relative to this node.
+		 * @return ArrayList<ContainerEntry>
+		 */
 		private ArrayList<ContainerEntry> computeContainerEntries(Attribute[] attributes){
 			ArrayList<ContainerEntry> containerEntries = new ArrayList<ContainerEntry>();
-			containerEntries.add(summaryEntry);
+			if(attributes.length==0 || childPivotEntries.size()>1){
+				containerEntries.add(summaryEntry);
+			}
 			if(!collapsed){
 				if(attributes.length==0){
 					containerEntries.addAll(registeredEntries);
