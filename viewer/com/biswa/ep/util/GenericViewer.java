@@ -172,13 +172,13 @@ public class GenericViewer extends PivotContainer {
 	@Override
 	public void attributeAdded(final ContainerEvent ce) {
 		super.attributeAdded(ce);
-		vtableModel.fireTableStructureChanged();
+		if(vtableModel!=null)vtableModel.fireTableStructureChanged();
 	}
 
 	@Override
 	public void attributeRemoved(final ContainerEvent ce) {
 		super.attributeRemoved(ce);
-		vtableModel.fireTableStructureChanged();
+		if(vtableModel!=null)vtableModel.fireTableStructureChanged();
 	}
 	@Override
 	public void applySort(final LinkedHashMap<Attribute,Boolean> sortorder){
