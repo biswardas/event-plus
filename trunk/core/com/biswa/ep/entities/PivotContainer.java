@@ -201,7 +201,7 @@ public class PivotContainer extends ConcreteContainer {
 	 * 
 	 */
 	private final class PivotEntry {
-		private Comparator<ContainerEntry> recordComparator = new Comparator<ContainerEntry>() {
+		private final Comparator<ContainerEntry> recordComparator = new Comparator<ContainerEntry>() {
 			@Override
 			public int compare(ContainerEntry o1, ContainerEntry o2) {
 				for(Entry<Attribute, Boolean> oneEntry:sortOrder.entrySet()){
@@ -243,8 +243,13 @@ public class PivotContainer extends ConcreteContainer {
 		 * Summary Entry associated with this pivot.
 		 */
 		private ContainerEntry summaryEntry;
-		
+		/**
+		 * State of this pivot entry
+		 */
 		private boolean collapsed=false;
+		/**
+		 * Is this node dirty?
+		 */
 		private boolean dirty = false;
 		/**
 		 * Constructor to create the Pivot entry. This is the ROOT constructor
@@ -285,7 +290,10 @@ public class PivotContainer extends ConcreteContainer {
 			this.parent.childPivotEntries.put(substanceAtDepth, this);
 			letTheWorldKnow();
 		}
-
+		
+		/**
+		 * Method broadcasts the world that a pivot entry has been created.
+		 */
 		private void letTheWorldKnow() {			
 			lock.lock();
 			// Additional pivoted Entry to be created
@@ -352,7 +360,7 @@ public class PivotContainer extends ConcreteContainer {
 		/**
 		 * Remove pivot based on this substance on the current pivot
 		 * 
-		 * @param substance
+		 * @param substance Substance
 		 */
 		private void removePivot(Substance substance) {
 			PivotEntry toBeDeletedEntry = childPivotEntries.remove(substance);
@@ -368,7 +376,7 @@ public class PivotContainer extends ConcreteContainer {
 		/**
 		 * Registers the physical with the current pivot
 		 * 
-		 * @param containerEntry
+		 * @param containerEntry ContainerEntry
 		 */
 		private void register(ContainerEntry containerEntry) {
 			dirty=true;
@@ -377,7 +385,11 @@ public class PivotContainer extends ConcreteContainer {
 				aggregateAndPropagate(attribute);
 			}
 		}
-
+		
+		/**Aggregates and propagates the attribute vertically outward.
+		 * 
+		 * @param attribute Attribute
+		 */
 		private void aggregateAndPropagate(Attribute attribute) {
 			aggregate(attribute);
 			if (parent != null)
