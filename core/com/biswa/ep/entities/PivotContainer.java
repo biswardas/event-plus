@@ -297,6 +297,7 @@ public class PivotContainer extends ConcreteContainer {
 			dirty=true;
 			// Remove the physical data
 			registeredEntries.remove(containerEntry);
+			containerEntry.silentUpdate(PIVOT, null);
 			for (Attribute attribute : aggrMap.keySet()) {
 				aggregateAndPropagate(attribute);
 			}
