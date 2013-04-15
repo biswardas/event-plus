@@ -8,7 +8,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -33,7 +32,6 @@ import com.biswa.ep.entities.spec.AggrSpec;
 import com.biswa.ep.entities.spec.CollapseSpec;
 import com.biswa.ep.entities.spec.PivotSpec;
 import com.biswa.ep.entities.spec.SortSpec;
-import com.biswa.ep.entities.substance.Substance;
 public class GenericViewer extends PivotContainer {
 	private JFrame jframe = null;
 	private JTable jtable = null;
@@ -180,41 +178,12 @@ public class GenericViewer extends PivotContainer {
 		super.attributeRemoved(ce);
 		if(vtableModel!=null)vtableModel.fireTableStructureChanged();
 	}
-	@Override
-	public void applySort(final LinkedHashMap<Attribute,Boolean> sortorder){
-		super.applySort(sortorder);
-	}
-	@Override
-	public void applyCollapse(int identity,boolean state){
-		super.applyCollapse(identity,state);
-	}
+	
 	@Override
 	public void commitTran(){
 		super.commitTran();
 		vtableModel.fireTableDataChanged();
 		jframe.setTitle(getName()+"/"+jtable.getRowCount()+"--"+GenericViewer.this.getCurrentTransactionID());
-	}
-
-	@Override
-	public void dispatchAttributeAdded(Attribute requestedAttribute) {
-	}
-
-	@Override
-	public void dispatchAttributeRemoved(Attribute requestedAttribute) {
-	}
-
-	@Override
-	public void dispatchEntryAdded(ContainerEntry ce) {
-		super.dispatchEntryAdded(ce);
-	}
-
-	@Override
-	public void dispatchEntryRemoved(ContainerEntry ce) {
-		super.dispatchEntryRemoved(ce);
-	}
-
-	@Override
-	public void dispatchEntryUpdated(Attribute attribute, Substance substance, ContainerEntry ce) {
 	}
 
 	class ViewerTableModel extends AbstractTableModel {
