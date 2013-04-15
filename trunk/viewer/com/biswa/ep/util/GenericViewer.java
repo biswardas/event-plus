@@ -33,7 +33,6 @@ import com.biswa.ep.entities.spec.AggrSpec;
 import com.biswa.ep.entities.spec.CollapseSpec;
 import com.biswa.ep.entities.spec.PivotSpec;
 import com.biswa.ep.entities.spec.SortSpec;
-import com.biswa.ep.entities.substance.ObjectSubstance;
 import com.biswa.ep.entities.substance.Substance;
 public class GenericViewer extends PivotContainer {
 	private JFrame jframe = null;
@@ -184,12 +183,10 @@ public class GenericViewer extends PivotContainer {
 	@Override
 	public void applySort(final LinkedHashMap<Attribute,Boolean> sortorder){
 		super.applySort(sortorder);
-		vtableModel.recordSetDirty=true;
 	}
 	@Override
 	public void applyCollapse(int identity,boolean state){
 		super.applyCollapse(identity,state);
-		vtableModel.recordSetDirty=true;
 	}
 	@Override
 	public void commitTran(){
@@ -208,13 +205,11 @@ public class GenericViewer extends PivotContainer {
 
 	@Override
 	public void dispatchEntryAdded(ContainerEntry ce) {
-		vtableModel.recordSetDirty=true;
 		super.dispatchEntryAdded(ce);
 	}
 
 	@Override
 	public void dispatchEntryRemoved(ContainerEntry ce) {
-		vtableModel.recordSetDirty=true;
 		super.dispatchEntryRemoved(ce);
 	}
 
@@ -227,7 +222,6 @@ public class GenericViewer extends PivotContainer {
 		 * 
 		 */
 		private static final long serialVersionUID = 4352652252566957454L;
-		boolean recordSetDirty = true;
 		private GenericViewer cs;
 		private ContainerEntry[] containerEntries = null;
 		private Attribute[] attributes = null;
@@ -235,7 +229,6 @@ public class GenericViewer extends PivotContainer {
 			this.cs = cs;
 			this.attributes = cs.getSubscribedAttributes();
 			this.containerEntries = cs.getContainerEntries();
-			recordSetDirty=false;
 		}
 
 		public String getColumnName(int col) {
@@ -258,47 +251,17 @@ public class GenericViewer extends PivotContainer {
 		public Object getValueAt(int rowIndex, int columnIndex) {
 			if(columnIndex==0) return containerEntries[rowIndex].getIdentitySequence();
 			else 
-			return new CellValue(containerEntries[rowIndex].getSubstance(attributes[columnIndex-1]));
+			return containerEntries[rowIndex].getSubstance(attributes[columnIndex-1]);
 		}
 		@Override
 		public void fireTableDataChanged(){
-			if(recordSetDirty){
-				this.containerEntries = cs.getContainerEntries();
-				recordSetDirty = false;
-			}
+			this.containerEntries = cs.getContainerEntries();
 			super.fireTableDataChanged();
 		}
 		@Override
 		public void fireTableStructureChanged(){
 			this.attributes = cs.getSubscribedAttributes();
 			super.fireTableStructureChanged();
-		}
-	}
-	class CellValue implements Comparable<CellValue>{
-		private Substance substance;
-		public CellValue(Substance substance) {
-			if(substance!=null){
-				this.substance = substance;
-			}else{
-				this.substance = new ObjectSubstance("");
-			}
-		}
-		@Override
-		public int compareTo(CellValue cellValue) {
-			Substance otherSubstance = cellValue.substance;
-			int result =  this.substance.getValue().toString().compareTo(otherSubstance.getValue().toString());
-			if(result==0){
-				if(this.substance.isAggr() && !otherSubstance.isAggr()){
-					return -1;
-				} else if(!this.substance.isAggr() && otherSubstance.isAggr()){
-					return 1;
-				}
-			}
-			return result;
-		}	
-		@Override
-		public String toString(){
-			return substance!=null?this.substance.toString():"";
 		}
 	}
 }
