@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantLock;
@@ -171,21 +172,16 @@ public class PivotContainer extends ConcreteContainer {
 
 	private void applyPivot(ContainerEntry containerEntry) {
 		PivotEntry pivotEntry = root;
-
-		// Create the qualifier entries for the pivot entries
-		final Map<Attribute, Substance> entryQualifier = new HashMap<Attribute, Substance>();
-
+		
 		// Create the pivot entries if required, in case exists navigate till
 		// the leaf pivot
 		
 		for (Attribute pivotedAttribute:pivotedAttributes.keySet()) {
 			Substance substanceAtDepth = containerEntry.getSubstance(pivotedAttribute);
 			substanceAtDepth = new PivotedSubstance(substanceAtDepth != null ? substanceAtDepth: DEFAULT_SUBSTANCE);
-
-			entryQualifier.put(pivotedAttribute, substanceAtDepth);
 			PivotEntry childEntry = pivotEntry.getChild(substanceAtDepth);
 			if (childEntry == null) {
-				childEntry = pivotEntry.create(substanceAtDepth,entryQualifier);
+				childEntry = new PivotEntry(substanceAtDepth, pivotEntry);
 			}
 			pivotEntry = childEntry;
 		}
@@ -258,17 +254,8 @@ public class PivotContainer extends ConcreteContainer {
 			this.pivotDepth = 0;
 			this.substance = DEFAULT_SUBSTANCE;
 			this.registeredEntries = new TreeSet<ContainerEntry>(recordComparator);
-			this.childPivotEntries = new TreeMap<Substance, PivotEntry>();
-
-			// Additional pivoted Entry to be created
-			// Create the qualifier entries for the pivot entries
-			final Map<Attribute, Substance> entryQualifier = new HashMap<Attribute, Substance>();
-			// Create the pivot entries if required, in case exists navigate till
-			// the leaf pivot
-			for (Attribute pivotedAttribute:pivotedAttributes.keySet()) {
-				entryQualifier.put(pivotedAttribute, DEFAULT_SUBSTANCE);
-			}
-			letTheWorldKnow(entryQualifier);
+			this.childPivotEntries = new TreeMap<Substance, PivotEntry>();			
+			letTheWorldKnow();
 		}
 
 
@@ -295,15 +282,34 @@ public class PivotContainer extends ConcreteContainer {
 				this.registeredEntries = null;
 				childPivotEntries = new TreeMap<Substance, PivotEntry>();
 			}
+			this.parent.childPivotEntries.put(substanceAtDepth, this);
+			letTheWorldKnow();
 		}
 		
 		public PivotEntry getChild(Substance substanceAtDepth) {
 			return childPivotEntries.get(substanceAtDepth);
 		}
 
-		private void letTheWorldKnow(
-				final Map<Attribute, Substance> entryQualifier) {
+		private void letTheWorldKnow() {			
 			lock.lock();
+			// Additional pivoted Entry to be created
+			// Create the qualifier entries for the pivot entries
+			final Map<Attribute, Substance> entryQualifier = new HashMap<Attribute, Substance>();
+			Stack<Substance> substanceStack=new Stack<Substance>();
+			// Create the pivot entries if required, in case exists navigate till
+			// the leaf pivot
+			PivotEntry pivotEntry = this;
+			while (pivotEntry.pivotDepth!=0) {
+				substanceStack.push(pivotEntry.substance);
+				pivotEntry=pivotEntry.parent;
+			}
+			for(Attribute oneAttribute:pivotedAttributes.keySet()){
+				if(!substanceStack.isEmpty()){
+					entryQualifier.put(oneAttribute, substanceStack.pop());
+				}else{
+					break;
+				}
+			}
 			int identity=generateIdentity();
 			TransportEntry newContainerEntry = new TransportEntry(identity,
 					entryQualifier);
@@ -364,22 +370,6 @@ public class PivotContainer extends ConcreteContainer {
 			}
 		}
 
-		/**
-		 * factory method to create the pivot and propagate the required
-		 * notifications
-		 * @param substanceAtDepth
-		 *            Substance at the current depth
-		 * @param entryQualifier 
-		 * @return PivotEntry
-		 */
-		private PivotEntry create(final Substance substanceAtDepth, Map<Attribute, Substance> entryQualifier) {
-			dirty=true;
-			PivotEntry pivEntry = new PivotEntry(substanceAtDepth, this);
-			pivEntry.letTheWorldKnow(entryQualifier);
-			childPivotEntries.put(substanceAtDepth, pivEntry);
-			return pivEntry;
-		}		
-			
 		private void aggregateAndPropagate(Attribute attribute) {
 			aggregate(attribute);
 			if (parent != null)
@@ -559,6 +549,7 @@ public class PivotContainer extends ConcreteContainer {
 				if(containerEntry==root.summaryEntry) continue;
 				applyPivot(containerEntry);
 			}
+			root.dirty=true;
 			indexedEntries = root.getContainerEntries();
 		}
 	}
