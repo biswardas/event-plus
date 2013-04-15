@@ -599,12 +599,13 @@ public class PivotContainer extends ConcreteContainer {
 
 	/**Behavior method to apply sort on this container.
 	 * 
-	 * @param sortorder SortOrder
+	 * @param sortOrder SortOrder
 	 * 
 	 * @throws NullPointerException if sortorder is null
 	 */
-	public void applySort(final LinkedHashMap<Attribute,Boolean> sortorder){
-		for(Entry<Attribute, Boolean> entry:sortorder.entrySet()){
+	public void applySort(final LinkedHashMap<Attribute,Boolean> sortOrder){
+		this.sortOrder.clear();
+		for(Entry<Attribute, Boolean> entry:sortOrder.entrySet()){
 			this.sortOrder.put(entry.getKey().getRegisteredAttribute(),entry.getValue());
 		}
 		root.dirty=true;
