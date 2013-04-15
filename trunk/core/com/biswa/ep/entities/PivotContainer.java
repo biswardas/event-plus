@@ -30,6 +30,17 @@ import com.biswa.ep.entities.substance.Substance;
  */
 public class PivotContainer extends ConcreteContainer {
 	/**
+	 * Pivot attribute in this container.
+	 */
+	static final PrivateAttribute PIVOT = new PrivateAttribute("PIVOT"){
+		private static final long serialVersionUID = 3437384343079305634L;
+		@Override
+		protected Substance evaluate(Attribute attribute,
+				ContainerEntry containerEntry) throws Exception {
+			return containerEntry.getSubstance(this);
+		}
+	};
+	/**
 	 * Default substance in case pivoting is requested on a null value.
 	 */
 	static final private Substance DEFAULT_SUBSTANCE = new ObjectSubstance("");
@@ -58,6 +69,7 @@ public class PivotContainer extends ConcreteContainer {
 	 */
 	public PivotContainer(String name,Properties props) {
 		super(name,props);
+		attributeAdded(new ContainerStructureEvent(getName(), PIVOT));
 	}
 
 	@Override
@@ -68,88 +80,26 @@ public class PivotContainer extends ConcreteContainer {
 
 	@Override
 	final public void entryUpdated(ContainerEvent ce) {
-		if (getName().equals(ce.getSource())) {
-			simpleEntryUpdate(ce);
-		} else {
-			if (pivotedAttributes.containsKey(ce.getAttribute())) {
-				pivotEntryUpdate(ce);
-			} else {
-				simpleEntryUpdate(ce);
-			}
-		}
-	}
-
-	/**
-	 * When pivoted substance is updated then the pivot is basically invalidated. <br>
-	 * 1. Fetch the container entry based on the incoming event & reconstruct the
-	 * qualifier.<br> 
-	 * 2. Remove the entry for which the pivoted column is being updated. <br>
-	 * 3. Reconstruct an event to request the entry to be re added and
-	 * pivoted again.<br> 
-	 * Keep in mind this is a very expensive operation.
-	 * 
-	 * @param ce ContainerEvent
-	 */
-	private void pivotEntryUpdate(ContainerEvent ce) {
-		// Fetch the concrete ContainerEntry based on the incoming event
-		ContainerEntry containerEntry = getConcreteEntry(ce.getIdentitySequence());
-		// If a pivot entry is being updated then rules of the game is very
-		// different merge the container entry
-		TransportEntry transportEntry = containerEntry.cloneConcrete();
-		transportEntry.getEntryQualifier().put(ce.getAttribute(), ce.getSubstance());
-		// Remove the container entry
-		entryRemoved(ce);
-		// re add the container entry
-		ContainerEvent adjEvent = new ContainerInsertEvent(ce.getSource(),
-				transportEntry,getCurrentTransactionID());
-		entryAdded(adjEvent);
-	}
-
-	/**
-	 * Update the container entry and dispatch the entry updated event.
-	 * 
-	 * @param ce  ContainerEvent
-	 */
-	private void simpleEntryUpdate(ContainerEvent ce) {
 		// Fetch the concrete ContainerEntry based on the incoming event
 		ContainerEntry containerEntry = getConcreteEntry(ce.getIdentitySequence());
 		// fetch the pivot holding this physical
-		PivotEntry pivotEntry = containerEntry == null ? null
-				: getLeafPivotEntry(containerEntry);
-		// Update the physical container
-		super.entryUpdated(ce);
-		// Update the aggregates
-		if (pivotEntry != null)
-			pivotEntry.aggregateAndPropagate(ce.getAttribute().getRegisteredAttribute());
-	}
-
-	@Override
-	final public void entryRemoved(ContainerEvent ce) {
-		// Fetch the concrete ContainerEntry based on the incoming event
-		ContainerEntry containerEntry = getConcreteEntry(ce.getIdentitySequence());
-		PivotEntry pivotEntry = getLeafPivotEntry(containerEntry);
-		// Remove the concrete entry
-		super.entryRemoved(ce);
-		// Remove the registered container entry
-		pivotEntry.unregister(containerEntry);
-	}
-
-	// TODO optimize the way to access Pivot directly
-	private PivotEntry getLeafPivotEntry(ContainerEntry containerEntry) {
-		PivotEntry pivotEntry = root;
-		// Remove the pivot entries if required, search for the leaf pivot and
-		// remove if required.
-		for (Attribute pivotedAttribute:pivotedAttributes.keySet()) {
-			Substance substanceAtDepth = containerEntry.getSubstance(pivotedAttribute);
-			if (substanceAtDepth == null) {
-				substanceAtDepth = DEFAULT_SUBSTANCE;
+		PivotEntry pivotEntry = (PivotEntry) containerEntry.getSubstance(PIVOT).getValue();
+		
+		Attribute registered = ce.getAttribute().getRegisteredAttribute();
+		if (pivotedAttributes.containsKey(registered)) {
+			pivotEntry.unregister(containerEntry);
+			super.entryUpdated(ce);
+			applyPivot(containerEntry);
+		} else {
+			super.entryUpdated(ce);
+			if(aggrMap.containsKey(registered)){
+				pivotEntry.aggregateAndPropagate(registered);
 			}
-			// Obtain the pivot based on substance at depth
-			pivotEntry = pivotEntry.getChild(substanceAtDepth);
-		}
-		return pivotEntry;
-	}
-	
+			if(sortOrder.containsKey(registered)){
+				pivotEntry.applySort();
+			}
+		}			
+	}	
 
 	@Override
 	public void dispatchEntryAdded(ContainerEntry containerEntry) {
@@ -380,6 +330,7 @@ public class PivotContainer extends ConcreteContainer {
 		 */
 		private void register(ContainerEntry containerEntry) {
 			dirty=true;
+			containerEntry.silentUpdate(PIVOT, new ObjectSubstance(this));
 			registeredEntries.add(containerEntry);			
 			for (Attribute attribute : aggrMap.keySet()) {
 				aggregateAndPropagate(attribute);
