@@ -285,10 +285,6 @@ public class PivotContainer extends ConcreteContainer {
 			this.parent.childPivotEntries.put(substanceAtDepth, this);
 			letTheWorldKnow();
 		}
-		
-		public PivotEntry getChild(Substance substanceAtDepth) {
-			return childPivotEntries.get(substanceAtDepth);
-		}
 
 		private void letTheWorldKnow() {			
 			lock.lock();
@@ -318,6 +314,18 @@ public class PivotContainer extends ConcreteContainer {
 			PivotContainer.super.entryAdded(adjEvent);
 			summaryEntry = getConcreteEntry(identity);
 			lock.unlock();
+		}
+		
+		/**Fetched the child based the substance provided,
+		 * Returns null in case no such child present.
+		 * 
+		 * @param substanceAtDepth Substance
+		 * @return PivotEntry
+		 * 
+		 * @throws NullPointerException if substanceAtDepth is null
+		 */
+		public PivotEntry getChild(Substance substanceAtDepth) {
+			return childPivotEntries.get(substanceAtDepth);
 		}
 
 		/**
