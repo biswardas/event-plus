@@ -78,12 +78,14 @@ public class PivotContainer extends ConcreteContainer {
 	@Override
 	public void dispatchEntryAdded(ContainerEntry containerEntry) {
 		applyPivot(containerEntry);
+		refreshPageView();
 	}
 	
 	@Override
 	public void dispatchEntryRemoved(ContainerEntry containerEntry){
 		PivotEntry pivotEntry = (PivotEntry) containerEntry.getSubstance(PIVOT).getValue();
 		pivotEntry.unregister(containerEntry);
+		refreshPageView();
 	}
 	
 	@Override
@@ -93,14 +95,21 @@ public class PivotContainer extends ConcreteContainer {
 		if (pivotedAttributes.containsKey(attribute)) {
 			pivotEntry.unregister(containerEntry);
 			applyPivot(containerEntry);
+			refreshPageView();
 		} else {
 			if(aggrMap.containsKey(attribute)){
 				pivotEntry.aggregateAndPropagate(attribute);
 			}
 			if(sortOrder.containsKey(attribute)){
 				pivotEntry.applySort();
+				refreshPageView();
 			}
 		}			
+	}
+
+	private void refreshPageView() {
+		root.dirty=true;
+		indexedEntries=root.getContainerEntries();
 	}
 
 	@Override
@@ -510,8 +519,7 @@ public class PivotContainer extends ConcreteContainer {
 				if(containerEntry==root.summaryEntry) continue;
 				applyPivot(containerEntry);
 			}
-			root.dirty=true;
-			indexedEntries = root.getContainerEntries();
+			refreshPageView();
 		}
 	}
 	
@@ -549,9 +557,8 @@ public class PivotContainer extends ConcreteContainer {
 		for(Entry<Attribute, Boolean> entry:sortOrder.entrySet()){
 			this.sortOrder.put(entry.getKey().getRegisteredAttribute(),entry.getValue());
 		}
-		root.dirty=true;
 		root.applySort();
-		indexedEntries = root.getContainerEntries();
+		refreshPageView();
 	}
 	
 	/**Behavior method to apply aggregation on this container.
@@ -585,8 +592,7 @@ public class PivotContainer extends ConcreteContainer {
 	public void applyCollapse(int identity, boolean state) {
 		PivotEntry pivotEntry = directPivotAccess.get(identity);
 		if(pivotEntry!=null && pivotEntry.collapse(state)){
-			root.dirty=true;
-			indexedEntries = root.getContainerEntries();
+			refreshPageView();
 		}
 	}
 	
