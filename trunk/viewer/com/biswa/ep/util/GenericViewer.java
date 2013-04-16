@@ -23,6 +23,7 @@ import javax.swing.table.AbstractTableModel;
 import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ConnectionEvent;
+import com.biswa.ep.entities.ContainerDeleteEvent;
 import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.ContainerEvent;
 import com.biswa.ep.entities.LeafAttribute;
@@ -87,6 +88,7 @@ public class GenericViewer extends PivotContainer {
 		addAggrControl(jPanel);
 		addSortControl(jPanel);
 		addCollapsingControl(jPanel);
+		addRemoveControl(jPanel);
 		jframe.add(jPanel,BorderLayout.SOUTH);
 	}
 
@@ -147,8 +149,8 @@ public class GenericViewer extends PivotContainer {
 	}
 	private void addCollapsingControl(JPanel jPanel) {
 		final JTextField collapserTextField = new JTextField();	
-		final JButton collapserButton = new JButton("Apply Collapse");	
-		jPanel.add(collapserTextField);
+		final JButton collapserButton = new JButton("Collapse");
+		jPanel.add(collapserTextField);	
 		jPanel.add(collapserButton);
 		collapserButton.addActionListener(new ActionListener() {			
 			@Override
@@ -157,6 +159,18 @@ public class GenericViewer extends PivotContainer {
 				boolean order = oneNode.length>1?Boolean.parseBoolean(oneNode[1]):true;
 				CollapseSpec collapseSpec = new CollapseSpec(Integer.parseInt(oneNode[0]),order);
 				GenericViewer.this.agent().applySpec(collapseSpec);
+			}
+		});
+	}
+	private void addRemoveControl(JPanel jPanel) {
+		final JTextField collapserTextField = new JTextField();	
+		final JButton removeButton = new JButton("Remove");	
+		jPanel.add(collapserTextField);
+		jPanel.add(removeButton);
+		removeButton.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				GenericViewer.this.agent().entryRemoved(new ContainerDeleteEvent(getName(), Integer.parseInt(collapserTextField.getText()), 0));
 			}
 		});
 	}
