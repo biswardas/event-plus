@@ -15,8 +15,8 @@ import java.util.TreeSet;
 
 import com.biswa.ep.entities.aggregate.Aggregator;
 import com.biswa.ep.entities.aggregate.Aggregators;
+import com.biswa.ep.entities.substance.NullSubstance;
 import com.biswa.ep.entities.substance.ObjectSubstance;
-import com.biswa.ep.entities.substance.PivotedSubstance;
 import com.biswa.ep.entities.substance.Substance;
 
 /**
@@ -27,17 +27,6 @@ import com.biswa.ep.entities.substance.Substance;
  * 
  */
 public class PivotContainer extends ConcreteContainer {
-	/**
-	 * Pivot attribute in this container.
-	 */
-	static final PrivateAttribute PIVOT = new PrivateAttribute("PIVOT"){
-		private static final long serialVersionUID = 3437384343079305634L;
-		@Override
-		protected Substance evaluate(Attribute attribute,
-				ContainerEntry containerEntry) throws Exception {
-			return containerEntry.getSubstance(this);
-		}
-	};
 	/**
 	 * Default substance in case pivoting is requested on a null value.
 	 */
@@ -66,7 +55,6 @@ public class PivotContainer extends ConcreteContainer {
 	 */
 	public PivotContainer(String name,Properties props) {
 		super(name,props);
-		attributeAdded(new ContainerStructureEvent(getName(), PIVOT));
 	}
 
 	@Override
@@ -77,13 +65,13 @@ public class PivotContainer extends ConcreteContainer {
 
 	@Override
 	public void dispatchEntryAdded(ContainerEntry containerEntry) {
-		applyPivot(containerEntry);
+		root.applyPivot(containerEntry);
 		refreshPageView();
 	}
 	
 	@Override
 	public void dispatchEntryRemoved(ContainerEntry containerEntry){
-		PivotEntry pivotEntry = (PivotEntry) containerEntry.getSubstance(PIVOT).getValue();
+		PivotEntry pivotEntry = directPivotAccess.get(containerEntry.getIdentitySequence());
 		pivotEntry.unregister(containerEntry);
 		refreshPageView();
 	}
@@ -91,10 +79,10 @@ public class PivotContainer extends ConcreteContainer {
 	@Override
 	public void dispatchEntryUpdated(Attribute attribute, Substance substance, ContainerEntry containerEntry){
 		// fetch the pivot holding this physical
-		PivotEntry pivotEntry = (PivotEntry) containerEntry.getSubstance(PIVOT).getValue(); 
+		PivotEntry pivotEntry = directPivotAccess.get(containerEntry.getIdentitySequence()); 
 		if (pivotedAttributes.containsKey(attribute)) {
 			pivotEntry.unregister(containerEntry);
-			applyPivot(containerEntry);
+			root.applyPivot(containerEntry);
 			refreshPageView();
 		} else {
 			if(aggrMap.containsKey(attribute)){
@@ -124,25 +112,6 @@ public class PivotContainer extends ConcreteContainer {
 			pivotedAttributes.remove(requestedAttribute);
 			rePivot();
 		}
-	}
-	
-	private void applyPivot(ContainerEntry containerEntry) {
-		PivotEntry pivotEntry = root;
-		
-		// Create the pivot entries if required, in case exists navigate till
-		// the leaf pivot
-		
-		for (Attribute pivotedAttribute:pivotedAttributes.keySet()) {
-			Substance substanceAtDepth = containerEntry.getSubstance(pivotedAttribute);
-			substanceAtDepth = new PivotedSubstance(substanceAtDepth != null ? substanceAtDepth: DEFAULT_SUBSTANCE);
-			PivotEntry childEntry = pivotEntry.getChild(substanceAtDepth);
-			if (childEntry == null) {
-				childEntry = new PivotEntry(substanceAtDepth, pivotEntry);
-			}
-			pivotEntry = childEntry;
-		}
-		// Register the physical entry reference
-		pivotEntry.register(containerEntry);
 	}
 	
 	private Aggregator getAggregator(Attribute attribute) {
@@ -223,8 +192,6 @@ public class PivotContainer extends ConcreteContainer {
 		/**
 		 * Constructor to create the Pivot entry to contain child pivots
 		 * 
-		 * @param depth
-		 *            int
 		 * @param substanceAtDepth
 		 *            Substance
 		 * @param parent
@@ -301,7 +268,7 @@ public class PivotContainer extends ConcreteContainer {
 			dirty=true;
 			// Remove the physical data
 			registeredEntries.remove(containerEntry);
-			containerEntry.silentUpdate(PIVOT, null);
+			directPivotAccess.remove(containerEntry.getIdentitySequence());
 			for (Attribute attribute : aggrMap.keySet()) {
 				aggregateAndPropagate(attribute);
 			}
@@ -332,7 +299,7 @@ public class PivotContainer extends ConcreteContainer {
 		 */
 		private void register(ContainerEntry containerEntry) {
 			dirty=true;
-			containerEntry.silentUpdate(PIVOT, new ObjectSubstance(this));
+			directPivotAccess.put(containerEntry.getIdentitySequence(), this);
 			registeredEntries.add(containerEntry);			
 			for (Attribute attribute : aggrMap.keySet()) {
 				aggregateAndPropagate(attribute);
@@ -490,22 +457,54 @@ public class PivotContainer extends ConcreteContainer {
 			}
 		}
 
-		public void aggregateUniverse(PivotEntry pivotEntry){		
-			if (pivotEntry.childPivotEntries != null && pivotedAttributes.size()>0) {
-				for(PivotEntry innerPivot:pivotEntry.childPivotEntries.values()){
-					aggregateUniverse(innerPivot);				
+		public void aggregateUniverse(){		
+			if (childPivotEntries != null && pivotedAttributes.size()>0) {
+				for(PivotEntry innerPivot:childPivotEntries.values()){
+					innerPivot.aggregateUniverse();				
 				}
 			}
 			for(Attribute attribute:aggrMap.keySet()){
-				pivotEntry.aggregate(attribute);
+				aggregate(attribute);
 			}
 		}
+
+		public void clearAggregation(){		
+			if (childPivotEntries != null && pivotedAttributes.size()>0) {
+				for(PivotEntry innerPivot:childPivotEntries.values()){
+					innerPivot.clearAggregation();				
+				}
+			}
+			for(Attribute attribute:aggrMap.keySet()){
+				summaryEntry.silentUpdate(attribute, NullSubstance.NULL_SUBSTANCE);
+			}
+		}
+		
 		public boolean collapse(boolean newCollapsingState){
 			if(!(collapsed==newCollapsingState)){
 				collapsed=newCollapsingState;
 				return true;
 			}
 			return false;
+		}
+
+
+		public void applyPivot(ContainerEntry containerEntry) {
+			PivotEntry pivotEntry = root;
+			
+			// Create the pivot entries if required, in case exists navigate till
+			// the leaf pivot
+			
+			for (Attribute pivotedAttribute:pivotedAttributes.keySet()) {
+				Substance substanceAtDepth = containerEntry.getSubstance(pivotedAttribute);
+				substanceAtDepth = substanceAtDepth != null ? substanceAtDepth: DEFAULT_SUBSTANCE;
+				PivotEntry childEntry = pivotEntry.getChild(substanceAtDepth);
+				if (childEntry == null) {
+					childEntry = new PivotEntry(substanceAtDepth, pivotEntry);
+				}
+				pivotEntry = childEntry;
+			}
+			// Register the physical entry reference
+			pivotEntry.register(containerEntry);
 		}
 	}
 
@@ -517,7 +516,7 @@ public class PivotContainer extends ConcreteContainer {
 			// Re pivot everything based on new specification
 			for (ContainerEntry containerEntry : getContainerDataEntries()) {
 				if(containerEntry==root.summaryEntry) continue;
-				applyPivot(containerEntry);
+				root.applyPivot(containerEntry);
 			}
 			refreshPageView();
 		}
@@ -567,16 +566,31 @@ public class PivotContainer extends ConcreteContainer {
 	 * 
 	 * @throws NullPointerException if aggrSpec is null
 	 */
-	public void applyAggregation(final LinkedHashMap<Attribute, Aggregator> aggrSpec) {
+	public void applyAggregation(final LinkedHashMap<Attribute, Aggregator> aggrSpec) {		
+		//Clear aggregations on the attributes which no longer require aggregation in new 
+		//specification.
+		aggrMap.keySet().removeAll(aggrSpec.keySet());
+		if(!aggrMap.isEmpty()){
+			//Clear aggregations on outstanding ones
+			root.clearAggregation();
+			//Clear old stuff entirely
+			this.aggrMap.clear();
+		}
+		
+		//Apply the new aggregation, remember we can not apply aggregation only on the
+		//new attribute set instead need to aggregate every thing as old ones aggregation
+		//may have changes.
 		for(Attribute attribute:pivotedAttributes.keySet()){
+			//TODO override pivots over ride aggregation what about when pivots are removed
+			//then regular aggregations should take over.
+			//TODO also when pivot is removed then the default aggregation must be
+			//cleaned up
 			aggrSpec.remove(attribute);
 		}
 		for(Entry<Attribute, Aggregator> entry:aggrSpec.entrySet()){
 			this.aggrMap.put(entry.getKey().getRegisteredAttribute(),entry.getValue());
 		}
-		if(root!=null){
-			root.aggregateUniverse(root);
-		}
+		root.aggregateUniverse();
 	}
 
 	
