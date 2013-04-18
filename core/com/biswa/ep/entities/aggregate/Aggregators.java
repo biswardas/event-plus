@@ -2,7 +2,6 @@ package com.biswa.ep.entities.aggregate;
 
 public enum Aggregators {
 	SUM(SumAggregator.class),
-	NONE(NoneAggregator.class),
 	AVG(AverageAggregator.class);
 	final public Aggregator AGGR;
 	private Aggregators(Class<? extends Aggregator> aggregatorClass){
