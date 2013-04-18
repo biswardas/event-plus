@@ -66,14 +66,14 @@ public class PivotContainer extends ConcreteContainer {
 	@Override
 	public void dispatchEntryAdded(ContainerEntry containerEntry) {
 		root.applyPivot(containerEntry);
-		refreshPageView();
+		root.refreshPageView();
 	}
 	
 	@Override
 	public void dispatchEntryRemoved(ContainerEntry containerEntry){
 		PivotEntry pivotEntry = directPivotAccess.get(containerEntry.getIdentitySequence());
 		pivotEntry.unregister(containerEntry);
-		refreshPageView();
+		root.refreshPageView();
 	}
 	
 	@Override
@@ -83,21 +83,16 @@ public class PivotContainer extends ConcreteContainer {
 		if (pivotedAttributes.containsKey(attribute)) {
 			pivotEntry.unregister(containerEntry);
 			root.applyPivot(containerEntry);
-			refreshPageView();
+			root.refreshPageView();
 		} else {
 			if(aggrMap.containsKey(attribute)){
 				pivotEntry.aggregateAndPropagate(attribute);
 			}
 			if(sortOrder.containsKey(attribute)){
 				pivotEntry.applySort();
-				refreshPageView();
+				root.refreshPageView();
 			}
 		}			
-	}
-
-	private void refreshPageView() {
-		root.dirty=true;
-		indexedEntries=root.getContainerEntries();
 	}
 
 	@Override
@@ -110,15 +105,11 @@ public class PivotContainer extends ConcreteContainer {
 		aggrMap.remove(requestedAttribute);
 		if (pivotedAttributes.containsKey(requestedAttribute)) {
 			pivotedAttributes.remove(requestedAttribute);
+			root.clearAggregation(requestedAttribute);
 			rePivot();
 		}
 	}
 	
-	private Aggregator getAggregator(Attribute attribute) {
-		Aggregator aggregator = aggrMap.get(attribute);
-		return aggregator!=null?aggregator:Aggregators.NONE.AGGR;
-	}
-
 	/**
 	 * Pivoted entry are the virtual entries based the incoming physicals.
 	 * 
@@ -316,16 +307,24 @@ public class PivotContainer extends ConcreteContainer {
 				parent.aggregateAndPropagate(attribute);
 		}
 
+		private Aggregator getAggregator(Attribute attribute) {
+			Aggregator aggregator = aggrMap.get(attribute);
+			return aggregator!=null?aggregator:Aggregators.NONE.AGGR;
+		}
+
+
 		private void aggregate(Attribute attribute) {
-			Aggregator aggregator = getAggregator(attribute);
-			if(aggregator!=Aggregators.NONE.AGGR){
-				ContainerEntry[] containerEntries = entriesToAggregate();
-				Collection<Substance> inputSubstances = new ArrayList<Substance>();
-				for (ContainerEntry containerEntry : containerEntries) {
-					inputSubstances.add(containerEntry.getSubstance(attribute));
+			if(!pivotedAttributes.containsKey(attribute)){
+				Aggregator aggregator = getAggregator(attribute);
+				if(aggregator!=Aggregators.NONE.AGGR){
+					ContainerEntry[] containerEntries = entriesToAggregate();
+					Collection<Substance> inputSubstances = new ArrayList<Substance>();
+					for (ContainerEntry containerEntry : containerEntries) {
+						inputSubstances.add(containerEntry.getSubstance(attribute));
+					}
+					summaryEntry.silentUpdate(attribute, aggregator.failSafeaggregate(inputSubstances
+									.toArray(new Substance[0])));
 				}
-				summaryEntry.silentUpdate(attribute, aggregator.failSafeaggregate(inputSubstances
-								.toArray(new Substance[0])));
 			}
 		}
 
@@ -356,6 +355,12 @@ public class PivotContainer extends ConcreteContainer {
 					+ ((substance == null) ? 0 : substance.hashCode());
 			return result;
 		}
+
+		private void refreshPageView() {
+			root.dirty=true;
+			indexedEntries=root.getContainerEntries();
+		}
+
 
 		@Override
 		public boolean equals(Object obj) {
@@ -468,13 +473,13 @@ public class PivotContainer extends ConcreteContainer {
 			}
 		}
 
-		public void clearAggregation(){		
-			if (childPivotEntries != null && pivotedAttributes.size()>0) {
-				for(PivotEntry innerPivot:childPivotEntries.values()){
-					innerPivot.clearAggregation();				
+		public void clearAggregation(Attribute attribute){
+			if(!pivotedAttributes.containsKey(attribute)){
+				if (childPivotEntries != null && pivotedAttributes.size()>0) {
+					for(PivotEntry innerPivot:childPivotEntries.values()){
+						innerPivot.clearAggregation(attribute);				
+					}
 				}
-			}
-			for(Attribute attribute:aggrMap.keySet()){
 				summaryEntry.silentUpdate(attribute, NullSubstance.NULL_SUBSTANCE);
 			}
 		}
@@ -518,7 +523,7 @@ public class PivotContainer extends ConcreteContainer {
 				if(containerEntry==root.summaryEntry) continue;
 				root.applyPivot(containerEntry);
 			}
-			refreshPageView();
+			root.refreshPageView();
 		}
 	}
 	
@@ -557,7 +562,7 @@ public class PivotContainer extends ConcreteContainer {
 			this.sortOrder.put(entry.getKey().getRegisteredAttribute(),entry.getValue());
 		}
 		root.applySort();
-		refreshPageView();
+		root.refreshPageView();
 	}
 	
 	/**Behavior method to apply aggregation on this container.
@@ -571,21 +576,11 @@ public class PivotContainer extends ConcreteContainer {
 		//specification.
 		aggrMap.keySet().removeAll(aggrSpec.keySet());
 		if(!aggrMap.isEmpty()){
-			//Clear aggregations on outstanding ones
-			root.clearAggregation();
+			for(Attribute oneAttribute:aggrMap.keySet()){//Clear aggregations on outstanding ones
+				root.clearAggregation(oneAttribute);
+			}
 			//Clear old stuff entirely
 			this.aggrMap.clear();
-		}
-		
-		//Apply the new aggregation, remember we can not apply aggregation only on the
-		//new attribute set instead need to aggregate every thing as old ones aggregation
-		//may have changes.
-		for(Attribute attribute:pivotedAttributes.keySet()){
-			//TODO override pivots over ride aggregation what about when pivots are removed
-			//then regular aggregations should take over.
-			//TODO also when pivot is removed then the default aggregation must be
-			//cleaned up
-			aggrSpec.remove(attribute);
 		}
 		for(Entry<Attribute, Aggregator> entry:aggrSpec.entrySet()){
 			this.aggrMap.put(entry.getKey().getRegisteredAttribute(),entry.getValue());
@@ -606,7 +601,7 @@ public class PivotContainer extends ConcreteContainer {
 	public void applyCollapse(int identity, boolean state) {
 		PivotEntry pivotEntry = directPivotAccess.get(identity);
 		if(pivotEntry!=null && pivotEntry.collapse(state)){
-			refreshPageView();
+			root.refreshPageView();
 		}
 	}
 	
