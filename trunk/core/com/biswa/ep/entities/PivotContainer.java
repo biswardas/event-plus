@@ -14,7 +14,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.biswa.ep.entities.aggregate.Aggregator;
-import com.biswa.ep.entities.aggregate.Aggregators;
 import com.biswa.ep.entities.substance.NullSubstance;
 import com.biswa.ep.entities.substance.ObjectSubstance;
 import com.biswa.ep.entities.substance.Substance;
@@ -307,24 +306,16 @@ public class PivotContainer extends ConcreteContainer {
 				parent.aggregateAndPropagate(attribute);
 		}
 
-		private Aggregator getAggregator(Attribute attribute) {
-			Aggregator aggregator = aggrMap.get(attribute);
-			return aggregator!=null?aggregator:Aggregators.NONE.AGGR;
-		}
-
-
 		private void aggregate(Attribute attribute) {
 			if(!pivotedAttributes.containsKey(attribute)){
-				Aggregator aggregator = getAggregator(attribute);
-				if(aggregator!=Aggregators.NONE.AGGR){
-					ContainerEntry[] containerEntries = entriesToAggregate();
-					Collection<Substance> inputSubstances = new ArrayList<Substance>();
-					for (ContainerEntry containerEntry : containerEntries) {
-						inputSubstances.add(containerEntry.getSubstance(attribute));
-					}
-					summaryEntry.silentUpdate(attribute, aggregator.failSafeaggregate(inputSubstances
-									.toArray(new Substance[0])));
+				Aggregator aggregator = aggrMap.get(attribute);
+				ContainerEntry[] containerEntries = entriesToAggregate();
+				Collection<Substance> inputSubstances = new ArrayList<Substance>();
+				for (ContainerEntry containerEntry : containerEntries) {
+					inputSubstances.add(containerEntry.getSubstance(attribute));
 				}
+				summaryEntry.silentUpdate(attribute, aggregator.failSafeaggregate(inputSubstances
+								.toArray(new Substance[0])));
 			}
 		}
 
