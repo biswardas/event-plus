@@ -14,6 +14,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.biswa.ep.entities.aggregate.Aggregator;
+import com.biswa.ep.entities.store.PhysicalEntry;
 import com.biswa.ep.entities.substance.NullSubstance;
 import com.biswa.ep.entities.substance.ObjectSubstance;
 import com.biswa.ep.entities.substance.Substance;
@@ -58,8 +59,8 @@ public class PivotContainer extends ConcreteContainer {
 
 	@Override
 	final public void connected(ConnectionEvent ce) {
-		super.connected(ce);
 		root = new PivotEntry();
+		super.connected(ce);
 	}
 
 	@Override
@@ -95,9 +96,13 @@ public class PivotContainer extends ConcreteContainer {
 	}
 
 	@Override
-	public void dispatchAttributeAdded(Attribute requestedAttribute) {
+	public void dispatchAttributeAdded(Attribute requestedAttribute) {		
 	}
-
+	
+	protected void reComputeDefaultValues(final ConnectionEvent connectionEvent) {
+		super.reComputeDefaultValues(connectionEvent);
+		root.reallocate(getPhysicalSize());
+	}
 	@Override
 	public void dispatchAttributeRemoved(Attribute requestedAttribute) {
 		sortOrder.remove(requestedAttribute);
@@ -157,7 +162,7 @@ public class PivotContainer extends ConcreteContainer {
 		/**
 		 * Summary Entry associated with this pivot.
 		 */
-		private ContainerEntry summaryEntry;
+		private PhysicalEntry summaryEntry;
 		/**
 		 * State of this pivot entry
 		 */
@@ -234,7 +239,17 @@ public class PivotContainer extends ConcreteContainer {
 				}
 			}
 		}
-		
+
+
+
+		public void reallocate(int physicalSize) {	
+			if (childPivotEntries != null) {
+				for(PivotEntry innerPivot:childPivotEntries.values()){
+					innerPivot.reallocate(physicalSize);				
+				}
+			}
+			summaryEntry.reallocate(physicalSize);
+		}
 		/**Fetched the child based the substance provided,
 		 * Returns null in case no such child present.
 		 * 
