@@ -26,6 +26,7 @@ import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerDeleteEvent;
 import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.ContainerEvent;
+import com.biswa.ep.entities.ContainerStructureEvent;
 import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.PivotContainer;
 import com.biswa.ep.entities.aggregate.Aggregators;
@@ -33,6 +34,8 @@ import com.biswa.ep.entities.spec.AggrSpec;
 import com.biswa.ep.entities.spec.CollapseSpec;
 import com.biswa.ep.entities.spec.PivotSpec;
 import com.biswa.ep.entities.spec.SortSpec;
+import com.biswa.ep.provider.CompiledAttributeProvider;
+import com.biswa.ep.provider.ScriptEngineAttributeProvider;
 public class GenericViewer extends PivotContainer {
 	private JFrame jframe = null;
 	private JTable jtable = null;
@@ -84,6 +87,8 @@ public class GenericViewer extends PivotContainer {
 
 	private void addControls() {
 		JPanel jPanel = new JPanel(new GridLayout(0,2));
+		addCompiledExpression(jPanel);
+		addScriptExpression(jPanel);
 		addPivotControl(jPanel);
 		addAggrControl(jPanel);
 		addSortControl(jPanel);
@@ -171,6 +176,34 @@ public class GenericViewer extends PivotContainer {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				GenericViewer.this.agent().entryRemoved(new ContainerDeleteEvent(getName(), Integer.parseInt(collapserTextField.getText()), 0));
+			}
+		});
+	}
+	private void addCompiledExpression(JPanel jPanel) {
+		final JTextField collapserTextField = new JTextField();	
+		final JButton removeButton = new JButton("Add Compiled Expression");	
+		jPanel.add(collapserTextField);
+		jPanel.add(removeButton);
+		removeButton.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				com.biswa.ep.entities.Attribute schemaAttribute = new CompiledAttributeProvider().getAttribute(collapserTextField.getText());
+				ContainerEvent ce = new ContainerStructureEvent(getName(),schemaAttribute);
+				GenericViewer.this.agent().attributeAdded(ce);
+			}
+		});
+	}
+	private void addScriptExpression(JPanel jPanel) {
+		final JTextField collapserTextField = new JTextField();	
+		final JButton removeButton = new JButton("Add Script Expression");	
+		jPanel.add(collapserTextField);
+		jPanel.add(removeButton);
+		removeButton.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				com.biswa.ep.entities.Attribute schemaAttribute = new ScriptEngineAttributeProvider().getAttribute(collapserTextField.getText());
+				ContainerEvent ce = new ContainerStructureEvent(getName(),schemaAttribute);
+				GenericViewer.this.agent().attributeAdded(ce);
 			}
 		});
 	}
