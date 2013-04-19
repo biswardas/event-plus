@@ -36,6 +36,12 @@ public class EPJavaObject extends SimpleJavaFileObject {
 	protected EPJavaObject(String expression) {
 		super(URI.create("string:///EPExpression.java"), Kind.SOURCE);
 		this.expression = expression;
+		JavaCompiler jc = new JavaCompiler(new Context());
+		CompilationUnitTree cuTree = jc.parse(this);
+		if (jc.errorCount() > 0) {
+			throw new RuntimeException("Failed compiling expression..");
+		}
+		cuTree.getTypeDecls().get(0).accept(new TreeVisitor(), null);
 	}
 
 	@Override
@@ -45,12 +51,6 @@ public class EPJavaObject extends SimpleJavaFileObject {
 	}
 
 	public ArrayList<String> getVariables() {
-		JavaCompiler jc = new JavaCompiler(new Context());
-		CompilationUnitTree cuTree = jc.parse(this);
-		if (jc.errorCount() > 0) {
-			throw new RuntimeException("Failed compiling expression..");
-		}
-		cuTree.getTypeDecls().get(0).accept(new TreeVisitor(), null);
 		return al;
 	}
 
