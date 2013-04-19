@@ -13,6 +13,10 @@
 				<provider classname="com.biswa.ep.discovery.RMIIdentityGenerator" />
 				<!--provider classname="com.biswa.ep.entities.identity.DefaultIdentityGenerator" /-->
 			</service>
+			<service type="com.biswa.ep.entities.dyna.DynamicAttributeProvider">
+				<provider classname="com.biswa.ep.provider.CompiledAttributeProvider" />
+				<provider classname="com.biswa.ep.provider.ScriptEngineAttributeProvider" />
+			</service>
 			<service type="javax.annotation.processing.Processor">
 				<provider classname="com.biswa.ep.annotations.EPAnnotationProcessor" />
 				<provider classname="com.biswa.ep.annotations.EPGeneratedProcessor" />		
@@ -49,6 +53,10 @@
 			<service type="com.biswa.ep.entities.identity.IdentityGenerator">
 				<provider classname="com.biswa.ep.discovery.RMIIdentityGenerator" />
 				<!--provider classname="com.biswa.ep.entities.identity.DefaultIdentityGenerator" /-->
+			</service>
+			<service type="com.biswa.ep.entities.dyna.DynamicAttributeProvider">
+				<provider classname="com.biswa.ep.provider.CompiledAttributeProvider" />
+				<provider classname="com.biswa.ep.provider.ScriptEngineAttributeProvider" />
 			</service>
 			<service type="javax.annotation.processing.Processor">
 				<provider classname="com.biswa.ep.annotations.EPAnnotationProcessor" />
