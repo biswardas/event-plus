@@ -9,6 +9,7 @@ import com.biswa.ep.entities.PivotContainer.PivotEntry;
 
 abstract public class Aggregator{
 	private Attribute aggrAttr;
+	private ContainerEntry pivotEntry;
 	private Iterator<? extends ContainerEntry> iter;
 	
 	public Aggregator(String aggrAttr){
@@ -24,6 +25,7 @@ abstract public class Aggregator{
 	}
 	
 	public final Object failSafeaggregate(PivotEntry pivotEntry) {
+		this.pivotEntry=pivotEntry;
 		Object aggergatedSubstance = null;
 		try{
 			iter=pivotEntry.iterator();
@@ -32,6 +34,10 @@ abstract public class Aggregator{
 			aggergatedSubstance = null; 
 		}
 		return aggergatedSubstance;
+	}
+
+	protected final ContainerEntry getCurrentPivotEntry(){
+		return pivotEntry;
 	}
 	
 	protected final Object getNextObject(){
