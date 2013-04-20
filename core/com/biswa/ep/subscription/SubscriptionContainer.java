@@ -8,7 +8,6 @@ import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.ContainerEvent;
 import com.biswa.ep.entities.FeedbackAwareContainer;
 import com.biswa.ep.entities.spec.FilterSpec;
-import com.biswa.ep.entities.substance.Substance;
 
 public class SubscriptionContainer extends FeedbackAwareContainer implements SubscriptionSupport{	
 	
@@ -52,7 +51,7 @@ public class SubscriptionContainer extends FeedbackAwareContainer implements Sub
 	}
 
 	@Override
-	public void dispatchEntryUpdated(Attribute attribute, Substance substance,
+	public void dispatchEntryUpdated(Attribute attribute, Object substance,
 			ContainerEntry containerEntry) {
 		pendingUpdates = true;
 		subscriptionHandler.collectUpdates(attribute,substance,containerEntry);

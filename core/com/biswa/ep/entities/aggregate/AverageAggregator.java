@@ -1,24 +1,18 @@
 package com.biswa.ep.entities.aggregate;
 
-import com.biswa.ep.entities.substance.InvalidSubstance;
-import com.biswa.ep.entities.substance.NullSubstance;
-import com.biswa.ep.entities.substance.ObjectSubstance;
-import com.biswa.ep.entities.substance.Substance;
 
 public class AverageAggregator extends Aggregator {
 
 	@Override
-	protected Substance aggregate(Substance[] inputSubstances) {
+	protected Object aggregate(Object[] inputSubstances) {
 		Double intermediateAggr = 0d;
-		for(Substance substance:inputSubstances){
-			if(substance==InvalidSubstance.INVALID_SUBSTANCE){
-				return InvalidSubstance.INVALID_SUBSTANCE;
-			}else if(substance==NullSubstance.NULL_SUBSTANCE){
+		for(Object substance:inputSubstances){
+			if(substance==null){
 				continue;
 			}else{
-				intermediateAggr = intermediateAggr + (Double) substance.getValue();
+				intermediateAggr = intermediateAggr + (Double) substance;
 			}
 		}
-		return new ObjectSubstance(intermediateAggr/inputSubstances.length);
+		return intermediateAggr/inputSubstances.length;
 	}
 }

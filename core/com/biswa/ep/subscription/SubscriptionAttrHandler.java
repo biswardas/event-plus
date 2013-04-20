@@ -1,7 +1,6 @@
 package com.biswa.ep.subscription;
 
 import com.biswa.ep.entities.ContainerEntry;
-import com.biswa.ep.entities.substance.Substance;
 
 /**
  * Sink side handler interface to dispatch subscription requests to Source
@@ -21,7 +20,7 @@ public interface SubscriptionAttrHandler {
 	 *            ContainerEntry
 	 * @return Substance
 	 */
-	Substance subscribe(SubscriptionAttribute subscriptionAttribute,
+	Object subscribe(SubscriptionAttribute subscriptionAttribute,
 			ContainerEntry containerEntry);
 
 	/**
@@ -33,7 +32,7 @@ public interface SubscriptionAttrHandler {
 	 *            ContainerEntry
 	 * @return Substance
 	 */
-	Substance unsubscribe(SubscriptionAttribute subscriptionAttribute,
+	Object unsubscribe(SubscriptionAttribute subscriptionAttribute,
 			ContainerEntry containerEntry);
 
 	/**
@@ -45,6 +44,6 @@ public interface SubscriptionAttrHandler {
 	 *            ContainerEntry
 	 * @return Substance
 	 */
-	Substance substitute(SubscriptionAttribute subscriptionAttribute,
+	Object substitute(SubscriptionAttribute subscriptionAttribute,
 			ContainerEntry containerEntry);
 }

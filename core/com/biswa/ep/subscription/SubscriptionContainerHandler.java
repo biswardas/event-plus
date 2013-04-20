@@ -13,7 +13,6 @@ import com.biswa.ep.entities.ContainerEvent;
 import com.biswa.ep.entities.ContainerInsertEvent;
 import com.biswa.ep.entities.ContainerUpdateEvent;
 import com.biswa.ep.entities.TransportEntry;
-import com.biswa.ep.entities.substance.Substance;
 /**Concrete Subscription handler which manages the subscriptions on behalf of the container.
  * Subscription handler can be initialized in two modes.
  * Proxy mode: In proxy mode this handler behaves like a pass through container.<br>
@@ -32,7 +31,7 @@ public class SubscriptionContainerHandler implements SubscriptionSupport {
 	/**
 	 * Each subject maps to an entry in this container.
 	 */
-	private Map<Substance,Integer> subjectEntryMap =  new HashMap<Substance,Integer>();
+	private Map<Object,Integer> subjectEntryMap =  new HashMap<Object,Integer>();
 	
 	/**
 	 * Each subject can be subscribed by multiple Subscribers.
@@ -42,11 +41,11 @@ public class SubscriptionContainerHandler implements SubscriptionSupport {
 	/**
 	 *Each Subscriber can subscribe to a subject just once. 
 	 */
-	private Map<SubscriptionRequest,Substance> subscriberSubjectMap =  new HashMap<SubscriptionRequest,Substance>();
+	private Map<SubscriptionRequest,Object> subscriberSubjectMap =  new HashMap<SubscriptionRequest,Object>();
 
 	//Transient subject which is being worked on.Used while a new subscription is made 
 	//or an subject being unsubscribed.
-	private Substance tempSubject;
+	private Object tempSubject;
 	
 	/**
 	 * Associated container which this handler is tied to 
@@ -72,7 +71,7 @@ public class SubscriptionContainerHandler implements SubscriptionSupport {
 			assert subsContainerSupport.log(tempSubject + " subject creation called");
 			int identity = subsContainerSupport.generateIdentity();
 			//Create Container entry
-			Map<Attribute,Substance> entryQualifier = new HashMap<Attribute,Substance>();
+			Map<Attribute,Object> entryQualifier = new HashMap<Attribute,Object>();
 			entryQualifier.put(processor.getSubjectAttribute(),tempSubject);
 			ContainerEvent insertEvent = new ContainerInsertEvent(subsContainerSupport.getName(), new TransportEntry(identity,entryQualifier),0);
 			subsContainerSupport.entryAdded(insertEvent);
@@ -156,7 +155,7 @@ public class SubscriptionContainerHandler implements SubscriptionSupport {
 	@Override
 	public void substitute(SubscriptionEvent subscriptionEvent) {
 		SubscriptionRequest subRequest = subscriptionEvent.getSubscriptionRequest();
-		Substance substance = subscriberSubjectMap.get(subRequest);
+		Object substance = subscriberSubjectMap.get(subRequest);
 		if(substance!=null){
 			SubscriptionEvent adjSubscriptionEvent = new SubscriptionEvent(substance, subsContainerSupport.getName(), subRequest);
 			unsubscribe(adjSubscriptionEvent);
@@ -183,7 +182,7 @@ public class SubscriptionContainerHandler implements SubscriptionSupport {
 	 * @param substance Substance
 	 * @param containerEntry ContainerEntry
 	 */
-	public void dispatchEntryUpdated(Attribute attribute, Substance substance,
+	public void dispatchEntryUpdated(Attribute attribute, Object substance,
 			ContainerEntry containerEntry) {
 		SubscriptionRequest[] subscribers = entrySubscriptionRequestsMap.get(containerEntry.getIdentitySequence());
 		for(SubscriptionRequest subrequest:subscribers){
@@ -197,7 +196,7 @@ public class SubscriptionContainerHandler implements SubscriptionSupport {
 	 * @param substance Substance
 	 * @param containerEntry ContainerEntry
 	 */
-	public void collectUpdates(Attribute attribute, Substance substance,
+	public void collectUpdates(Attribute attribute, Object substance,
 		ContainerEntry containerEntry) {
 		containerEntry.markDirty(true);
 	}
@@ -207,7 +206,7 @@ public class SubscriptionContainerHandler implements SubscriptionSupport {
 	 * @param subscriptionRequest SubscriptionRequest 
 	 * @param substance Substance
 	 */
-	private void dispatchEntryUpdated(final SubscriptionRequest subscriptionRequest,Substance substance) {
+	private void dispatchEntryUpdated(final SubscriptionRequest subscriptionRequest,Object substance) {
 		final ContainerEvent containerEvent = new ContainerUpdateEvent(subsContainerSupport.getName(),subscriptionRequest.getId(),subscriptionRequest.getAttribute(),substance,subsContainerSupport.getCurrentTransactionID());
 		subsContainerSupport.getEventDispatcher().submit(new Runnable(){
 			public void run(){
@@ -241,7 +240,7 @@ public class SubscriptionContainerHandler implements SubscriptionSupport {
 	public void processCollectedUpdates(){
 		for(ContainerEntry entry:subsContainerSupport.getContainerEntries()){
 			if(entry.markedDirty()){
-				Substance substance = entry.getSubstance(processor);
+				Object substance = entry.getSubstance(processor);
 				SubscriptionRequest[] subscribers = entrySubscriptionRequestsMap.get(entry.getIdentitySequence());
 				for(SubscriptionRequest subrequest:subscribers){
 					dispatchEntryUpdated(subrequest, substance);
@@ -261,7 +260,7 @@ public class SubscriptionContainerHandler implements SubscriptionSupport {
 		while(iter.hasNext()){
 			SubscriptionRequest subRequest = iter.next();
 			if (sink.equals(subRequest.getSink())){
-				Substance subject = subscriberSubjectMap.get(subRequest);
+				Object subject = subscriberSubjectMap.get(subRequest);
 				assert subsContainerSupport.log("Unsubscribing:"+subRequest+" from " +subject);
 				iter.remove();
 				Integer conEntryId = subjectEntryMap.get(subject);

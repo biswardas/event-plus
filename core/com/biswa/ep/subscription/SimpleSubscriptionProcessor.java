@@ -7,8 +7,6 @@ import java.util.concurrent.SynchronousQueue;
 
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ContainerEntry;
-import com.biswa.ep.entities.substance.ObjectSubstance;
-import com.biswa.ep.entities.substance.Substance;
 
 public abstract class SimpleSubscriptionProcessor extends
 		SubscriptionContainerProcessor {
@@ -42,7 +40,7 @@ public abstract class SimpleSubscriptionProcessor extends
 							ContainerEntry containerEntry = containerEntrySet.get(oneEntry.getKey());
 							if(containerEntry!=null){
 								//Possibly unsubscribed however external world yet to acknowledge
-								update(containerEntry,new ObjectSubstance(oneEntry.getValue()));
+								update(containerEntry,oneEntry.getValue());
 							}
 						}
 						commit();
@@ -68,7 +66,7 @@ public abstract class SimpleSubscriptionProcessor extends
 	public abstract void unsubscribe(Object subject);
 
 	@Override
-	public Substance subscribe(Attribute attribute,
+	public Object subscribe(Attribute attribute,
 			ContainerEntry containerEntry) throws Exception {
 		Object subject = super.getValue(containerEntry, getSubjectAttribute());
 		containerEntrySet.put(subject, containerEntry);

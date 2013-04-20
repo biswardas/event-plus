@@ -1,15 +1,13 @@
 package com.biswa.ep.subscription;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.LeafAttribute;
-import com.biswa.ep.entities.substance.MultiSubstance;
-import com.biswa.ep.entities.substance.ObjectSubstance;
-import com.biswa.ep.entities.substance.Substance;
 
 /**
  * Client side multi value subscription processor.
@@ -21,20 +19,20 @@ import com.biswa.ep.entities.substance.Substance;
 public class MultiSubAttrHandlerImpl implements SubscriptionAttrHandler {
 
 	@Override
-	public Substance substitute(SubscriptionAttribute subscriptionAttribute,
+	public Object substitute(SubscriptionAttribute subscriptionAttribute,
 			ContainerEntry containerEntry) {
 
 		Collection<Object> data = (Collection<Object>) containerEntry
 				.getSubstance(
 						subscriptionAttribute.getDependsAttribute()
-								.getRegisteredAttribute()).getValue();
+								.getRegisteredAttribute());
 		
-		MultiSubstance currentSubscriptionSet = getMultiSubstance(
+		HashMap<Integer,Object> currentSubscriptionSet =(HashMap<Integer,Object>)getMultiSubstance(
 				subscriptionAttribute, containerEntry);
 		
 		if (data != null) {
 			if (currentSubscriptionSet != null
-					&& data.size() == currentSubscriptionSet.getValue().size()) {
+					&& data.size() == currentSubscriptionSet.size()) {
 				Attribute responseAttribute = subscriptionAttribute
 						.getResponseAttribute();
 				
@@ -49,7 +47,7 @@ public class MultiSubAttrHandlerImpl implements SubscriptionAttrHandler {
 							containerEntry.getContainer().getName(),
 							containerEntry.getIdentitySequence(), leafAttribute);
 					
-					Substance substance = new ObjectSubstance(iter.next());
+					Object substance = iter.next();
 					
 					SubscriptionEvent subscriptionEvent = new SubscriptionEvent(
 							substance, subscriptionAttribute.getSource(),
@@ -58,7 +56,7 @@ public class MultiSubAttrHandlerImpl implements SubscriptionAttrHandler {
 					subscriptionAttribute.getSubAgent().substitute(
 							subscriptionEvent);
 					
-					currentSubscriptionSet.addValue(minor++, substance);
+					currentSubscriptionSet.put(minor++, substance);
 				}
 			} else {
 				currentSubscriptionSet = unsubscribe(subscriptionAttribute,
@@ -72,17 +70,16 @@ public class MultiSubAttrHandlerImpl implements SubscriptionAttrHandler {
 	}
 
 	@Override
-	public MultiSubstance unsubscribe(
+	public HashMap<Integer,Object> unsubscribe(
 			SubscriptionAttribute subscriptionAttribute,
 			ContainerEntry containerEntry) {
-		MultiSubstance currentSubscriptionSet = getMultiSubstance(
+		HashMap<Integer,Object> currentSubscriptionSet = getMultiSubstance(
 				subscriptionAttribute, containerEntry);
 		
 		Attribute responseAttribute = subscriptionAttribute
 				.getResponseAttribute();
 		
-		for (Entry<Integer, Object> oneEntry : currentSubscriptionSet
-				.getValue().entrySet()) {
+		for (Entry<Integer, Object> oneEntry : currentSubscriptionSet.entrySet()) {
 			LeafAttribute leafAttribute = new LeafAttribute(responseAttribute
 					.getName(), oneEntry.getKey());
 			
@@ -90,7 +87,7 @@ public class MultiSubAttrHandlerImpl implements SubscriptionAttrHandler {
 					containerEntry.getContainer().getName(), containerEntry
 							.getIdentitySequence(), leafAttribute);
 			
-			Substance substance = new ObjectSubstance(oneEntry.getValue());
+			Object substance =oneEntry.getValue();
 			
 			SubscriptionEvent subscriptionEvent = new SubscriptionEvent(
 					substance, subscriptionAttribute.getSource(), subRequest);
@@ -98,20 +95,20 @@ public class MultiSubAttrHandlerImpl implements SubscriptionAttrHandler {
 			subscriptionAttribute.getSubAgent().unsubscribe(subscriptionEvent);
 		}
 		// Return the empty multi substance
-		currentSubscriptionSet.getValue().clear();
+		currentSubscriptionSet.clear();
 		
 		return currentSubscriptionSet;
 	}
 
 	@Override
-	public MultiSubstance subscribe(
+	public HashMap<Integer,Object> subscribe(
 			SubscriptionAttribute subscriptionAttribute,
 			ContainerEntry containerEntry) {
 		Collection<Object> data = (Collection<Object>) containerEntry
 				.getSubstance(
 						subscriptionAttribute.getDependsAttribute()
-								.getRegisteredAttribute()).getValue();
-		MultiSubstance multiSubstance = getMultiSubstance(
+								.getRegisteredAttribute());
+		HashMap<Integer,Object> multiSubstance = getMultiSubstance(
 				subscriptionAttribute, containerEntry);
 		Attribute responseAttribute = subscriptionAttribute
 				.getResponseAttribute();
@@ -124,24 +121,24 @@ public class MultiSubAttrHandlerImpl implements SubscriptionAttrHandler {
 					containerEntry.getContainer().getName(), containerEntry
 							.getIdentitySequence(), leafAttribute);
 			
-			Substance substance = new ObjectSubstance(iter.next());
+			Object substance = iter.next();
 			
 			SubscriptionEvent subscriptionEvent = new SubscriptionEvent(
 					substance, subscriptionAttribute.getSource(), subRequest);
 			
 			subscriptionAttribute.getSubAgent().subscribe(subscriptionEvent);
 			
-			multiSubstance.addValue(minor++, substance);
+			multiSubstance.put(minor++, substance);
 		}
 		return multiSubstance;
 	}
 
-	private MultiSubstance getMultiSubstance(
+	private HashMap<Integer,Object> getMultiSubstance(
 			SubscriptionAttribute subscriptionAttribute,
 			ContainerEntry containerEntry) {
-		MultiSubstance currentSubscriptionSet = (MultiSubstance) containerEntry
+		HashMap<Integer,Object> currentSubscriptionSet = (HashMap<Integer,Object>) containerEntry
 				.getSubstance(subscriptionAttribute);
-		return currentSubscriptionSet == null ? new MultiSubstance()
+		return currentSubscriptionSet == null ? new HashMap<Integer,Object>()
 				: currentSubscriptionSet;
 	}
 }

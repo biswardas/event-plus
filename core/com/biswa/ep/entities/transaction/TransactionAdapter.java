@@ -25,7 +25,6 @@ import com.biswa.ep.entities.OuterTask;
 import com.biswa.ep.entities.PropertyConstants;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.spec.Spec;
-import com.biswa.ep.entities.substance.Substance;
 
 /**Class responsible to provide transaction support to the underlying containers
  * and hides it from the complexities. This class responsible to manage the task 
@@ -401,7 +400,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	}
 
 	@Override
-	public void updateStatic(final Attribute attribute,final Substance substance,
+	public void updateStatic(final Attribute attribute,final Object substance,
 			final FilterSpec appliedFilter) {
 		OuterTask outer = new OuterTask(){
 			@Override

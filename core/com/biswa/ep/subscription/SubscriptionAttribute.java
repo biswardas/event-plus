@@ -5,7 +5,6 @@ import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.LeafAttribute;
-import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.entities.transaction.SubscriptionAgent;
 /**
  * Client side subscription object for this container.
@@ -57,7 +56,7 @@ final public class SubscriptionAttribute extends Subscription {
 	}
 	
 	@Override
-	public Substance subscribe(Attribute attribute,
+	public Object subscribe(Attribute attribute,
 			ContainerEntry containerEntry) throws Exception {
 		return attSubscription.substitute(this,containerEntry);
 	}
@@ -91,7 +90,7 @@ final public class SubscriptionAttribute extends Subscription {
 		return ContainerContext.CONTAINER.get().getAttributeByName(result);
 	}
 	
-	public Substance getLastSubscribed(ContainerEntry containerEntry){
+	public Object getLastSubscribed(ContainerEntry containerEntry){
 		return containerEntry.getSubstance(this);
 	}
 }
