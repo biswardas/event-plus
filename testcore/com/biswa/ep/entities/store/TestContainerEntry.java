@@ -13,9 +13,7 @@ import org.junit.Test;
 import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.ConcreteContainer;
 import com.biswa.ep.entities.ContainerEntry;
-import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.TransportEntry;
-import com.biswa.ep.entities.substance.DecimalSubstance;
 
 public class TestContainerEntry    extends TestCase{
 	ContainerEntry conEntry = null;

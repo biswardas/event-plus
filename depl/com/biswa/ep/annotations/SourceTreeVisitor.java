@@ -289,7 +289,6 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		writeln("import com.biswa.ep.annotations.*;");
 		writeln("import com.biswa.ep.entities.transaction.*;");		
 		writeln("import com.biswa.ep.entities.*;");
-		writeln("import com.biswa.ep.entities.substance.*;");
 		EPContext epContext = arg1.getAnnotation(EPContext.class);
 		for (String oneImport : epContext.packages()) {
 			writeln("import " + oneImport + ";");
@@ -431,7 +430,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			writeln("" + arg0.getType() + " " + arg0.getName() + ";");
 		}
 
-		writeln("return new ObjectSubstance(" + arg0.getName() + ");");
+		writeln("return " + arg0.getName() + ";");
 
 		writeln("}");
 
@@ -467,9 +466,9 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			}
 			writeln(");");
 			if (!arg0.getReturnType().toString().equals("void")) {
-				writeln("return new ObjectSubstance( epval_" + arg0.getName() + ");");
+				writeln("return epval_" + arg0.getName() + ";");
 			} else {
-				writeln("return InvalidSubstance.INVALID_SUBSTANCE;");
+				writeln("return null;");
 			}
 
 			writeln("}");
@@ -554,7 +553,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		case Static:
 			// Generate Eval Function
 			writeln("@Override");
-			writeln("public Substance evaluate(Attribute att){");
+			writeln("public Object evaluate(Attribute att){");
 			for (String oneDependency : dependencyManager.getDependency()) {
 				String type = dependencyManager.lookUpType(oneDependency);
 				writeln(type + " " + oneDependency + " =(" + type
@@ -564,7 +563,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		default:
 			// Generate Eval Function
 			writeln("@Override");
-			writeln("public Substance evaluate(Attribute att,ContainerEntry ce){");
+			writeln("public Object evaluate(Attribute att,ContainerEntry ce){");
 			for (String oneDependency : dependencyManager.getDependency()) {
 				String type = dependencyManager.lookUpType(oneDependency);
 				EPAttribute dependee = dependencyManager.getEPAttribute(oneDependency);

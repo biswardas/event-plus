@@ -15,7 +15,6 @@ import com.biswa.ep.entities.ConcreteContainer;
 import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.ContainerStructureEvent;
 import com.biswa.ep.entities.LeafAttribute;
-import com.biswa.ep.entities.substance.DecimalSubstance;
 
 public class WithUpdateTest    extends TestCase{
 	@BeforeClass
@@ -42,10 +41,10 @@ public class WithUpdateTest    extends TestCase{
 		conContainer.attributeAdded(new ContainerStructureEvent("TempContainer", ATTRIBUTEM0));
 		conEntry = new ConcreteContainerEntry(0);
 		Assert.assertNull(conEntry.getSubstance(ATTRIBUTEX)); 
-		conEntry.silentUpdate(ATTRIBUTEX,new DecimalSubstance(0d));
+		conEntry.silentUpdate(ATTRIBUTEX,0d);
 		Assert.assertNotNull(conEntry.getSubstance(ATTRIBUTEX));
-		conEntry.silentUpdate(ATTRIBUTEM0,new DecimalSubstance(0d));
-		Assert.assertEquals(conEntry.getSubstance(ATTRIBUTEM0),new DecimalSubstance(0d));
+		conEntry.silentUpdate(ATTRIBUTEM0,0d);
+		Assert.assertEquals(conEntry.getSubstance(ATTRIBUTEM0),0d);
 		conEntry.remove(ATTRIBUTEX);
 	}
 }

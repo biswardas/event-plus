@@ -9,11 +9,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.biswa.ep.entities.substance.ObjectSubstance;
 import com.biswa.ep.entities.transaction.TransactionEvent;
 
 public class ConcreteContainerTest {
-	private static final ObjectSubstance SC = new ObjectSubstance("HELLO");
+	private static final Object SC = "HELLO";
 	private static final LeafAttribute ATTRIBUTE = new LeafAttribute("HELLO");
 	private static final int TRANID = 9000000;
 	private static final String SINK="SINK";

@@ -7,7 +7,7 @@ import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.predicate.Predicate;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.transaction.SubscriptionAgent;
-import com.biswa.ep.util.parser.predicate.PredicateBuilder;
+import com.biswa.ep.provider.PredicateBuilder;
 
 /**Communication gateway of the containers. This class defines the interfaces in which 
  * two containers can communicate with each other. For example if the SourceContainer 

@@ -8,9 +8,6 @@ import java.util.concurrent.TimeUnit;
 import com.biswa.ep.NamedThreadFactory;
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ContainerEntry;
-import com.biswa.ep.entities.substance.DecimalSubstance;
-import com.biswa.ep.entities.substance.Substance;
-import com.biswa.ep.subscription.SubscriptionContainerProcessor;
 
 public class DummySubscriptionProcessor extends SubscriptionContainerProcessor {
 
@@ -26,7 +23,7 @@ public class DummySubscriptionProcessor extends SubscriptionContainerProcessor {
 	}
 
 	@Override
-	public Substance subscribe(Attribute attribute,
+	public Object subscribe(Attribute attribute,
 			final ContainerEntry containerEntry) throws Exception {
 		System.err.println("Subscribe Invoked"+attribute+containerEntry);
 		eventDispatcher.execute(new Runnable(){
@@ -34,7 +31,7 @@ public class DummySubscriptionProcessor extends SubscriptionContainerProcessor {
 			public void run() {
 				containerEntrySet.add(containerEntry);		
 				begin();
-				update(containerEntry, new DecimalSubstance(Math.random()));
+				update(containerEntry, Math.random());
 				commit();		
 			}			
 		});
@@ -61,7 +58,7 @@ public class DummySubscriptionProcessor extends SubscriptionContainerProcessor {
 				try{
 				begin();
 				for(ContainerEntry conEntry:containerEntrySet){
-					update(conEntry, new DecimalSubstance(Math.random()));
+					update(conEntry, Math.random());
 				}
 				commit();
 				}catch(Exception e){

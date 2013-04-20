@@ -16,7 +16,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.biswa.ep.entities.JoinContainer.JoinPolicy;
-import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.entities.transaction.Agent;
 
 public class InnerJoinContainerTest   extends TestCase{
@@ -167,13 +166,13 @@ public class InnerJoinContainerTest   extends TestCase{
 	}
 
 	protected TransportEntry getLeftEntry(int i) {
-		Map<Attribute, Substance> map2 = new HashMap<Attribute, Substance>();
+		Map<Attribute, Object> map2 = new HashMap<Attribute, Object>();
 		TransportEntry ce2 = new TransportEntry(i*100, map2);
 		return ce2;
 	}
 
 	protected TransportEntry getRightEntry(int i) {
-		Map<Attribute, Substance> map = new HashMap<Attribute, Substance>();
+		Map<Attribute, Object> map = new HashMap<Attribute, Object>();
 		TransportEntry ce = new TransportEntry(i, map);
 		return ce;
 	}

@@ -11,7 +11,6 @@ import com.biswa.ep.entities.ContainerDeleteEvent;
 import com.biswa.ep.entities.ContainerInsertEvent;
 import com.biswa.ep.entities.ContainerUpdateEvent;
 import com.biswa.ep.entities.TransportEntry;
-import com.biswa.ep.entities.substance.Substance;
 
 /**
  * {call Context.Container.insert}<br>
@@ -41,7 +40,7 @@ public class EPCallableStatement extends EPAbstractStatement {
 		try {
 			switch (op) {
 			case DELETE:
-				for (Entry<Integer, Map<Attribute, Substance>> oneEntry : batch
+				for (Entry<Integer, Map<Attribute, Object>> oneEntry : batch
 						.entrySet()) {
 					getRmil().entryRemoved(
 							new ContainerDeleteEvent(getSink(), oneEntry
@@ -49,7 +48,7 @@ public class EPCallableStatement extends EPAbstractStatement {
 				}
 				break;
 			case INSERT:
-				for (Entry<Integer, Map<Attribute, Substance>> oneEntry : batch
+				for (Entry<Integer, Map<Attribute, Object>> oneEntry : batch
 						.entrySet()) {
 					getRmil().entryAdded(
 							new ContainerInsertEvent(getSink(),
@@ -58,9 +57,9 @@ public class EPCallableStatement extends EPAbstractStatement {
 				}
 				break;
 			case UPDATE:
-				for (Entry<Integer, Map<Attribute, Substance>> oneEntry : batch
+				for (Entry<Integer, Map<Attribute, Object>> oneEntry : batch
 						.entrySet()) {
-					for (Entry<Attribute, Substance> oneUpdate : oneEntry
+					for (Entry<Attribute, Object> oneUpdate : oneEntry
 							.getValue().entrySet()) {
 						getRmil().entryUpdated(
 								new ContainerUpdateEvent(getSink(), oneEntry

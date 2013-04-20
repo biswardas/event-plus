@@ -1,10 +1,10 @@
 package com.biswa.ep.entities;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-
-import com.biswa.ep.entities.substance.Substance;
 
 public class StatelessAttributeTest{
 	class StatelessAttributeX extends StatelessAttribute{
@@ -18,7 +18,7 @@ public class StatelessAttributeTest{
 		private static final long serialVersionUID = -5354521798137893539L;
 
 		@Override
-		protected Substance evaluate(Attribute attribute,
+		protected Object evaluate(Attribute attribute,
 				ContainerEntry containerEntry) throws Exception {
 			// TODO Auto-generated method stub
 			return null;

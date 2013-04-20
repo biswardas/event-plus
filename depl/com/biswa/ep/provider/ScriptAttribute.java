@@ -6,8 +6,6 @@ import javax.script.ScriptEngineManager;
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.LeafAttribute;
-import com.biswa.ep.entities.substance.ObjectSubstance;
-import com.biswa.ep.entities.substance.Substance;
 
 public class ScriptAttribute extends Attribute {
 
@@ -21,14 +19,13 @@ public class ScriptAttribute extends Attribute {
 	private final String expression;
 
 	@Override
-	protected Substance evaluate(Attribute attribute,
+	protected Object evaluate(Attribute attribute,
 			ContainerEntry containerEntry) throws Exception {
 		for (Attribute dependency : dependsOn()) {
 			Object input = dependency.getValue(containerEntry);
 			engine.put(dependency.getName(), input);
 		}
-		Object object = engine.eval(expression);
-		return new ObjectSubstance(object);
+		return engine.eval(expression);
 	}
 
 	public ScriptAttribute(String expression) {
