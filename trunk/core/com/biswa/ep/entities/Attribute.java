@@ -314,7 +314,7 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	 *            ContainerEntry
 	 * @return Substance
 	 */
-	final protected Object failSafeEvaluate(Attribute attribute,
+	final public Object failSafeEvaluate(Attribute attribute,
 			ContainerEntry containerEntry) {
 		try {
 			return evaluate(attribute, containerEntry);
