@@ -381,7 +381,7 @@ public class PivotContainer extends ConcreteContainer {
 		private void aggregate(Attribute attribute) {
 			if (!pivotedAttributes.containsKey(attribute)) {
 				Aggregator aggregator = aggrMap.get(attribute);
-				this.silentUpdate(attribute, aggregator
+				this.silentUpdate(aggregator.getTargetAttr(), aggregator
 						.failSafeaggregate(this));
 			}
 		}
