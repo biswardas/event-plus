@@ -2,7 +2,6 @@ package com.biswa.ep.entities.store;
 
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.TransportEntry;
-import com.biswa.ep.entities.substance.Substance;
 
 class LazyContainerEntry extends PersistableContainerEntry {
 	/**
@@ -15,19 +14,19 @@ class LazyContainerEntry extends PersistableContainerEntry {
 	}
 
 	@Override
-	public Substance getSubstance(Attribute attribute) {
+	public Object getSubstance(Attribute attribute) {
 		wakeUp();
 		return underlyingEntry.getSubstance(attribute);
 	}
 
 	@Override
-	public Substance silentUpdate(Attribute attribute, Substance substance) {
+	public Object silentUpdate(Attribute attribute, Object substance) {
 		wakeUp();
 		return underlyingEntry.silentUpdate(attribute, substance);
 	}
 
 	@Override
-	public Substance silentUpdate(Attribute attribute, Substance substance,int minor) {
+	public Object silentUpdate(Attribute attribute, Object substance,int minor) {
 		wakeUp();
 		return underlyingEntry.silentUpdate(attribute, substance, minor);
 	}
