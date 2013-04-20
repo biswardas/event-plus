@@ -14,8 +14,12 @@ abstract public class Aggregator{
 	public Aggregator(String aggrAttr){
 		this.aggrAttr = new LeafAttribute(aggrAttr);
 	}
-	
+
 	public Attribute getAggrAttr() {
+		return aggrAttr;
+	}
+	
+	public Attribute getTargetAttr() {
 		return aggrAttr;
 	}
 	
@@ -30,15 +34,15 @@ abstract public class Aggregator{
 		return aggergatedSubstance;
 	}
 	
-	protected Object getNextObject(){
+	protected final Object getNextObject(){
 		return getNextEntry().getSubstance(aggrAttr);
 	}
 	
-	protected ContainerEntry getNextEntry(){
+	protected final ContainerEntry getNextEntry(){
 		return iter.next();
 	}
 	
-	protected boolean hasNext(){
+	protected final boolean hasNext(){
 		return iter.hasNext();
 	}
 	
