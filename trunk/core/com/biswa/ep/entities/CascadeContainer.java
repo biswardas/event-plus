@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.store.PhysicalEntry;
-import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.subscription.Subscription;
 import com.biswa.ep.subscription.SubscriptionAttribute;
 /**Cascade schema manages the structural integrity of the container. Whenever an attribute is 
@@ -603,7 +602,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 	 * @param substance Substance
 	 * @param appliedFilter FilterSpec
 	 */
-	public void updateStatic(Attribute incomingAttribute,Substance substance,FilterSpec appliedFilter) {
+	public void updateStatic(Attribute incomingAttribute,Object substance,FilterSpec appliedFilter) {
 		Attribute attribute = incomingAttribute.getRegisteredAttribute();
 		if(attribute != null){
 			staticStorage.put(attribute,substance);
@@ -612,7 +611,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 			boolean hasNonStaticDependency = false;
 			for(Attribute dependentAttribute:attribute.getDependents()){
 				if(dependentAttribute.isStatic()){
-					Substance staticsubstance = dependentAttribute.failSafeEvaluate(attribute,null);
+					Object staticsubstance = dependentAttribute.failSafeEvaluate(attribute,null);
 					staticStorage.put(dependentAttribute,staticsubstance);
 					propagateStatic(dependentAttribute, staticsubstance, appliedFilter);
 				}else{
@@ -643,7 +642,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 		}
 	}
 	
-	protected void propagateStatic(Attribute incomingAttribute,Substance substance,FilterSpec appliedFilter){		
+	protected void propagateStatic(Attribute incomingAttribute,Object substance,FilterSpec appliedFilter){		
 	}
 	
 	private void updateStatic(final ContainerEntry containerEntry,final Attribute attribute){
@@ -680,7 +679,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 			ContainerContext.STATELESS_QUEUE.get().add(notifiedAttribute);
 		}else{
 			//Evaluate the being notified attribute
-			Substance substance = notifiedAttribute.failSafeEvaluate(notifyingAttribute, containerEntry);
+			Object substance = notifiedAttribute.failSafeEvaluate(notifyingAttribute, containerEntry);
 			//Update the notified attribute entry
 			substance = containerEntry.silentUpdate(notifiedAttribute, substance);
 			//Dispatch it to the downstream containers.
@@ -695,7 +694,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 	private void dispatchDataUpdates(Attribute attribute) {
 		for(PhysicalEntry containerEntry : getContainerDataEntries()){
 			containerEntry.reallocate(getPhysicalSize());
-			Substance substance  = attribute.failSafeEvaluate(attribute, containerEntry);
+			Object substance  = attribute.failSafeEvaluate(attribute, containerEntry);
 			if(!attribute.isStateless()){
 				ContainerEvent ce = new ContainerUpdateEvent(getName(),
 						containerEntry.getInternalIdentity(),

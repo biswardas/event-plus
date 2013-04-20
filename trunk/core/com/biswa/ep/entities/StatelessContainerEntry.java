@@ -3,8 +3,6 @@ package com.biswa.ep.entities;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.biswa.ep.entities.substance.Substance;
-
 final public class StatelessContainerEntry implements ContainerEntry {
 	
 	/**
@@ -12,26 +10,26 @@ final public class StatelessContainerEntry implements ContainerEntry {
 	 */
 	private static final long serialVersionUID = -2520794970456968995L;
 	private ContainerEntry containerEntry;
-	private Map<Attribute,Substance> storage = new HashMap<Attribute,Substance>();
+	private Map<Attribute,Object> storage = new HashMap<Attribute,Object>();
 
 	public void setStatelessContainerEntry(ContainerEntry containerEntry){
 		this.containerEntry=containerEntry;
 		storage.clear();
 	}
 	@Override
-	public Substance silentUpdate(Attribute attribute, Substance substance) {
+	public Object silentUpdate(Attribute attribute, Object substance) {
 		storage.put(attribute,substance);
 		return substance;
 	}
 	
 	@Override
-	public Substance silentUpdate(Attribute attribute, Substance substance,
+	public Object silentUpdate(Attribute attribute, Object substance,
 			int minor) {
 		return silentUpdate(attribute,substance);
 	}
 	
 	@Override
-	public Substance getSubstance(Attribute attribute) {
+	public Object getSubstance(Attribute attribute) {
 		if(attribute.isStateless()){
 			return storage.get(attribute);
 		}else{

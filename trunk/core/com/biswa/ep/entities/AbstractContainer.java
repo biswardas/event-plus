@@ -12,7 +12,6 @@ import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.identity.ConcreteIdentityGenerator;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.spec.Spec;
-import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.entities.transaction.Agent;
 import com.biswa.ep.entities.transaction.FeedbackAgent;
 import com.biswa.ep.entities.transaction.TransactionEvent;
@@ -70,7 +69,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	/**
 	 *Static storage for this container. 
 	 */
-	final protected Map<Attribute,Substance> staticStorage = new HashMap<Attribute,Substance>();
+	final protected Map<Attribute,Object> staticStorage = new HashMap<Attribute,Object>();
 	
 	/**
 	 * Name of this container
@@ -460,7 +459,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 		if(statelessAttributes.length>0){
 			StatelessContainerEntry slc = prepareStatelessProcessing(containerEntry);
 			for (Attribute notifiedAttribute : statelessAttributes) {
-				Substance substance = notifiedAttribute.failSafeEvaluate(notifiedAttribute, slc); 
+				Object substance = notifiedAttribute.failSafeEvaluate(notifiedAttribute, slc); 
 				slc.silentUpdate(notifiedAttribute, substance);
 				if(notifiedAttribute.propagate()){
 					dispatchEntryUpdated(receiver,notifiedAttribute, substance, containerEntry);
@@ -492,7 +491,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 		if(!listenerMap.isEmpty() && !statelessAttributes.isEmpty()){ 
 			StatelessContainerEntry slcEntry = prepareStatelessProcessing(containerEntry);
 			for (Attribute notifiedAttribute : statelessAttributes) {
-				Substance substance = notifiedAttribute.failSafeEvaluate(notifiedAttribute, slcEntry); 
+				Object substance = notifiedAttribute.failSafeEvaluate(notifiedAttribute, slcEntry); 
 				substance = slcEntry.silentUpdate(notifiedAttribute, substance);
 				if(notifiedAttribute.propagate()){
 					for(FilterAgent dcl : listenerMap.values()){
@@ -545,7 +544,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 		});
 	}
 	@Override
-	public void dispatchEntryUpdated(Attribute attribute, Substance substance, ContainerEntry containerEntry){
+	public void dispatchEntryUpdated(Attribute attribute, Object substance, ContainerEntry containerEntry){
 		if(attribute.propagate()){
 			for(FilterAgent dcl : listenerMap.values()){
 				if(dcl.filterSpec.filter(containerEntry)){
@@ -568,7 +567,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 
 	private void dispatchEntryUpdated(
 			final Agent dcl, Attribute attribute,
-			Substance substance, ContainerEntry containerEntry) {
+			Object substance, ContainerEntry containerEntry) {
 		final ContainerEvent containerEvent = new ContainerUpdateEvent(this.name,containerEntry.getInternalIdentity(),attribute,substance,getCurrentTransactionID());
 		getEventDispatcher().submit(new Runnable(){
 			public void run(){
@@ -715,12 +714,12 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 * @param attribute
 	 * @return Substance
 	 */
-	public Substance getStatic(Attribute attribute) {
+	public Object getStatic(Attribute attribute) {
 		return staticStorage.get(attribute);		
 	}
 	
 	@Override
-	abstract public void updateStatic(Attribute attribute,Substance substance,FilterSpec appliedFilter);
+	abstract public void updateStatic(Attribute attribute,Object substance,FilterSpec appliedFilter);
 
 	@Override
 	final public void addSource(final ConnectionEvent connectionEvent){

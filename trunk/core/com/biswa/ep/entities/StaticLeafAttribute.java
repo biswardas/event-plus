@@ -1,7 +1,5 @@
 package com.biswa.ep.entities;
 
-import com.biswa.ep.entities.substance.NullSubstance;
-import com.biswa.ep.entities.substance.Substance;
 
 public class StaticLeafAttribute extends StaticAttribute {
 	/**
@@ -14,8 +12,8 @@ public class StaticLeafAttribute extends StaticAttribute {
 	}
 
 	@Override
-	protected Substance evaluate(Attribute attribute) throws Exception {
-		return NullSubstance.NULL_SUBSTANCE;
+	protected Object evaluate(Attribute attribute) throws Exception {
+		return null;
 	}
 	
 	@Override

@@ -6,7 +6,6 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import com.biswa.ep.ContainerContext;
-import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.entities.transaction.Agent;
 /**Abstract Throttled container supports throttling of the incoming changes.
  * Any subclass of this container starts its own transaction. So please be mindful 
@@ -73,7 +72,7 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 	/**
 	 * Change set Containing Updates
 	 */
-	private Map<Integer,Map<Attribute,Substance>> collectedUpdates = new HashMap<Integer,Map<Attribute,Substance>>();
+	private Map<Integer,Map<Attribute,Object>> collectedUpdates = new HashMap<Integer,Map<Attribute,Object>>();
 	
 	/**Constructor to build throttled container.
 	 * 
@@ -88,7 +87,7 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 	public void dispatchAttributeRemoved(Attribute requestedAttribute) {
 		super.dispatchAttributeRemoved(requestedAttribute);
 		//Cleanup any updates relevant to the attribute
-		for(Entry<Integer,Map<Attribute,Substance>> oneEntry:collectedUpdates.entrySet()){
+		for(Entry<Integer,Map<Attribute,Object>> oneEntry:collectedUpdates.entrySet()){
 			oneEntry.getValue().remove(requestedAttribute);
 		}
 	}
@@ -111,7 +110,7 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 			if(isClientsAttached() && !ContainerContext.STATELESS_QUEUE.get().isEmpty()){ 
 				StatelessContainerEntry slcEntry = prepareStatelessProcessing(containerEntry);
 				for (Attribute notifiedAttribute : ContainerContext.STATELESS_QUEUE.get()) {
-					Substance substance = notifiedAttribute.failSafeEvaluate(notifiedAttribute, slcEntry); 
+					Object substance = notifiedAttribute.failSafeEvaluate(notifiedAttribute, slcEntry); 
 					substance = slcEntry.silentUpdate(notifiedAttribute, substance);				
 					//Not participating in filter direct dispatch
 					dispatchEntryUpdated(notifiedAttribute,substance,containerEntry);
@@ -122,14 +121,14 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 	}
 	
 	@Override
-	public void dispatchEntryUpdated(Attribute attribute, Substance substance,
+	public void dispatchEntryUpdated(Attribute attribute, Object substance,
 			ContainerEntry containerEntry) {
 		//If this entry is not added during this cycle as the entry going to be transported 
 		//do not bother about individual updates.
 		if(!containerEntry.markedAdded()){
-			Map<Attribute,Substance> attrSubstanceMap = collectedUpdates.get(containerEntry.getIdentitySequence());
+			Map<Attribute,Object> attrSubstanceMap = collectedUpdates.get(containerEntry.getIdentitySequence());
 			if(attrSubstanceMap==null){
-				attrSubstanceMap = new HashMap<Attribute,Substance>();
+				attrSubstanceMap = new HashMap<Attribute,Object>();
 				collectedUpdates.put(containerEntry.getIdentitySequence(), attrSubstanceMap);
 				pendingUpdates = true;
 			}
@@ -186,8 +185,8 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		for(ContainerEntry containerEntry:getContainerEntries()){
 			switch(containerEntry.touchMode()){
 				case ContainerEntry.MARKED_DIRTY:
-					Map<Attribute,Substance> attrSubstanceMap = collectedUpdates.get(containerEntry.getIdentitySequence());
-					for(Entry<Attribute,Substance> oneAttrEntry:attrSubstanceMap.entrySet()){
+					Map<Attribute,Object> attrSubstanceMap = collectedUpdates.get(containerEntry.getIdentitySequence());
+					for(Entry<Attribute,Object> oneAttrEntry:attrSubstanceMap.entrySet()){
 						super.dispatchEntryUpdated(oneAttrEntry.getKey(), oneAttrEntry.getValue(), containerEntry);
 					}
 					containerEntry.reset();

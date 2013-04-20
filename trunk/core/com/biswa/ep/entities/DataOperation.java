@@ -2,7 +2,6 @@ package com.biswa.ep.entities;
 
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.spec.Spec;
-import com.biswa.ep.entities.substance.Substance;
 /**Operations defined in this interface which operates on the data in present container. 
  * 
  * @author biswa
@@ -55,5 +54,5 @@ public interface DataOperation{
 	 * @param substance Substance
 	 * @param appliedFilter FilterSpec
 	 */
-	void updateStatic(Attribute attribute,Substance substance,FilterSpec appliedFilter);
+	void updateStatic(Attribute attribute,Object substance,FilterSpec appliedFilter);
 }

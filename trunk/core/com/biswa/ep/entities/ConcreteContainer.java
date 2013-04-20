@@ -10,7 +10,6 @@ import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.store.ContainerEntryStore;
 import com.biswa.ep.entities.store.ContainerStoreFactory;
 import com.biswa.ep.entities.store.PhysicalEntry;
-import com.biswa.ep.entities.substance.Substance;
 /**The schema which deals with hosting Container Entry.
  * 
  * @author biswa
@@ -51,7 +50,7 @@ public class ConcreteContainer extends CascadeContainer{
 			ContainerEntry containerEntry = containerEntryStore.getEntry(containerEvent.getIdentitySequence());
 			if(containerEntry!=null){
 				//Extract the substance received
-				Substance substance = containerEvent.getSubstance();
+				Object substance = containerEvent.getSubstance();
 	
 				//Update entry with INCOMING attribute & notify listeners
 				if(attribute.hasMinor()){
@@ -128,7 +127,7 @@ public class ConcreteContainer extends CascadeContainer{
 			for(Attribute attribute:transportEntry.getEntryQualifier().keySet()){
 				attribute = attribute.getRegisteredAttribute();
 				if(attribute!=null){
-					Substance initialSubstance = containerEntry.silentUpdate(attribute, transportEntry.getEntryQualifier().get(attribute));
+					Object initialSubstance = containerEntry.silentUpdate(attribute, transportEntry.getEntryQualifier().get(attribute));
 					if(merge){
 						dispatchEntryUpdated(attribute,initialSubstance,containerEntry);
 					}
@@ -145,7 +144,7 @@ public class ConcreteContainer extends CascadeContainer{
 			}
 			//Pass 2 Compute all the dependencies
 			for(Attribute attribute:dependents){
-				Substance substance = attribute.failSafeEvaluate(attribute, containerEntry); 
+				Object substance = attribute.failSafeEvaluate(attribute, containerEntry); 
 				containerEntry.silentUpdate(attribute, substance);
 				if(merge){
 					dispatchEntryUpdated(attribute,substance,containerEntry);

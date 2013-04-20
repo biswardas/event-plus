@@ -5,8 +5,6 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import com.biswa.ep.ContainerContext;
-import com.biswa.ep.entities.substance.NullSubstance;
-import com.biswa.ep.entities.substance.Substance;
 
 /**
  * This class responsible to define behavior of a attribute in the domain. It
@@ -303,7 +301,7 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	 * @return Substance
 	 * @throws Exception
 	 */
-	protected abstract Substance evaluate(Attribute attribute,
+	protected abstract Object evaluate(Attribute attribute,
 			ContainerEntry containerEntry) throws Exception;
 
 	/**
@@ -316,12 +314,12 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	 *            ContainerEntry
 	 * @return Substance
 	 */
-	final protected Substance failSafeEvaluate(Attribute attribute,
+	final protected Object failSafeEvaluate(Attribute attribute,
 			ContainerEntry containerEntry) {
 		try {
 			return evaluate(attribute, containerEntry);
 		} catch (Throwable throwable) {
-			return NullSubstance.NULL_SUBSTANCE;
+			return null;
 		}
 	}
 
@@ -348,8 +346,7 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	 * @return Object
 	 */
 	protected Object getValue(ContainerEntry containerEntry, String name) {
-		Substance substance = containerEntry.getSubstance(containerEntry.getContainer().getAttributeByName(name));
-		return substance!=null?substance.getValue():null;
+		return containerEntry.getSubstance(containerEntry.getContainer().getAttributeByName(name));
 	}
 
 	/**
@@ -363,7 +360,7 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	 * @return Object
 	 */
 	protected Object getValue(ContainerEntry containerEntry, Attribute attribute) {
-		return containerEntry.getSubstance(attribute).getValue();
+		return containerEntry.getSubstance(attribute);
 	}
 
 	/**
@@ -375,8 +372,7 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	 */
 	final protected Object getStatic(String attributeName) {
 		AbstractContainer container = getContainer();
-		return container.getStatic(container.getAttributeByName(attributeName))
-				.getValue();
+		return container.getStatic(container.getAttributeByName(attributeName));
 	}
 
 	/**
@@ -387,7 +383,7 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	 * @return Substance
 	 */
 	final protected Object getStatic(Attribute attribute) {
-		return getContainer().getStatic(attribute).getValue();
+		return getContainer().getStatic(attribute);
 	}
 
 	/**

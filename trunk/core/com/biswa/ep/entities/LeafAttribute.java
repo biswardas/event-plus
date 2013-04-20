@@ -1,7 +1,5 @@
 package com.biswa.ep.entities;
 
-import com.biswa.ep.entities.substance.NullSubstance;
-import com.biswa.ep.entities.substance.Substance;
 /**Class used to add leaf attributes which is not dependent on any other attribute
  * 
  * @author biswa
@@ -36,9 +34,9 @@ final public class LeafAttribute extends Attribute{
 	}
 	
 	@Override
-	protected Substance evaluate(Attribute attribute,
+	protected Object evaluate(Attribute attribute,
 			ContainerEntry containerEntry) {
-		return NullSubstance.NULL_SUBSTANCE;
+		return null;
 	}
 
 	@Override
