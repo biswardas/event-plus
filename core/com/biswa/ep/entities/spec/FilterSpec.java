@@ -3,7 +3,7 @@ package com.biswa.ep.entities.spec;
 import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.ContainerListener;
-import com.biswa.ep.entities.predicate.Predicate;
+import com.biswa.ep.entities.Predicate;
 
 /**Filter Spec which is applied on the container to filter 
  * the container entries.
