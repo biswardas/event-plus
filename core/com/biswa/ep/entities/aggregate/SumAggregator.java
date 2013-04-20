@@ -3,6 +3,10 @@ package com.biswa.ep.entities.aggregate;
 
 public class SumAggregator extends Aggregator {
 
+	public SumAggregator(String aggrAttr) {
+		super(aggrAttr);
+	}
+
 	@Override
 	protected Double aggregate(Object[] inputSubstances) {
 		Double intermediateAggr = 0d;

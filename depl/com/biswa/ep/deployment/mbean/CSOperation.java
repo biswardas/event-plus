@@ -35,7 +35,7 @@ public class CSOperation implements CSOperationMBean {
 		StringTokenizer stk = new StringTokenizer(aggrString,",");
 		while(stk.hasMoreTokens()){
 			String[] oneAttribute = stk.nextToken().split(":");
-			aggrSpec.add(new LeafAttribute(oneAttribute[0]), Aggregators.valueOf(oneAttribute[1]).AGGR);
+			aggrSpec.add(Aggregators.valueOf(oneAttribute[1]).newInstance(oneAttribute[0]));
 		}
 		cs.agent().applySpec(aggrSpec);
 	}

@@ -52,7 +52,7 @@ public class PivotDeploymentHandler extends DeploymentHandler{
 		if(summary!=null){
 			AggrSpec aggrSpec = new AggrSpec();
 			for(com.biswa.ep.deployment.util.Attribute attr : summary.getAttribute()){
-				aggrSpec.add(new LeafAttribute(attr.getName()), Aggregators.valueOf(attr.getSummary()).AGGR);
+				aggrSpec.add(Aggregators.valueOf(attr.getSummary()).newInstance(attr.getName()));
 			}
 			cs.agent().applySpec(aggrSpec);
 		}

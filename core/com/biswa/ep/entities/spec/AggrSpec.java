@@ -17,7 +17,7 @@ public class AggrSpec implements Spec {
 		PivotContainer pivotSchema = (PivotContainer)listener;
 		pivotSchema.applyAggregation(aggrMap);
 	}
-	public void add(Attribute attr,Aggregator aggr){
-		aggrMap.put(attr, aggr);
+	public void add(Aggregator aggr){
+		aggrMap.put(aggr.getAggrAttr(), aggr);
 	}
 }
