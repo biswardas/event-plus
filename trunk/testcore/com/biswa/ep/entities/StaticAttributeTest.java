@@ -1,10 +1,10 @@
 package com.biswa.ep.entities;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-
-import com.biswa.ep.entities.substance.Substance;
 
 public class StaticAttributeTest{
 	class StaticAttributeX extends StaticAttribute{
@@ -12,7 +12,7 @@ public class StaticAttributeTest{
 			super(name);
 		}
 		@Override
-		protected Substance evaluate(Attribute attribute) throws Exception {
+		protected Object evaluate(Attribute attribute) throws Exception {
 			return null;
 		}
 	}

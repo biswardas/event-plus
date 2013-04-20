@@ -19,8 +19,7 @@ import com.biswa.ep.entities.spec.AggrSpec;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.spec.PivotSpec;
 import com.biswa.ep.entities.spec.SortSpec;
-import com.biswa.ep.entities.substance.ObjectSubstance;
-import com.biswa.ep.util.parser.predicate.PredicateBuilder;
+import com.biswa.ep.provider.PredicateBuilder;
 
 public class CSOperation implements CSOperationMBean {
 	private ConcreteAttributeProvider attrProvider = new ConcreteAttributeProvider();
@@ -130,7 +129,7 @@ public class CSOperation implements CSOperationMBean {
 
 	@Override
 	public void updateStatic(final String attributeName, final String value) {
-		cs.agent().updateStatic(new StaticLeafAttribute(attributeName), new ObjectSubstance(value), null);
+		cs.agent().updateStatic(new StaticLeafAttribute(attributeName), value, null);
 	}
 	
 	@Override
@@ -138,7 +137,7 @@ public class CSOperation implements CSOperationMBean {
 		//Prepare the filter predicate
 		Predicate pred = PredicateBuilder.buildPredicate(filterString);
 		
-		cs.agent().updateStatic(new StaticLeafAttribute(attributeName), new ObjectSubstance(value), new FilterSpec(pred));
+		cs.agent().updateStatic(new StaticLeafAttribute(attributeName), value, new FilterSpec(pred));
 	}
 	
 	@Override

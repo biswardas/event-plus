@@ -12,7 +12,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.biswa.ep.entities.substance.InvalidSubstance;
 import com.biswa.ep.entities.transaction.Agent;
 import com.biswa.ep.entities.transaction.FeedbackAgentImpl;
 import com.biswa.ep.entities.transaction.TransactionEvent;
@@ -73,29 +72,29 @@ public class FeedbackContainerTest {
 		//Create
 		source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(10000),987654));
 		//Update
-		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,InvalidSubstance.INVALID_SUBSTANCE,987654));
+		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,null,987654));
 		//Update
-		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,InvalidSubstance.INVALID_SUBSTANCE,987654));
+		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,null,987654));
 		//Update
-		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,InvalidSubstance.INVALID_SUBSTANCE,987654));
+		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,null,987654));
 		//Update
-		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,InvalidSubstance.INVALID_SUBSTANCE,987654));
+		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,null,987654));
 		//Update
-		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,InvalidSubstance.INVALID_SUBSTANCE,987654));
+		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,null,987654));
 		//Update
-		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,InvalidSubstance.INVALID_SUBSTANCE,987654));
+		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,null,987654));
 		//Update
-		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,InvalidSubstance.INVALID_SUBSTANCE,987654));
+		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,null,987654));
 		//Update
-		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,InvalidSubstance.INVALID_SUBSTANCE,987654));
+		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,null,987654));
 		//Update
-		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,InvalidSubstance.INVALID_SUBSTANCE,987654));
+		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,null,987654));
 		//Update
-		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,InvalidSubstance.INVALID_SUBSTANCE,987654));
+		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,null,987654));
 		//Update
-		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,InvalidSubstance.INVALID_SUBSTANCE,987654));
+		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,null,987654));
 		//Update
-		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,InvalidSubstance.INVALID_SUBSTANCE,987654));
+		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10000,attr,null,987654));
 		source.agent().commitTran(new TransactionEvent(SOURCE,987654));
 		s.acquireUninterruptibly();
 		Assert.assertEquals("All above updates should have been collapsed to just one Insert.",1,atom.get());

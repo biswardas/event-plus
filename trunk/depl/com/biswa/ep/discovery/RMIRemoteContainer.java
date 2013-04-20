@@ -10,7 +10,6 @@ import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.ContainerEvent;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.spec.Spec;
-import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.entities.transaction.Agent;
 import com.biswa.ep.entities.transaction.TransactionEvent;
 /**
@@ -206,7 +205,7 @@ public class RMIRemoteContainer extends AbstractContainer {
 	}
 
 	@Override
-	public void updateStatic(Attribute attribute, Substance substance,
+	public void updateStatic(Attribute attribute, Object substance,
 			FilterSpec appliedFilter) {
 		throw new UnsupportedOperationException();		
 	}

@@ -12,8 +12,6 @@ import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerEvent;
 import com.biswa.ep.entities.ContainerStructureEvent;
 import com.biswa.ep.entities.LeafAttribute;
-import com.biswa.ep.entities.substance.ObjectSubstance;
-import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.entities.transaction.Agent;
 import com.biswa.ep.entities.transaction.FeedbackAgentImpl;
 import com.biswa.ep.entities.transaction.FeedbackEvent;
@@ -24,7 +22,7 @@ public class SubscriptionContainerTest {
 
 	private static final String LISTENING_CONTAINER = "ListeningContainer";
 	SubscriptionRequest subRequest = new SubscriptionRequest(LISTENING_CONTAINER,100, new LeafAttribute("Result"));
-	Substance substance = new ObjectSubstance("BISWA");
+	Object substance = "BISWA";
 	SubscriptionEvent subscriptionEvent = new SubscriptionEvent(substance,SUBSCRIPTION_CONTAINER,subRequest);
 	
 	SubscriptionContainer subscriptionContainer = null;	

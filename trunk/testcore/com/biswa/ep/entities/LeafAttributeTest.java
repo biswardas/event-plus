@@ -1,18 +1,16 @@
 package com.biswa.ep.entities;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.biswa.ep.entities.substance.DecimalSubstance;
-import com.biswa.ep.entities.substance.Substance;
-
 public class LeafAttributeTest{
-	Attribute attribute = null;
-	DecimalSubstance ds;
-	public LeafAttributeTest() {
-		ds = new DecimalSubstance(5d);
+	Attribute attribute = null; 
+	public LeafAttributeTest() { 
 		attribute = new LeafAttribute("Root");
 	}
 	
@@ -26,7 +24,7 @@ public class LeafAttributeTest{
 	public void testLeafAttributeAddDependsOn() {
 		attribute.addDependency(new Attribute("NewLeafAttribute"){
 			@Override
-			protected Substance evaluate(Attribute attribute,
+			protected Object evaluate(Attribute attribute,
 					ContainerEntry containerEntry) {
 				return null;
 			}
@@ -38,7 +36,7 @@ public class LeafAttributeTest{
 	public void testLeafAttributeEquals() {
 		assertEquals(attribute,new Attribute("Root"){
 			@Override
-			protected Substance evaluate(Attribute attribute,
+			protected Object evaluate(Attribute attribute,
 					ContainerEntry containerEntry) {
 				return null;
 			}
@@ -48,7 +46,7 @@ public class LeafAttributeTest{
 		assertNotSame(attribute,new Object());
 		assertTrue(attribute.equals(new Attribute("Root"){
 			@Override
-			protected Substance evaluate(Attribute attribute,
+			protected Object evaluate(Attribute attribute,
 					ContainerEntry containerEntry) {
 				return null;
 			}

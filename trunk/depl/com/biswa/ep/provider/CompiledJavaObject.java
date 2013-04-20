@@ -45,8 +45,6 @@ public class CompiledJavaObject extends SimpleJavaFileObject {
 		EPJavaObject epJavaObject = new EPJavaObject(expression);
 		StringBuilder sb = new StringBuilder();
 		sb.append("package com.biswa.ep.provider;\n");
-		sb.append("import com.biswa.ep.entities.substance.Substance;\n");
-		sb.append("import com.biswa.ep.entities.substance.ObjectSubstance;\n");
 		sb.append("import com.biswa.ep.entities.Attribute;\n");
 		sb.append("import com.biswa.ep.entities.LeafAttribute;\n");
 		sb.append("import com.biswa.ep.entities.ContainerEntry;\n");
@@ -61,11 +59,11 @@ public class CompiledJavaObject extends SimpleJavaFileObject {
 		sb.append("public CompiledAttribute"+name+"(){\n");
 			sb.append("super(\""+name+"\");\n");
 		sb.append("}\n");
-		sb.append("public Substance evaluate(Attribute attribute,ContainerEntry ce){\n");
+		sb.append("public Object evaluate(Attribute attribute,ContainerEntry ce){\n");
 			for(String oneVariable:epJavaObject.getVariables()){
 				sb.append("Object "+oneVariable+" = super.getValue(ce,\""+oneVariable+"\");\n");
 			}
-			sb.append("return new ObjectSubstance("+expression.substring(expression.indexOf("=") + 1)+");\n");
+			sb.append("return "+expression.substring(expression.indexOf("=") + 1)+";\n");
 		sb.append("}\n");
 		sb.append("}\n");
 		return sb.toString();

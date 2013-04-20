@@ -1,11 +1,10 @@
 package com.biswa.ep.entities;
 
-import static org.junit.Assert.*;
-
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-
-import com.biswa.ep.entities.substance.Substance;
 class XPrivate extends PrivateAttribute{
 	/**
 	 * 
@@ -17,7 +16,7 @@ class XPrivate extends PrivateAttribute{
 	}
 
 	@Override
-	protected Substance evaluate(Attribute attribute,
+	protected Object evaluate(Attribute attribute,
 			ContainerEntry containerEntry) throws Exception {
 		return null;
 	}

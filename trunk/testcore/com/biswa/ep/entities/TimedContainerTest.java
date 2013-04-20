@@ -11,7 +11,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.biswa.ep.entities.substance.InvalidSubstance;
 import com.biswa.ep.entities.transaction.Agent;
 import com.biswa.ep.entities.transaction.TransactionEvent;
 public class TimedContainerTest {
@@ -84,10 +83,10 @@ public class TimedContainerTest {
 		s.acquireUninterruptibly();
 		
 		source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(10004),0));
-		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10004,attr,InvalidSubstance.INVALID_SUBSTANCE,0));
+		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10004,attr,null,0));
 		source.agent().entryRemoved(new ContainerDeleteEvent(SOURCE,10004,0));
 		source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(10004),0));
-		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10004,attr,InvalidSubstance.INVALID_SUBSTANCE,0));
+		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10004,attr,null,0));
 		source.agent().entryRemoved(new ContainerDeleteEvent(SOURCE,10004,0));
 		s.acquireUninterruptibly();
 	}
@@ -133,10 +132,10 @@ public class TimedContainerTest {
 		s.acquireUninterruptibly();
 		source.agent().beginTran(new TransactionEvent(SOURCE,TRANID));
 		source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(10004),TRANID));
-		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10004,attr,InvalidSubstance.INVALID_SUBSTANCE,TRANID));
+		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10004,attr,null,TRANID));
 		source.agent().entryRemoved(new ContainerDeleteEvent(SOURCE,10004,TRANID));
 		source.agent().entryAdded(new ContainerInsertEvent(SOURCE,new TransportEntry(10004),TRANID));
-		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10004,attr,InvalidSubstance.INVALID_SUBSTANCE,TRANID));
+		source.agent().entryUpdated(new ContainerUpdateEvent(SOURCE,10004,attr,null,TRANID));
 		source.agent().entryRemoved(new ContainerDeleteEvent(SOURCE,10004,TRANID));
 		source.agent().commitTran(new TransactionEvent(SOURCE,TRANID));
 		s.acquireUninterruptibly();

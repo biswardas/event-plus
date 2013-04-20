@@ -67,7 +67,6 @@
 	<target name="compile">
 		<javac destdir="build/sources" includeantruntime="false" debug="true">
 			<src path="core" />
-			<src path="tools" />
 			<src path="depl" />
 			<src path="viewer" />
 			<classpath>

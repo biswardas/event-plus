@@ -19,10 +19,10 @@ import com.biswa.ep.entities.predicate.Predicate;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.transaction.Inlet;
 import com.biswa.ep.entities.transaction.SubscriptionAgent;
+import com.biswa.ep.provider.PredicateBuilder;
 import com.biswa.ep.subscription.SubscriptionAttrHandler;
 import com.biswa.ep.subscription.SubscriptionAttrHandlerImpl;
 import com.biswa.ep.subscription.SubscriptionAttribute;
-import com.biswa.ep.util.parser.predicate.PredicateBuilder;
 
 public abstract class DeploymentHandler extends AbstractDeploymentHandler{
 	public void deploy(ConcreteContainer cs, Container container,Context context,ContainerManager containerManager) {

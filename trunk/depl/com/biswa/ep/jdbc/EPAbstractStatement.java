@@ -11,8 +11,6 @@ import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.identity.ConcreteIdentityGenerator;
 import com.biswa.ep.entities.identity.IdentityGenerator;
-import com.biswa.ep.entities.substance.ObjectSubstance;
-import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.entities.transaction.TransactionEvent;
 
 public abstract class EPAbstractStatement extends StatementAdapter {
@@ -30,8 +28,8 @@ public abstract class EPAbstractStatement extends StatementAdapter {
 	protected TransactionEvent tranID;
 	protected EPAbstractConnection sqlConnection;
 	private boolean closed = false;
-	protected final Map<Integer, Map<Attribute, Substance>> batch = new LinkedHashMap<Integer, Map<Attribute, Substance>>();
-	protected Map<Attribute, Substance> hm = new HashMap<Attribute, Substance>();
+	protected final Map<Integer, Map<Attribute, Object>> batch = new LinkedHashMap<Integer, Map<Attribute, Object>>();
+	protected Map<Attribute, Object> hm = new HashMap<Attribute, Object>();
 
 	public EPAbstractStatement(String sql) throws SQLException{
 		parse(sql);
@@ -42,8 +40,7 @@ public abstract class EPAbstractStatement extends StatementAdapter {
 	public void setObject(String parameterName, Object inputObject)
 			throws SQLException {
 		checkClosed();
-		hm.put(new LeafAttribute(parameterName), new ObjectSubstance(
-				inputObject));
+		hm.put(new LeafAttribute(parameterName), inputObject);
 	}
 
 	@Override
@@ -86,12 +83,12 @@ public abstract class EPAbstractStatement extends StatementAdapter {
 		switch (op) {
 		case INSERT:
 			batch.put(getIdentity(), hm);
-			hm = new HashMap<Attribute, Substance>();
+			hm = new HashMap<Attribute, Object>();
 			identity = null;
 			break;
 		case UPDATE:
 			batch.put(identity, hm);
-			hm = new HashMap<Attribute, Substance>();
+			hm = new HashMap<Attribute, Object>();
 			break;
 		case DELETE:
 			batch.put(identity, null);
