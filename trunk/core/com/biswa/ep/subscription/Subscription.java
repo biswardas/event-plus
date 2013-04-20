@@ -2,7 +2,6 @@ package com.biswa.ep.subscription;
 
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ContainerEntry;
-import com.biswa.ep.entities.substance.Substance;
 
 /**
  * Subscription support building block defining framework for both source and
@@ -29,7 +28,7 @@ abstract public class Subscription extends Attribute {
 	}
 
 	@Override
-	final protected Substance evaluate(Attribute attribute,
+	final protected Object evaluate(Attribute attribute,
 			ContainerEntry containerEntry) throws Exception {
 		return subscribe(attribute, containerEntry);
 	}
@@ -45,7 +44,7 @@ abstract public class Subscription extends Attribute {
 	 * @return Substance
 	 * @throws Exception
 	 */
-	public abstract Substance subscribe(Attribute attribute,
+	public abstract Object subscribe(Attribute attribute,
 			ContainerEntry containerEntry) throws Exception;
 
 	/**

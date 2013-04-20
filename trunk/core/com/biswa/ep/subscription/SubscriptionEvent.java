@@ -1,7 +1,6 @@
 package com.biswa.ep.subscription;
 
 import com.biswa.ep.EPEvent;
-import com.biswa.ep.entities.substance.Substance;
 /**
  * Carrier object for the subscription information. This object is propagated when a client container 
  * subscribes a Subscription container.
@@ -18,7 +17,7 @@ public class SubscriptionEvent extends EPEvent {
 	 * The subject which was subscribed
 	 * 
 	 */
-	final private Substance subject;
+	final private Object subject;
 	/**
 	 *The subscriber information 
 	 */
@@ -30,7 +29,7 @@ public class SubscriptionEvent extends EPEvent {
 	 * @param source
 	 * @param subscriptionRequest
 	 */
-	public SubscriptionEvent(Substance subject,String source, SubscriptionRequest subscriptionRequest) {
+	public SubscriptionEvent(Object subject,String source, SubscriptionRequest subscriptionRequest) {
 		super(source);
 		this.subject=subject;
 		this.subscriptionRequest=subscriptionRequest;
@@ -40,7 +39,7 @@ public class SubscriptionEvent extends EPEvent {
 	 * Subscribe which is being subscribed.
 	 * @return Substance
 	 */
-	public Substance getSubject() {
+	public Object getSubject() {
 		return subject;
 	}
 	

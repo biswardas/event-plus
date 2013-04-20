@@ -10,8 +10,6 @@ import com.biswa.ep.entities.ContainerEvent;
 import com.biswa.ep.entities.ContainerStructureEvent;
 import com.biswa.ep.entities.ContainerUpdateEvent;
 import com.biswa.ep.entities.spec.FilterSpec;
-import com.biswa.ep.entities.substance.ObjectSubstance;
-import com.biswa.ep.entities.substance.Substance;
 
 public class SubscriptionContainerProxy extends ConcreteContainer implements
 		SubscriptionSupport {
@@ -36,11 +34,11 @@ public class SubscriptionContainerProxy extends ConcreteContainer implements
 	public void entryUpdated(ContainerEvent containerEvent){
 		//I like to transform something here.
 		if(pvt!=null){
-			Object newValue = pvt.transform(containerEvent.getSubstance().getValue());
+			Object newValue = pvt.transform(containerEvent.getSubstance());
 			containerEvent = new ContainerUpdateEvent(containerEvent.getSource(),
 					containerEvent.getIdentitySequence(),
 					containerEvent.getAttribute(),
-					new ObjectSubstance(newValue),
+					newValue,
 					containerEvent.getTransactionId());
 		}
 		super.entryUpdated(containerEvent);
@@ -72,7 +70,7 @@ public class SubscriptionContainerProxy extends ConcreteContainer implements
 	}
 
 	@Override
-	public void dispatchEntryUpdated(Attribute attribute, Substance substance,
+	public void dispatchEntryUpdated(Attribute attribute, Object substance,
 			ContainerEntry containerEntry) {
 		subscriptionHandler.dispatchEntryUpdated(attribute, substance,
 				containerEntry);
