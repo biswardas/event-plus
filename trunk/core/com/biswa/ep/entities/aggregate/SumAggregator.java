@@ -8,9 +8,10 @@ public class SumAggregator extends Aggregator {
 	}
 
 	@Override
-	protected Double aggregate(Object[] inputSubstances) {
+	protected Object aggregate() {
 		Double intermediateAggr = 0d;
-		for(Object substance:inputSubstances){
+		while(hasNext()){
+			Object substance = getNextObject();
 			if(substance==null){
 				continue;
 			}else{
