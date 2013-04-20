@@ -3,6 +3,10 @@ package com.biswa.ep.entities.aggregate;
 
 public class AverageAggregator extends Aggregator {
 
+	public AverageAggregator(String aggrAttr) {
+		super(aggrAttr);
+	}
+
 	@Override
 	protected Object aggregate(Object[] inputSubstances) {
 		Double intermediateAggr = 0d;

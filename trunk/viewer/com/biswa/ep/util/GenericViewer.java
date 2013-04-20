@@ -127,7 +127,7 @@ public class GenericViewer extends PivotContainer {
 				StringTokenizer stk = new StringTokenizer(aggrTextField.getText(),",");
 				while(stk.hasMoreTokens()){
 					String[] oneAttribute = stk.nextToken().split(":");
-					aggrSpec.add(new LeafAttribute(oneAttribute[0]), Aggregators.valueOf(oneAttribute[1]).AGGR);
+					aggrSpec.add(Aggregators.valueOf(oneAttribute[1]).newInstance(oneAttribute[0]));
 				}
 				GenericViewer.this.agent().applySpec(aggrSpec);
 			}
