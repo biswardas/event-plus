@@ -1,6 +1,5 @@
 package com.biswa.ep.entities;
 
-import com.biswa.ep.entities.substance.Substance;
 
 /** Interface exposing all methods required to dispatch updates the
  * down stream container.
@@ -27,7 +26,7 @@ public interface Dispatcher {
 	 * @param substance Substance
 	 * @param containerEntry ContainerEntry
 	 */
-	void dispatchEntryUpdated(Attribute attribute, Substance substance, ContainerEntry containerEntry);
+	void dispatchEntryUpdated(Attribute attribute, Object substance, ContainerEntry containerEntry);
 	
 	/**
 	 * Method which delegates the attribute addition to the dispatcher thread.

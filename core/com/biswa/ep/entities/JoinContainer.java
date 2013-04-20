@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
-import com.biswa.ep.entities.substance.Substance;
 /**Join Container takes input from two containers L,R and try to create join entries for
  * down stream containers based on the relational Join Policy.
  * 
@@ -97,7 +96,7 @@ final public class JoinContainer extends ConcreteContainer {
 	}
 	
 	@Override
-	public void dispatchEntryUpdated(Attribute attribute, Substance substance, ContainerEntry containerEntry){
+	public void dispatchEntryUpdated(Attribute attribute, Object substance, ContainerEntry containerEntry){
 		jeIndex.updateJoinedEntry(attribute,substance,containerEntry);
 	}
 	
@@ -212,7 +211,7 @@ final public class JoinContainer extends ConcreteContainer {
 		 * @param substance Substance
 		 * @param containerEntry ContainerEntry
 		 */
-		private void updateJoinedEntry(Attribute attribute, Substance substance,
+		private void updateJoinedEntry(Attribute attribute, Object substance,
 				ContainerEntry containerEntry) {
 			Set<JoinedEntry> updatedEntries = joinIndex.get(containerEntry);
 			if(updatedEntries!=null){
@@ -378,7 +377,7 @@ final public class JoinContainer extends ConcreteContainer {
 			 * @param substance
 			 */
 			private void updateContainerEntry(Attribute attribute,
-					Substance substance) {
+					Object substance) {
 				JoinContainer.super.dispatchEntryUpdated(attribute, substance, joinedEntry);				
 			}
 			

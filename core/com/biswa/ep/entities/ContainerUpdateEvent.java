@@ -1,14 +1,12 @@
 package com.biswa.ep.entities;
 
-import com.biswa.ep.entities.substance.Substance;
-
 public class ContainerUpdateEvent extends ContainerEvent {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 222179228449623824L;
 	private int externalIdentity; 
-	private Substance sc;
+	private Object sc;
 	private int transactionId;
 	private Attribute attribute;
 	/**Constructor used to create Container Event while updating an container entry
@@ -20,7 +18,7 @@ public class ContainerUpdateEvent extends ContainerEvent {
 	 * @param transactionId transaction of this operation
 	 */
 	public ContainerUpdateEvent(String source, int externalIdentity,
-			Attribute attribute,Substance sc,int transactionId) {
+			Attribute attribute,Object sc,int transactionId) {
 		super(source);
 		this.externalIdentity=externalIdentity;
 		this.attribute=attribute;
@@ -48,7 +46,7 @@ public class ContainerUpdateEvent extends ContainerEvent {
 	 * 
 	 * @return Substance Substance which has been changed.
 	 */
-	public Substance getSubstance(){
+	public Object getSubstance(){
 		return sc;
 	}
 	

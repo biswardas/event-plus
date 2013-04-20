@@ -3,7 +3,6 @@ package com.biswa.ep.entities;
 import java.util.HashMap;
 import java.util.Map;
 import com.biswa.ep.entities.store.AbstractPhysicalEntry;
-import com.biswa.ep.entities.substance.Substance;
 /**Join Container Entry hiding the details of container entry implementation.
  * This class should never be initialized explicitly.
  * @author biswa
@@ -51,7 +50,7 @@ public class JoinContainerEntry extends AbstractPhysicalEntry {
 	
 	@Override
 	public TransportEntry cloneConcrete(){
-		Map<Attribute, Substance> entryQualifier = new HashMap<Attribute, Substance>();
+		Map<Attribute, Object> entryQualifier = new HashMap<Attribute, Object>();
 		//If there is any conflicting attributes then attribute from left schema takes precedence over right
 		if(right!=null){
 			ContainerEntry rightContainer = getRight();
@@ -69,7 +68,7 @@ public class JoinContainerEntry extends AbstractPhysicalEntry {
 	}
 
 	@Override
-	public Substance getSubstance(Attribute attribute) {
+	public Object getSubstance(Attribute attribute) {
 		JoinContainer cs = cs();
 		if(cs.getLeftAttributes().contains(attribute)){
 			return cs.getConcreteEntry(left).getSubstance(attribute);
@@ -79,12 +78,12 @@ public class JoinContainerEntry extends AbstractPhysicalEntry {
 	}
 
 	@Override
-	public Substance silentUpdate(Attribute attribute, Substance substance) {
+	public Object silentUpdate(Attribute attribute, Object substance) {
 		throw new UnsupportedOperationException();
 	}
 	
 	@Override
-	public Substance silentUpdate(Attribute attribute, Substance substance,int minor) {
+	public Object silentUpdate(Attribute attribute, Object substance,int minor) {
 		throw new UnsupportedOperationException();
 	}
 

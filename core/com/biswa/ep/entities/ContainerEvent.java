@@ -1,7 +1,6 @@
 package com.biswa.ep.entities;
 
 import com.biswa.ep.EPEvent;
-import com.biswa.ep.entities.substance.Substance;
 /**The event which is sent to update the container as well as adding and dropping Attributes.
  * 
  * @author biswa
@@ -52,7 +51,7 @@ abstract public class ContainerEvent  extends EPEvent {
 	 * 
 	 * @return Substance Substance which has been changed.
 	 */
-	public Substance getSubstance(){
+	public Object getSubstance(){
 		throw new UnsupportedOperationException("Must be overridden in subclass");
 	}
 	

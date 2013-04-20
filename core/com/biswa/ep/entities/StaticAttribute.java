@@ -1,6 +1,5 @@
 package com.biswa.ep.entities;
 
-import com.biswa.ep.entities.substance.Substance;
 
 /**Type which is not allocated any memory.
  * 
@@ -39,12 +38,12 @@ public abstract class StaticAttribute extends Attribute{
 	}
 
 	@Override
-	final protected Substance evaluate(Attribute attribute,
+	final protected Object evaluate(Attribute attribute,
 			ContainerEntry containerEntry) throws Exception {
 		return evaluate(attribute);
 	}
 	
-	abstract protected Substance evaluate(Attribute attribute) throws Exception;
+	abstract protected Object evaluate(Attribute attribute) throws Exception;
 	
 	/** Utility method to find the concrete value in the given container entry for this attribute
 	 * 

@@ -5,7 +5,6 @@ import java.util.Properties;
 import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.store.PhysicalEntry;
-import com.biswa.ep.entities.substance.Substance;
 import com.biswa.ep.entities.transaction.Agent;
 /**This container only relays the transaction. No data or attributes are propagated from this container.
  * 
@@ -25,7 +24,7 @@ public class StaticContainer extends CascadeContainer {
 		//1. Write the static attributes to the requesting container 
 		for(Attribute attribute:getStaticAttributes()){
 			final Attribute staticAttribute = new StaticLeafAttribute(attribute.getName());
-			final Substance substance = getStatic(attribute);
+			final Object substance = getStatic(attribute);
 			final ContainerEvent containerEvent = new ContainerStructureEvent(getName(),staticAttribute);
 			getEventDispatcher().submit(new Runnable(){
 				public void run(){
@@ -96,7 +95,7 @@ public class StaticContainer extends CascadeContainer {
 	}
 	@Override
 	protected void propagateStatic(final Attribute attribute,
-			final Substance substance, final FilterSpec appliedFilter) {
+			final Object substance, final FilterSpec appliedFilter) {
 		for(FilterAgent filterAgent : getFilterAgents()){
 			filterAgent.agent.invokeOperation(new ContainerTask() {			
 				/**
@@ -115,7 +114,7 @@ public class StaticContainer extends CascadeContainer {
 	public final void dumpContainer(){
 		verbose("##################Begin Dumping Container "+getName());
 		for(Attribute attribute:getStaticAttributes()){
-			final Substance substance = getStatic(attribute);
+			final Object substance = getStatic(attribute);
 			verbose(attribute+"="+substance);
 		}
 		verbose("##################End Dumping Container "+getName());

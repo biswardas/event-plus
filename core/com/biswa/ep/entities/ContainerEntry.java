@@ -2,7 +2,6 @@ package com.biswa.ep.entities;
 
 import java.io.Serializable;
 
-import com.biswa.ep.entities.substance.Substance;
 /**Container Entry can be thought of one db record in a table.
  * 
  * @author biswa
@@ -52,7 +51,7 @@ public interface ContainerEntry extends Serializable{
 	 * @param attribute Attribute
 	 * @return Substance
 	 */
-	public Substance getSubstance(Attribute attribute);
+	public Object getSubstance(Attribute attribute);
 	
 	/**Schema to which this container entry belongs.
 	 * 
@@ -67,7 +66,7 @@ public interface ContainerEntry extends Serializable{
 	 * @param substance Substance new value
 	 * @return Substance
 	 */
-	Substance silentUpdate(Attribute attribute, Substance substance);
+	Object silentUpdate(Attribute attribute, Object substance);
 	
 	/** Silently update the container without generating any event
 	 * required during intermediate updates.
@@ -77,7 +76,7 @@ public interface ContainerEntry extends Serializable{
 	 * @param minor int the multi value substance key
 	 * @return Substance
 	 */
-	Substance silentUpdate(Attribute attribute, Substance substance,int minor);
+	Object silentUpdate(Attribute attribute, Object substance,int minor);
 
 	/** Removes the attribute from the Container Entry required when the 
 	 * schema is being modified.
