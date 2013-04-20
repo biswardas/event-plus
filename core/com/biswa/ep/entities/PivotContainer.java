@@ -372,7 +372,7 @@ public class PivotContainer extends ConcreteContainer {
 		 * @param attribute
 		 *            Attribute
 		 */
-		private void aggregateAndPropagate(Attribute attribute) {
+		public void aggregateAndPropagate(Attribute attribute) {
 			aggregate(attribute);
 			if (parent != null)
 				parent.aggregateAndPropagate(attribute);
@@ -649,15 +649,11 @@ public class PivotContainer extends ConcreteContainer {
 	public void applyAggregation(
 			final LinkedHashMap<Attribute, Aggregator> aggrSpec) {
 		// Clear aggregations on the attributes which no longer require
-		// aggregation in new
-		// specification.
+		// aggregation in new specification.
 		aggrMap.keySet().removeAll(aggrSpec.keySet());
 		if (!aggrMap.isEmpty()) {
-			for (Attribute oneAttribute : aggrMap.keySet()) {// Clear
-																// aggregations
-																// on
-																// outstanding
-																// ones
+			for (Attribute oneAttribute : aggrMap.keySet()) {
+				// Clear aggregations on outstanding ones
 				root.clearAggregation(oneAttribute);
 			}
 			// Clear old stuff entirely
