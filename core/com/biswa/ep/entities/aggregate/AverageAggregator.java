@@ -8,15 +8,18 @@ public class AverageAggregator extends Aggregator {
 	}
 
 	@Override
-	protected Object aggregate(Object[] inputSubstances) {
+	protected Object aggregate() {
 		Double intermediateAggr = 0d;
-		for(Object substance:inputSubstances){
+		int i=0;
+		while(hasNext()){
+			i++;
+			Object substance = getNextObject();
 			if(substance==null){
 				continue;
 			}else{
 				intermediateAggr = intermediateAggr + (Double) substance;
 			}
 		}
-		return intermediateAggr/inputSubstances.length;
+		return intermediateAggr/i;
 	}
 }
