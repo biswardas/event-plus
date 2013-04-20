@@ -1,12 +1,10 @@
 package com.biswa.ep.provider;
 
-import com.biswa.ep.entities.predicate.Predicate;
+import com.biswa.ep.entities.Predicate;
 
 public class PredicateBuilder {
 
 	public static Predicate buildPredicate(String predicate) {
-		// TODO Auto-generated method stub
-		return null;
+		return new Predicate("filter="+predicate);
 	}
-//TODO
 }

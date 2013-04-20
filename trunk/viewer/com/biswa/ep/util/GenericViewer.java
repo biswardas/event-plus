@@ -189,6 +189,7 @@ public class GenericViewer extends PivotContainer {
 			public void actionPerformed(ActionEvent e) {
 				com.biswa.ep.entities.Attribute schemaAttribute = new CompiledAttributeProvider().getAttribute(collapserTextField.getText());
 				ContainerEvent ce = new ContainerStructureEvent(getName(),schemaAttribute);
+				GenericViewer.this.agent().attributeRemoved(ce);
 				GenericViewer.this.agent().attributeAdded(ce);
 			}
 		});
@@ -203,6 +204,7 @@ public class GenericViewer extends PivotContainer {
 			public void actionPerformed(ActionEvent e) {
 				com.biswa.ep.entities.Attribute schemaAttribute = new ScriptEngineAttributeProvider().getAttribute(collapserTextField.getText());
 				ContainerEvent ce = new ContainerStructureEvent(getName(),schemaAttribute);
+				GenericViewer.this.agent().attributeRemoved(ce);
 				GenericViewer.this.agent().attributeAdded(ce);
 			}
 		});

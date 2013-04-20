@@ -15,7 +15,7 @@ import com.biswa.ep.entities.ConcreteContainer;
 import com.biswa.ep.entities.ContainerEvent;
 import com.biswa.ep.entities.ContainerStructureEvent;
 import com.biswa.ep.entities.LeafAttribute;
-import com.biswa.ep.entities.predicate.Predicate;
+import com.biswa.ep.entities.Predicate;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.transaction.Inlet;
 import com.biswa.ep.entities.transaction.SubscriptionAgent;

@@ -4,7 +4,7 @@ import com.biswa.ep.deployment.util.Feedback;
 import com.biswa.ep.deployment.util.Filter;
 import com.biswa.ep.deployment.util.Listen;
 import com.biswa.ep.entities.AbstractContainer;
-import com.biswa.ep.entities.predicate.Predicate;
+import com.biswa.ep.entities.Predicate;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.transaction.SubscriptionAgent;
 import com.biswa.ep.provider.PredicateBuilder;
