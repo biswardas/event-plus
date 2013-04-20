@@ -1,8 +1,8 @@
 package com.biswa.ep.entities.store;
 
+import java.util.HashMap;
+
 import com.biswa.ep.entities.Attribute;
-import com.biswa.ep.entities.substance.MultiSubstance;
-import com.biswa.ep.entities.substance.Substance;
 /**3 dimensional container entry where each column can contain multiple values 
  * Once an attribute is detected as multi value then the substance is wrapped
  * inside a multi value substance and added the the container entry. Any subsequent
@@ -32,26 +32,22 @@ class D3ContainerEntry extends ConcreteContainerEntry {
 	}
 
 	@Override
-	public Substance silentUpdate(Attribute attribute, Substance substance,int minor) {
-			MultiSubstance multiSubstance = null;
-			Substance existingSubstance = getSubstance(attribute);
-			if(existingSubstance==null || !existingSubstance.isMultiValue()){
-				multiSubstance = new MultiSubstance();
-			}else{
-				multiSubstance = (MultiSubstance)existingSubstance;
+	public Object silentUpdate(Attribute attribute, Object substance,int minor) {
+			HashMap<Integer,Object> multiSubstance = (HashMap<Integer, Object>) getSubstance(attribute);
+			if(multiSubstance==null){
+				multiSubstance = new HashMap<Integer,Object>();
 			}
-			multiSubstance.addValue(minor,substance);
+			multiSubstance.put(minor,substance);
 			return super.silentUpdate(attribute, multiSubstance);
 	}
 
 	@Override
 	public void remove(Attribute attribute,int minor) {
-		Substance existingSubstance = getSubstance(attribute);
-		if(existingSubstance==null){
+		HashMap<Integer,Object> multiSubstance = (HashMap<Integer, Object>) getSubstance(attribute);
+		if(multiSubstance==null){
 			return;
 		}else{
-			MultiSubstance multiSubstance = (MultiSubstance)existingSubstance;
-			multiSubstance.removeValue(minor);
+			multiSubstance.remove(minor);
 			if(multiSubstance.isEmpty()){
 				super.remove(attribute);
 			}
