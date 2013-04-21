@@ -18,6 +18,10 @@ public class AggrSpec implements Spec {
 		pivotSchema.applyAggregation(aggrMap);
 	}
 	public void add(Aggregator aggr){
-		aggrMap.put(aggr.getAggrAttr(), aggr);
+		if(!aggr.isExpression()){
+			aggrMap.put(aggr.getAggrAttr(), aggr);
+		}else{
+			aggrMap.get(aggr.getAggrAttr()).chain(aggr);
+		}
 	}
 }

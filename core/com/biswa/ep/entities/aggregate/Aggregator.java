@@ -1,5 +1,6 @@
 package com.biswa.ep.entities.aggregate;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import com.biswa.ep.entities.Attribute;
@@ -11,7 +12,7 @@ abstract public class Aggregator{
 	private Attribute aggrAttr;
 	private ContainerEntry pivotEntry;
 	private Iterator<? extends ContainerEntry> iter;
-	
+	private final ArrayList<Aggregator> chainedAggrList = new ArrayList<Aggregator>();
 	public Aggregator(String aggrAttr){
 		this.aggrAttr = new LeafAttribute(aggrAttr);
 	}
@@ -35,6 +36,26 @@ abstract public class Aggregator{
 		}
 		return aggergatedSubstance;
 	}
+	
+	public void prepare() {
+		aggrAttr=aggrAttr.getRegisteredAttribute();
+		for(Aggregator oneChainedAggregator:chainedAggrList){
+			oneChainedAggregator.prepare();
+		}
+	}
+
+	public Aggregator chain(Aggregator aggregator){
+		chainedAggrList.add(aggregator);
+		return this;
+	}
+	
+	public ArrayList<Aggregator> getChainedAggregators(){
+		return chainedAggrList;
+	}
+	
+	public boolean isExpression(){
+		return false;
+	}	
 
 	protected final ContainerEntry getCurrentPivotEntry(){
 		return pivotEntry;
@@ -50,10 +71,6 @@ abstract public class Aggregator{
 	
 	protected final boolean hasNext(){
 		return iter.hasNext();
-	}
-	
-	public void prepare() {
-		aggrAttr=aggrAttr.getRegisteredAttribute();
 	}
 	
 	protected abstract Object aggregate();
