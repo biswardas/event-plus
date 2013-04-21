@@ -383,6 +383,12 @@ public class PivotContainer extends ConcreteContainer {
 				Aggregator aggregator = aggrMap.get(attribute);
 				this.silentUpdate(aggregator.getTargetAttr(), aggregator
 						.failSafeaggregate(this));
+				for(Aggregator oneAggregator:aggregator.getChainedAggregators()){
+					if (!pivotedAttributes.containsKey(oneAggregator.getTargetAttr())) {
+						this.silentUpdate(oneAggregator.getTargetAttr(), oneAggregator
+								.failSafeaggregate(this));
+					}
+				}
 			}
 		}
 
@@ -605,6 +611,8 @@ public class PivotContainer extends ConcreteContainer {
 		for (Attribute pivot : pivotArray) {
 			Attribute registered = pivot.getRegisteredAttribute();
 			if (registered != null) {
+				//Clear any existing aggregation
+				root.clearAggregation(registered);
 				// Allow pivoting only on the preadded attributes
 				pivotedAttributes.put(registered, true);
 			}
