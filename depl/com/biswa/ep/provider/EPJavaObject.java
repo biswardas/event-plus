@@ -2,8 +2,10 @@ package com.biswa.ep.provider;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.lang.model.element.Element;
 import javax.tools.SimpleJavaFileObject;
@@ -50,7 +52,7 @@ public class EPJavaObject extends SimpleJavaFileObject {
 		return "class EPExpression{Object " + expression + ";}";
 	}
 
-	public ArrayList<String> getVariables() {
+	public Collection<String> getVariables() {
 		return al;
 	}
 
@@ -59,7 +61,7 @@ public class EPJavaObject extends SimpleJavaFileObject {
 		System.out.println(jfo.getVariables());
 	}
 
-	private ArrayList<String> al = new ArrayList<String>();
+	private Set<String> al = new HashSet<String>();
 
 	class TreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		@Override
