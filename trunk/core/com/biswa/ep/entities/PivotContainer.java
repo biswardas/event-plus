@@ -658,15 +658,15 @@ public class PivotContainer extends ConcreteContainer {
 			final LinkedHashMap<Attribute, Aggregator> aggrSpec) {
 		// Clear aggregations on the attributes which no longer require
 		// aggregation in new specification.
-		aggrMap.keySet().removeAll(aggrSpec.keySet());
-		if (!aggrMap.isEmpty()) {
-			for (Attribute oneAttribute : aggrMap.keySet()) {
-				// Clear aggregations on outstanding ones
-				root.clearAggregation(oneAttribute);
+		for (Attribute oneAttribute : aggrMap.keySet()) {
+			for(Aggregator aggr:aggrMap.get(oneAttribute).getChainedAggregators()){
+				root.clearAggregation(aggr.getTargetAttr());
 			}
-			// Clear old stuff entirely
-			this.aggrMap.clear();
+			// Clear aggregations on outstanding ones
+			root.clearAggregation(oneAttribute);
 		}
+		// Clear old stuff entirely
+		this.aggrMap.clear();
 		for (Aggregator oneAggregator : aggrSpec.values()) {
 			oneAggregator.prepare();
 			this.aggrMap.put(oneAggregator.getAggrAttr(),oneAggregator);
