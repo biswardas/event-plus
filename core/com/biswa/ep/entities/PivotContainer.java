@@ -109,7 +109,11 @@ public class PivotContainer extends ConcreteContainer {
 	@Override
 	public void dispatchAttributeRemoved(Attribute requestedAttribute) {
 		sortOrder.remove(requestedAttribute);
-		aggrMap.remove(requestedAttribute);
+		if (aggrMap.containsKey(requestedAttribute)) {
+			root.clearAggregation(requestedAttribute);
+			aggrMap.remove(requestedAttribute);
+			//TODO what about the expression aggregators?
+		}
 		if (pivotedAttributes.containsKey(requestedAttribute)) {
 			pivotedAttributes.remove(requestedAttribute);
 			root.clearAggregation(requestedAttribute);
