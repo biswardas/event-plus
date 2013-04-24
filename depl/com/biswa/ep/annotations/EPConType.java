@@ -11,9 +11,9 @@ import com.biswa.ep.deployment.handler.SplitDeploymentHandler;
 import com.biswa.ep.deployment.handler.StaticDeploymentHandler;
 import com.biswa.ep.deployment.handler.SubscriptionDeploymentHandler;
 import com.biswa.ep.deployment.handler.TimedDeploymentHandler;
+import com.biswa.ep.deployment.handler.ViewerDeploymentHandler;
 
 public enum EPConType {
-	None(),
 	Basic(BasicDeploymentHandler.class),
 	Split(SplitDeploymentHandler.class), 
 	ForkJoin(ForkJoinDeploymentHandler.class){
@@ -33,7 +33,8 @@ public enum EPConType {
 	Join(JoinDeploymentHandler.class),
 	Subscription(SubscriptionDeploymentHandler.class,true),
 	Proxy(ProxyDeploymentHandler.class),
-	Static(StaticDeploymentHandler.class);
+	Static(StaticDeploymentHandler.class),
+	Viewer(ViewerDeploymentHandler.class);
 	IDeployerHandler handler = null;
 	boolean feedback = false;
 
