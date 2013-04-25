@@ -7,7 +7,11 @@ import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.PivotContainer.PivotEntry;
-
+/**
+ * Abstract aggregator class providing aggregation life cycle methods.
+ * @author Biswa
+ *
+ */
 abstract public class Aggregator{
 	private Attribute aggrAttr;
 	private ContainerEntry pivotEntry;
@@ -16,15 +20,28 @@ abstract public class Aggregator{
 	public Aggregator(String aggrAttr){
 		this.aggrAttr = new LeafAttribute(aggrAttr);
 	}
-
+	
+	/**Driver of this aggregation, Who triggered the aggregation.
+	 * 
+	 * @return Attribute
+	 */
 	public Attribute getAggrAttr() {
 		return aggrAttr;
 	}
 	
-	public Attribute getTargetAttr() {
+	/**
+	 * Attribute on which the result going to reflect.
+	 * @return Attribute
+	 */
+	final public Attribute getTargetAttr() {
 		return aggrAttr;
 	}
 	
+	/**
+	 * Entry point for aggregation. Returns aggregated substance.
+	 * @param pivotEntry PivotEntry
+	 * @return Object
+	 */
 	public final Object failSafeaggregate(PivotEntry pivotEntry) {
 		this.pivotEntry=pivotEntry;
 		Object aggergatedSubstance = null;
@@ -36,7 +53,10 @@ abstract public class Aggregator{
 		}
 		return aggergatedSubstance;
 	}
-	
+	/**
+	 * Before this aggregator is used in this container. This method must be called. This
+	 * is the hook for any necessary optimization required in this aggregator.
+	 */
 	public void prepare() {
 		aggrAttr=aggrAttr.getRegisteredAttribute();
 		for(Aggregator oneChainedAggregator:chainedAggrList){
@@ -44,15 +64,26 @@ abstract public class Aggregator{
 		}
 	}
 
+	/**
+	 * Chains any additional aggregator to this.
+	 */
 	public Aggregator chain(Aggregator aggregator){
 		chainedAggrList.add(aggregator);
 		return this;
 	}
 	
+	/**
+	 * Returns the chained aggregator.
+	 * @return ArrayList<Aggregator>
+	 */
 	public ArrayList<Aggregator> getChainedAggregators(){
 		return chainedAggrList;
 	}
 	
+	/**
+	 * Is this aggregator an expression?
+	 * @return boolean
+	 */
 	public boolean isExpression(){
 		return false;
 	}	
