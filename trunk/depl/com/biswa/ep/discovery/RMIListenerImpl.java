@@ -14,12 +14,13 @@ import com.biswa.ep.entities.ContainerEvent;
 import com.biswa.ep.entities.ContainerTask;
 import com.biswa.ep.entities.TransportEntry;
 import com.biswa.ep.entities.spec.FilterSpec;
+import com.biswa.ep.entities.spec.Spec;
 import com.biswa.ep.entities.transaction.Agent;
 import com.biswa.ep.entities.transaction.FeedbackEvent;
 import com.biswa.ep.entities.transaction.TransactionEvent;
 import com.biswa.ep.subscription.SubscriptionEvent;
 
-public class RMIListenerImpl implements RMIListener, Connector, EntryReader {
+public class RMIListenerImpl implements RMIListener{
 	WeakReference<Agent> weakReference;
 
 	private Agent getAgent() {
@@ -133,6 +134,11 @@ public class RMIListenerImpl implements RMIListener, Connector, EntryReader {
 		getAgent().invokeOperation(task);
 	}
 
+	@Override
+	public void applySpec(Spec spec) throws RemoteException {
+		getAgent().applySpec(spec);
+	}
+	
 	@Override
 	public TransportEntry getByID(final int id) throws RemoteException {
 		final List<TransportEntry> holder = new ArrayList<TransportEntry>(1);
