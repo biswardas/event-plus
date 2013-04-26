@@ -1,5 +1,6 @@
 package com.biswa.ep.entities.aggregate;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -12,7 +13,11 @@ import com.biswa.ep.entities.PivotContainer.PivotEntry;
  * @author Biswa
  *
  */
-abstract public class Aggregator{
+abstract public class Aggregator implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -716425530339944777L;
 	private Attribute aggrAttr;
 	private ContainerEntry pivotEntry;
 	private Iterator<? extends ContainerEntry> iter;
