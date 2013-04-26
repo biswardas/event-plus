@@ -11,4 +11,6 @@ public interface EntryReader extends Remote{
 	TransportEntry getByID(int id) throws RemoteException;
 	TransportEntry[] getByID(int[] ids) throws RemoteException;
 	TransportEntry[] getByFilter(FilterSpec filterSpec) throws RemoteException;
+	int getEntryCount() throws RemoteException;
+	TransportEntry getSortedEntry(int id) throws RemoteException;
 }

@@ -63,6 +63,14 @@ public class PivotContainer extends ConcreteContainer {
 	}
 
 	@Override
+	public void replay(ConnectionEvent connectionEvent) {
+		// TODO Auto-generated method stub
+	}
+	@Override
+	public void refilter(){
+		// TODO Auto-generated method stub		
+	}
+	@Override
 	public void dispatchEntryAdded(ContainerEntry containerEntry) {
 		root.applyPivot(containerEntry);
 		root.refreshPageView();
@@ -97,10 +105,6 @@ public class PivotContainer extends ConcreteContainer {
 		}
 	}
 
-	@Override
-	public void dispatchAttributeAdded(Attribute requestedAttribute) {
-	}
-
 	protected void reComputeDefaultValues(final ConnectionEvent connectionEvent) {
 		super.reComputeDefaultValues(connectionEvent);
 		root.reallocate(getPhysicalSize());
@@ -119,6 +123,7 @@ public class PivotContainer extends ConcreteContainer {
 			root.clearAggregation(requestedAttribute);
 			rePivot();
 		}
+		super.dispatchAttributeRemoved(requestedAttribute);
 	}
 
 	/**

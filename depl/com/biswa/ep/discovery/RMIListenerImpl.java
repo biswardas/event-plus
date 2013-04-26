@@ -5,6 +5,7 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.biswa.ep.deployment.Deployer;
 import com.biswa.ep.entities.ConnectionEvent;
@@ -254,6 +255,60 @@ public class RMIListenerImpl implements RMIListener, Connector, EntryReader {
 			ids[index]=objectIds[index];
 		}
 		return ids;
+	}
+
+
+	@Override
+	public int getEntryCount() throws RemoteException {
+		final AtomicInteger ai = new AtomicInteger(0);
+		final Semaphore s = new Semaphore(1);
+		s.drainPermits();
+		getAgent().invokeOperation(new ContainerTask() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 6263129328893041488L;
+
+			@Override
+			protected void runtask() {
+				try {
+					ai.set(getContainer().getContainerEntries().length);
+				} finally {
+					s.release();
+				}
+			}
+		});
+		s.acquireUninterruptibly();
+		return ai.get();
+	}
+
+	@Override
+	public TransportEntry getSortedEntry(final int id) throws RemoteException {
+		final List<TransportEntry> holder = new ArrayList<TransportEntry>(1);
+		final Semaphore s = new Semaphore(1);
+		s.drainPermits();
+		getAgent().invokeOperation(new ContainerTask() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 6263129328893041488L;
+
+			@Override
+			protected void runtask() {
+				try {
+					ContainerEntry conEntry = getContainer().getContainerEntries()[id];
+					if (conEntry == null) {
+						holder.add(null);
+					} else {
+						holder.add(conEntry.cloneConcrete());
+					}
+				} finally {
+					s.release();
+				}
+			}
+		});
+		s.acquireUninterruptibly();
+		return holder.get(0);
 	}
 
 	@Override
