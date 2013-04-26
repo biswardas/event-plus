@@ -6,6 +6,7 @@ import java.rmi.RemoteException;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerEvent;
 import com.biswa.ep.entities.ContainerTask;
+import com.biswa.ep.entities.spec.Spec;
 import com.biswa.ep.entities.transaction.TransactionEvent;
 /**Sink side interface receives all the remote task and delegates the operation to
  * the sink container. This method is invoked by the remote proxy Container.
@@ -13,7 +14,7 @@ import com.biswa.ep.entities.transaction.TransactionEvent;
  * @author biswa
  *
  */
-public interface RMIListener extends Remote {	
+public interface RMIListener extends Connector,EntryReader,Remote {	
 	void attributeAdded(ContainerEvent containerEvent) throws RemoteException;
 	void attributeRemoved(ContainerEvent containerEvent) throws RemoteException;
 	void entryAdded(ContainerEvent containerEvent) throws RemoteException;
@@ -27,5 +28,6 @@ public interface RMIListener extends Remote {
 	void connected(ConnectionEvent ce) throws RemoteException;
 	void disconnected(ConnectionEvent ce) throws RemoteException;
 	void invokeOperation(ContainerTask task) throws RemoteException;
+	void applySpec(Spec spec) throws RemoteException;
 	String getDeployerName() throws RemoteException;;
 }
