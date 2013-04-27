@@ -11,6 +11,7 @@ import com.biswa.ep.deployment.Deployer;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.ContainerEvent;
+import com.biswa.ep.entities.ContainerStructureEvent;
 import com.biswa.ep.entities.ContainerTask;
 import com.biswa.ep.entities.TransportEntry;
 import com.biswa.ep.entities.spec.FilterSpec;
@@ -18,6 +19,8 @@ import com.biswa.ep.entities.spec.Spec;
 import com.biswa.ep.entities.transaction.Agent;
 import com.biswa.ep.entities.transaction.FeedbackEvent;
 import com.biswa.ep.entities.transaction.TransactionEvent;
+import com.biswa.ep.provider.CompiledAttributeProvider;
+import com.biswa.ep.provider.ScriptEngineAttributeProvider;
 import com.biswa.ep.subscription.SubscriptionEvent;
 
 public class RMIListenerImpl implements RMIListener{
@@ -320,5 +323,21 @@ public class RMIListenerImpl implements RMIListener{
 	@Override
 	public String getDeployerName() throws RemoteException {
 		return Deployer.getName();
+	}
+
+	@Override
+	public void addCompiledAttribute(String expression) throws RemoteException {
+		com.biswa.ep.entities.Attribute schemaAttribute = new CompiledAttributeProvider().getAttribute(expression);
+		ContainerEvent ce = new ContainerStructureEvent(getAgent().getName(),schemaAttribute);
+		getAgent().attributeRemoved(ce);
+		getAgent().attributeAdded(ce);		
+	}
+
+	@Override
+	public void addScriptAttribute(String expression) throws RemoteException {
+		com.biswa.ep.entities.Attribute schemaAttribute = new ScriptEngineAttributeProvider().getAttribute(expression);
+		ContainerEvent ce = new ContainerStructureEvent(getAgent().getName(),schemaAttribute);
+		getAgent().attributeRemoved(ce);
+		getAgent().attributeAdded(ce);		
 	}
 }
