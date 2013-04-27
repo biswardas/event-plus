@@ -29,5 +29,7 @@ public interface RMIListener extends Connector,EntryReader,Remote {
 	void disconnected(ConnectionEvent ce) throws RemoteException;
 	void invokeOperation(ContainerTask task) throws RemoteException;
 	void applySpec(Spec spec) throws RemoteException;
-	String getDeployerName() throws RemoteException;;
+	void addCompiledAttribute(String expression) throws RemoteException;
+	void addScriptAttribute(String expression) throws RemoteException;
+	String getDeployerName() throws RemoteException;
 }
