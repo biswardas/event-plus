@@ -11,12 +11,12 @@ import com.biswa.ep.entities.Predicate;
  * @author biswa
  *
  */
-public class FilterSpec implements Spec {
+public class FilterSpec extends Spec {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -5748229391329289278L;
-	public static final FilterSpec TRUE = new FilterSpec(null){
+	public static final FilterSpec TRUE = new FilterSpec(null,null){
 		/**
 		 * 
 		 */
@@ -37,7 +37,8 @@ public class FilterSpec implements Spec {
 	 * 
 	 * @param predicate Predicate
 	 */
-	public FilterSpec(Predicate predicate){
+	public FilterSpec(String sinkName,Predicate predicate){
+		super(sinkName);
 		this.predicate = predicate;
 	}
 	
@@ -46,7 +47,8 @@ public class FilterSpec implements Spec {
 	 * @param predicate Predicate
 	 * @param chainMode String
 	 */
-	public FilterSpec(Predicate predicate,String chainMode){
+	public FilterSpec(String sinkName,Predicate predicate,String chainMode){
+		super(sinkName);
 		this.predicate = predicate;		
 		if(ChainMode.valueOf(chainMode)!=null){
 			this.chainMode=ChainMode.valueOf(chainMode);	

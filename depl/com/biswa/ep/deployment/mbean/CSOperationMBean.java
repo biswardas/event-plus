@@ -20,29 +20,6 @@ public interface CSOperationMBean {
 	 * @param name
 	 */
 	public void removeAttribute(String name);
-	/**
-	 * Applies filter to the current container.
-	 * @param filterString
-	 */
-	public void applyFilter(String filterString);
-
-	/**
-	 * Re pivots the container
-	 * @param pivotingSpec String
-	 */
-	public void applyPivot(String pivotingSpec);
-	
-	/**
-	 * sorts the container
-	 * @param sortSpec String
-	 */
-	public void applySort(String sortSpec);
-	
-	/**Applies aggregations to the container
-	 * 
-	 * @param filterString
-	 */
-	public void applyAggr(String filterString);
 	
 	/**Updates the static member of the container & trigger any associated dependencies.
 	 * 

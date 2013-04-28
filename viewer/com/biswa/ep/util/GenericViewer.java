@@ -110,7 +110,7 @@ public class GenericViewer extends PivotContainer {
 				while(stk.hasMoreTokens()){
 					list.add(new LeafAttribute(stk.nextToken()));
 				}
-				PivotSpec pivotSpec = new PivotSpec(list.toArray(new Attribute[0]));
+				PivotSpec pivotSpec = new PivotSpec(getName(),list.toArray(new Attribute[0]));
 				GenericViewer.this.agent().applySpec(pivotSpec);
 			}
 		});
@@ -123,7 +123,7 @@ public class GenericViewer extends PivotContainer {
 		aggrButton.addActionListener(new ActionListener() {			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				AggrSpec aggrSpec = new AggrSpec();
+				AggrSpec aggrSpec = new AggrSpec(getName());
 				StringTokenizer stk = new StringTokenizer(aggrTextField.getText(),",");
 				while(stk.hasMoreTokens()){
 					String[] oneAttribute = stk.nextToken().split(":");
@@ -142,7 +142,7 @@ public class GenericViewer extends PivotContainer {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				StringTokenizer stk = new StringTokenizer(sortTextField.getText(),",");
-				SortSpec sortSpec = new SortSpec();
+				SortSpec sortSpec = new SortSpec(getName());
 				while(stk.hasMoreTokens()){
 					String[] oneAttribute = stk.nextToken().split(":");
 					boolean order = oneAttribute.length>1?Boolean.parseBoolean(oneAttribute[1]):true;
@@ -162,7 +162,7 @@ public class GenericViewer extends PivotContainer {
 			public void actionPerformed(ActionEvent e) {
 				String[] oneNode = collapserTextField.getText().split(":");
 				boolean order = oneNode.length>1?Boolean.parseBoolean(oneNode[1]):true;
-				CollapseSpec collapseSpec = new CollapseSpec(Integer.parseInt(oneNode[0]),order);
+				CollapseSpec collapseSpec = new CollapseSpec(getName(),Integer.parseInt(oneNode[0]),order);
 				GenericViewer.this.agent().applySpec(collapseSpec);
 			}
 		});

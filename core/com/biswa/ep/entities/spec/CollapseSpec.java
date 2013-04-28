@@ -3,7 +3,7 @@ package com.biswa.ep.entities.spec;
 import com.biswa.ep.entities.ContainerListener;
 import com.biswa.ep.entities.PivotContainer;
 
-public class CollapseSpec implements Spec {
+public class CollapseSpec extends Spec {
 	/**
 	 * 
 	 */
@@ -11,14 +11,15 @@ public class CollapseSpec implements Spec {
 	private int identity;
 	private boolean collapse;
 	
-	public CollapseSpec(int identity,boolean collapse){
+	public CollapseSpec(String sinkName,int identity,boolean collapse){
+		super(sinkName);
 		this.identity=identity;
 		this.collapse=collapse;
 	}
 	
 	@Override
 	public void apply(ContainerListener listener) {
-		PivotContainer abs = (PivotContainer) listener;
-		abs.applyCollapse(identity,collapse);
+		PivotContainer pivotSchema = (PivotContainer) listener;
+		pivotSchema.getFilterAgent(getSinkName()).applyCollapse(identity,collapse);
 	}
 }

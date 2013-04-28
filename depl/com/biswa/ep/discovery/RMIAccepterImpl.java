@@ -51,7 +51,7 @@ public class RMIAccepterImpl extends Accepter {
 		String sourceName = listen.getContext()+"."+listen.getContainer();
 		try {		
 			Connector connecter = RegistryHelper.getConnecter(sourceName);
-			connecter.connect(sourceName, cs.getName(),buildFilter(listen));
+			connecter.connect(sourceName, cs.getName(),buildFilter(cs,listen));
 		} catch (Exception e) {
 			System.err.println(sourceName + " not available to connect. will lazily connect." );
 			return false;
@@ -64,7 +64,7 @@ public class RMIAccepterImpl extends Accepter {
 		String sourceName = listen.getContext()+"."+listen.getContainer();	
 		try {	
 			Connector connecter = RegistryHelper.getConnecter(sourceName);
-			connecter.replay(sourceName, cs.getName(),buildFilter(listen));
+			connecter.replay(sourceName, cs.getName(),buildFilter(cs,listen));
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);

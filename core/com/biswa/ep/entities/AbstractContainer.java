@@ -227,7 +227,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 		return listenerMap.values();
 	}
 	
-	private void dispatchConnected(final Agent dcl,final ConnectionEvent connectionEvent){
+	protected void dispatchConnected(final Agent dcl,final ConnectionEvent connectionEvent){
 		getEventDispatcher().submit(new Runnable(){
 			public void run(){
 				dcl.connected(connectionEvent);
@@ -580,7 +580,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 * 
 	 * @return Attribute[]
 	 */
-	abstract protected Attribute[] getSubscribedAttributes();
+	public abstract Attribute[] getSubscribedAttributes();
 
 	/**Returns all stateless attributes in this container.
 	 * 

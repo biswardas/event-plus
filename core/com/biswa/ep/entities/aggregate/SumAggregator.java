@@ -3,6 +3,11 @@ package com.biswa.ep.entities.aggregate;
 
 public class SumAggregator extends Aggregator {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4302847925466344642L;
+
 	public SumAggregator(String aggrAttr) {
 		super(aggrAttr);
 	}

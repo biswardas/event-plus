@@ -10,7 +10,6 @@ import java.awt.event.WindowEvent;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -30,7 +29,6 @@ import com.biswa.ep.deployment.Accepter;
 import com.biswa.ep.deployment.ContainerManager;
 import com.biswa.ep.deployment.util.Listen;
 import com.biswa.ep.discovery.Connector;
-import com.biswa.ep.discovery.EntryReader;
 import com.biswa.ep.discovery.RMIAccepterImpl;
 import com.biswa.ep.discovery.RMIListener;
 import com.biswa.ep.discovery.RegistryHelper;
@@ -38,8 +36,8 @@ import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ConcreteContainer;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerDeleteEvent;
+import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.ContainerEvent;
-import com.biswa.ep.entities.ContainerStructureEvent;
 import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.TransportEntry;
 import com.biswa.ep.entities.aggregate.Aggregators;
@@ -47,8 +45,6 @@ import com.biswa.ep.entities.spec.AggrSpec;
 import com.biswa.ep.entities.spec.CollapseSpec;
 import com.biswa.ep.entities.spec.PivotSpec;
 import com.biswa.ep.entities.spec.SortSpec;
-import com.biswa.ep.provider.CompiledAttributeProvider;
-import com.biswa.ep.provider.ScriptEngineAttributeProvider;
 public class ViewPortViewer extends ConcreteContainer {
 	final String sourceContextName;
 	final String sourceContainerName;
@@ -91,32 +87,7 @@ public class ViewPortViewer extends ConcreteContainer {
 		
 		
 
-		jframe = new JFrame(getName()){
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = -2211995623288725113L;
-
-			{
-				this.addWindowListener(new WindowAdapter(){
-					@Override
-					public void windowClosing(WindowEvent e) {
-						System.exit(0);
-					}							
-				});
-			}
-		};
-		jframe.setLayout(new BorderLayout());
-		vtableModel = new ViewerTableModel(ViewPortViewer.this);
-		jtable = new JTable(vtableModel);
-		jtable.setPreferredScrollableViewportSize(new Dimension(500, 200));
-		jtable.setFillsViewportHeight(true);				
-		JScrollPane jsc = new JScrollPane(jtable);
-		jframe.add(jsc,BorderLayout.CENTER);
-		addControls();
-		jsc.revalidate();
-		jframe.setVisible(true);
-		jframe.setSize(new Dimension(1200, 500));
+		
 	}
 
 
@@ -145,7 +116,7 @@ public class ViewPortViewer extends ConcreteContainer {
 				while(stk.hasMoreTokens()){
 					list.add(new LeafAttribute(stk.nextToken()));
 				}
-				PivotSpec pivotSpec = new PivotSpec(list.toArray(new Attribute[0]));
+				PivotSpec pivotSpec = new PivotSpec(getName(),list.toArray(new Attribute[0]));
 				try {
 					getDataOperation().applySpec(pivotSpec);
 				} catch (RemoteException e1) {
@@ -162,7 +133,7 @@ public class ViewPortViewer extends ConcreteContainer {
 		aggrButton.addActionListener(new ActionListener() {			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				AggrSpec aggrSpec = new AggrSpec();
+				AggrSpec aggrSpec = new AggrSpec(getName());
 				StringTokenizer stk = new StringTokenizer(aggrTextField.getText(),",");
 				while(stk.hasMoreTokens()){
 					String[] oneAttribute = stk.nextToken().split(":");
@@ -185,7 +156,7 @@ public class ViewPortViewer extends ConcreteContainer {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				StringTokenizer stk = new StringTokenizer(sortTextField.getText(),",");
-				SortSpec sortSpec = new SortSpec();
+				SortSpec sortSpec = new SortSpec(getName());
 				while(stk.hasMoreTokens()){
 					String[] oneAttribute = stk.nextToken().split(":");
 					boolean order = oneAttribute.length>1?Boolean.parseBoolean(oneAttribute[1]):true;
@@ -209,7 +180,7 @@ public class ViewPortViewer extends ConcreteContainer {
 			public void actionPerformed(ActionEvent e) {
 				String[] oneNode = collapserTextField.getText().split(":");
 				boolean order = oneNode.length>1?Boolean.parseBoolean(oneNode[1]):true;
-				CollapseSpec collapseSpec = new CollapseSpec(Integer.parseInt(oneNode[0]),order);
+				CollapseSpec collapseSpec = new CollapseSpec(getName(),Integer.parseInt(oneNode[0]),order);
 				try {
 					getDataOperation().applySpec(collapseSpec);
 				} catch (RemoteException e1) {
@@ -273,6 +244,38 @@ public class ViewPortViewer extends ConcreteContainer {
 	}
 	
 	@Override
+	public void connected(ConnectionEvent connectionEvent) {
+		super.connected(connectionEvent);
+		jframe = new JFrame(getName()){
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = -2211995623288725113L;
+
+			{
+				this.addWindowListener(new WindowAdapter(){
+					@Override
+					public void windowClosing(WindowEvent e) {
+						System.exit(0);
+					}							
+				});
+			}
+		};
+		jframe.setLayout(new BorderLayout());
+		vtableModel = new ViewerTableModel();
+		jtable = new JTable(vtableModel);
+		jtable.setPreferredScrollableViewportSize(new Dimension(500, 200));
+		jtable.setFillsViewportHeight(true);				
+		JScrollPane jsc = new JScrollPane(jtable);
+		jframe.add(jsc,BorderLayout.CENTER);
+		addControls();
+		jsc.revalidate();
+		jframe.setVisible(true);
+		jframe.setSize(new Dimension(1200, 500));
+	}
+
+
+	@Override
 	public void attributeAdded(final ContainerEvent ce) {
 		super.attributeAdded(ce);
 		if(vtableModel!=null)vtableModel.fireTableStructureChanged();
@@ -296,8 +299,6 @@ public class ViewPortViewer extends ConcreteContainer {
 		 * 
 		 */
 		private static final long serialVersionUID = 4352652252566957454L;
-		private ViewPortViewer cs;
-		private final TransportEntry DEF = new TransportEntry(0,new HashMap<Attribute,Object>());
 		private WeakHashMap<Integer, TransportEntry> cachedEntries= new WeakHashMap<Integer,TransportEntry>(){
 			public TransportEntry get(Object key){
 				TransportEntry tEntry = null;
@@ -305,24 +306,24 @@ public class ViewPortViewer extends ConcreteContainer {
 					tEntry = super.get(key);
 					if(tEntry==null){
 						//System.out.println("Requesting record:"+key);
-						tEntry = er.getSortedEntry((Integer) key);
+						tEntry = er.getSortedEntry(getName(),(Integer) key);
 						put((Integer)key,tEntry);
 					}
 				} catch (RemoteException e) {
-					tEntry = DEF;
+					tEntry = getDefaultEntry().cloneConcrete();
 				}
 				return tEntry;
 			}
 		};
 		private Attribute[] attributes = null;
-		public ViewerTableModel(ViewPortViewer cs) {
-			this.cs = cs;
-			this.attributes = cs.getSubscribedAttributes();
+		public ViewerTableModel() {
+			try {
+				this.attributes = er.getAttributes();
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
 		}
-
-		public TransportEntry getRecord(int key){
-			return cachedEntries.get(key);
-		}
+		
 		public String getColumnName(int col) {
 			if(col==0) return "Identity";
 			else return attributes[col-1].getName();
@@ -336,11 +337,12 @@ public class ViewPortViewer extends ConcreteContainer {
 
 		@Override
 		public int getRowCount() {
+			int rowCnt = 0;
 			try {
-				return er.getEntryCount();
+				rowCnt=er.getEntryCount(getName());
 			} catch (RemoteException e) {
-				return 0;
 			}
+			return rowCnt;
 		}
 
 		@Override
@@ -356,7 +358,11 @@ public class ViewPortViewer extends ConcreteContainer {
 		}
 		@Override
 		public void fireTableStructureChanged(){
-			this.attributes = cs.getSubscribedAttributes();
+			try {
+				this.attributes = er.getAttributes();
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
 			super.fireTableStructureChanged();
 		}
 	}

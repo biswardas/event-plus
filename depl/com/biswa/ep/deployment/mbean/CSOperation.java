@@ -1,9 +1,5 @@
 package com.biswa.ep.deployment.mbean;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.StringTokenizer;
-
 import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.Attribute;
@@ -13,12 +9,8 @@ import com.biswa.ep.entities.ContainerTask;
 import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.Predicate;
 import com.biswa.ep.entities.StaticLeafAttribute;
-import com.biswa.ep.entities.aggregate.Aggregators;
 import com.biswa.ep.entities.dyna.ConcreteAttributeProvider;
-import com.biswa.ep.entities.spec.AggrSpec;
 import com.biswa.ep.entities.spec.FilterSpec;
-import com.biswa.ep.entities.spec.PivotSpec;
-import com.biswa.ep.entities.spec.SortSpec;
 import com.biswa.ep.provider.PredicateBuilder;
 
 public class CSOperation implements CSOperationMBean {
@@ -28,46 +20,6 @@ public class CSOperation implements CSOperationMBean {
 	
 	public	CSOperation(AbstractContainer cs){
 		this.cs=cs;
-	}
-	@Override
-	public void applyAggr(String aggrString) {
-		AggrSpec aggrSpec = new AggrSpec();
-		StringTokenizer stk = new StringTokenizer(aggrString,",");
-		while(stk.hasMoreTokens()){
-			String[] oneAttribute = stk.nextToken().split(":");
-			aggrSpec.add(Aggregators.valueOf(oneAttribute[1]).newInstance(oneAttribute[0]));
-		}
-		cs.agent().applySpec(aggrSpec);
-	}
-
-	@Override
-	public void applyFilter(final String filterString) {
-		//Prepare the filter predicate
-		Predicate pred = PredicateBuilder.buildPredicate(filterString);
-		
-		//Apply the predicate on the target container		
-		cs.agent().applySpec(new FilterSpec(pred));
-	}
-
-	@Override
-	public void applyPivot(String pivotString) {
-		StringTokenizer stk = new StringTokenizer(pivotString,",");
-		List<Attribute> list = new ArrayList<Attribute>();
-		while(stk.hasMoreTokens()){
-			list.add(new LeafAttribute(stk.nextToken()));
-		}
-		PivotSpec pivotSpec = new PivotSpec(list.toArray(new Attribute[0]));
-		cs.agent().applySpec(pivotSpec);
-	}
-	
-	@Override
-	public void applySort(String sortString) {
-		StringTokenizer stk = new StringTokenizer(sortString,",");
-		SortSpec sortSpec = new SortSpec();
-		while(stk.hasMoreTokens()){
-			sortSpec.addSortOrder(new LeafAttribute(stk.nextToken()),true);
-		}
-		cs.agent().applySpec(sortSpec);
 	}
 	
 	@Override
@@ -137,7 +89,7 @@ public class CSOperation implements CSOperationMBean {
 		//Prepare the filter predicate
 		Predicate pred = PredicateBuilder.buildPredicate(filterString);
 		
-		cs.agent().updateStatic(new StaticLeafAttribute(attributeName), value, new FilterSpec(pred));
+		cs.agent().updateStatic(new StaticLeafAttribute(attributeName), value, new FilterSpec(cs.getName(),pred));
 	}
 	
 	@Override

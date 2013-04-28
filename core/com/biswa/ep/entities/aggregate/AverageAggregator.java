@@ -3,6 +3,11 @@ package com.biswa.ep.entities.aggregate;
 
 public class AverageAggregator extends Aggregator {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2076577937588920754L;
+
 	public AverageAggregator(String aggrAttr) {
 		super(aggrAttr);
 	}
