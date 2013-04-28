@@ -415,13 +415,23 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 				//Filter marks this entry as qualifying to be propagated
 				containerEntry.setFiltered(dcl.primeIdentity,true);
 				//Propagate this entry to all listening containers
-				dispatchFilteredEntryAdded(dcl.agent,containerEntry);
+				dispatchEntryAdded(dcl.agent,containerEntry);
 				//Perform stateless attribution only after the entry is update ready
 				recomputeStatelessAttributes(dcl.agent,containerEntry,statelessAttributes);
 			}
 		}else{
 			dispatchEntryRemoved(containerEntry, dcl);
 		}
+	}
+	
+	private void dispatchEntryAdded(
+			final Agent dcl, ContainerEntry containerEntry) {
+		final ContainerEvent containerEvent = new ContainerInsertEvent(this.name,containerEntry.cloneConcrete(),getCurrentTransactionID());
+		getEventDispatcher().submit(new Runnable(){
+			public void run(){
+				dcl.entryAdded(containerEvent);
+			}
+		});
 	}
 
 	/**Prepares the record for state less processing.
@@ -494,16 +504,6 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 		statelessAttributes.clear();
 	}
 	
-	private void dispatchFilteredEntryAdded(
-			final Agent dcl, ContainerEntry containerEntry) {
-		final ContainerEvent containerEvent = new ContainerInsertEvent(this.name,containerEntry.cloneConcrete(),getCurrentTransactionID());
-		getEventDispatcher().submit(new Runnable(){
-			public void run(){
-				dcl.entryAdded(containerEvent);
-			}
-		});
-	}
-	
 	@Override
 	public void dispatchEntryRemoved(ContainerEntry containerEntry){
 		for(FilterAgent dcl : listenerMap.values()){
@@ -544,7 +544,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 						//The entry was not propagated before mark this being filtered 
 						containerEntry.setFiltered(dcl.primeIdentity,true);
 						//send the entire entry
-						dispatchFilteredEntryAdded(dcl.agent,containerEntry);
+						dispatchEntryAdded(dcl.agent,containerEntry);
 					}
 				}else{
 					dispatchEntryRemoved(containerEntry, dcl);
