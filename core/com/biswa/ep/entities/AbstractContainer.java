@@ -130,8 +130,9 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 			this.filterSpec = filterSpec;
 		}
 		public void refilter() {
+			Attribute[] statelessAttributes = getStatelessAttributes();
 			for(ContainerEntry containerEntry:getContainerEntries()){
-				filterOneEntry(containerEntry, this,true);
+				dispatchEntryAdded(this,containerEntry, statelessAttributes,true);
 			}
 		}
 	}	
@@ -250,7 +251,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 		Attribute[] statelessAttributes = getStatelessAttributes();
 		for(ContainerEntry conEntry:getContainerEntries()){
 			conEntry.setFiltered(dcl.primeIdentity, false);
-			AbstractContainer.this.dispatchEntryAdded(dcl,conEntry,statelessAttributes);
+			AbstractContainer.this.dispatchEntryAdded(dcl,conEntry,statelessAttributes,false);
 		}
 	}
 	
@@ -402,12 +403,13 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	
 	@Override
 	public void dispatchEntryAdded(ContainerEntry containerEntry){
+		Attribute[] statelessAttributes = getStatelessAttributes();
 		for(FilterAgent dcl : listenerMap.values()){
-			filterOneEntry(containerEntry, dcl,false);
+			dispatchEntryAdded(dcl,containerEntry, statelessAttributes,false);
 		}
 	}
 
-	private void filterOneEntry(ContainerEntry containerEntry, FilterAgent dcl,boolean refiltered) {
+	private void dispatchEntryAdded(final FilterAgent dcl,ContainerEntry containerEntry, Attribute[] statelessAttributes,boolean refiltered) {
 		if(dcl.filterSpec.filter(containerEntry)){
 			if(!refiltered || !containerEntry.isFiltered(dcl.primeIdentity)){
 				//Filter marks this entry as qualifying to be propagated
@@ -415,25 +417,8 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 				//Propagate this entry to all listening containers
 				dispatchFilteredEntryAdded(dcl.agent,containerEntry);
 				//Perform stateless attribution only after the entry is update ready
-				recomputeStatelessAttributes(dcl.agent,containerEntry,getStatelessAttributes());
+				recomputeStatelessAttributes(dcl.agent,containerEntry,statelessAttributes);
 			}
-		}else{
-			dispatchEntryRemoved(containerEntry, dcl);
-		}
-	}	
-	
-	/**Helper method to filter the event and then dispatch entry added / entry removed.
-	 * 
-	 * @param dcl Agent the sink listener
-	 * @param containerEntry ContainerEntry current entry
-	 */
-	private void dispatchEntryAdded(final FilterAgent dcl,ContainerEntry containerEntry,Attribute[] statelessAttributes){
-		if(dcl.filterSpec.filter(containerEntry)){
-			//Filter marks this entry as qualifying to be propagated
-			containerEntry.setFiltered(dcl.primeIdentity,true);
-			//Propagate this entry to requesting containers
-			dispatchFilteredEntryAdded(dcl.agent, containerEntry);
-			recomputeStatelessAttributes(dcl.agent, containerEntry, statelessAttributes);
 		}else{
 			dispatchEntryRemoved(containerEntry, dcl);
 		}
