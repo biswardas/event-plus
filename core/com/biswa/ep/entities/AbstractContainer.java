@@ -110,13 +110,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 *The filter applied at the container level  
 	 */
 	protected FilterSpec filterSpec=FilterSpec.TRUE;
-	
-	/**
-	 * Whether this container is being re filtered / due to a filter change
-	 * 
-	 */
-	protected boolean refiltered = false;
-	
+		
 	/**Class used to manage the listening agent and its filter and the container entries it passes.
 	 * 
 	 * @author biswa
@@ -134,6 +128,11 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 		}
 		public void setFilterSpec(FilterSpec filterSpec) {
 			this.filterSpec = filterSpec;
+		}
+		public void refilter() {
+			for(ContainerEntry containerEntry:getContainerEntries()){
+				filterOneEntry(containerEntry, this,true);
+			}
 		}
 	}	
 	/**Constructor with properties to configure the container. properties are
@@ -383,10 +382,10 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	
 	@Override
 	public void dispatchAttributeRemoved(Attribute requestedAttribute){
-		if(requestedAttribute.propagate()){	
-			refilter();
+		if(requestedAttribute.propagate()){
 			requestedAttribute=new LeafAttribute(requestedAttribute);
 			for(FilterAgent dcl : listenerMap.values()){
+				dcl.refilter();
 				dispatchAttributeRemoved(dcl.agent,requestedAttribute);
 			}
 		}
@@ -404,18 +403,22 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	@Override
 	public void dispatchEntryAdded(ContainerEntry containerEntry){
 		for(FilterAgent dcl : listenerMap.values()){
-			if(dcl.filterSpec.filter(containerEntry)){
-				if(!refiltered || !containerEntry.isFiltered(dcl.primeIdentity)){
-					//Filter marks this entry as qualifying to be propagated
-					containerEntry.setFiltered(dcl.primeIdentity,true);
-					//Propagate this entry to all listening containers
-					dispatchFilteredEntryAdded(dcl.agent,containerEntry);
-					//Perform stateless attribution only after the entry is update ready
-					recomputeStatelessAttributes(dcl.agent,containerEntry,getStatelessAttributes());
-				}
-			}else{
-				dispatchEntryRemoved(containerEntry, dcl);
+			filterOneEntry(containerEntry, dcl,false);
+		}
+	}
+
+	private void filterOneEntry(ContainerEntry containerEntry, FilterAgent dcl,boolean refiltered) {
+		if(dcl.filterSpec.filter(containerEntry)){
+			if(!refiltered || !containerEntry.isFiltered(dcl.primeIdentity)){
+				//Filter marks this entry as qualifying to be propagated
+				containerEntry.setFiltered(dcl.primeIdentity,true);
+				//Propagate this entry to all listening containers
+				dispatchFilteredEntryAdded(dcl.agent,containerEntry);
+				//Perform stateless attribution only after the entry is update ready
+				recomputeStatelessAttributes(dcl.agent,containerEntry,getStatelessAttributes());
 			}
+		}else{
+			dispatchEntryRemoved(containerEntry, dcl);
 		}
 	}	
 	
@@ -769,34 +772,27 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 */
 	public void applyFilter(final FilterSpec filterSpec){
 		filterSpec.prepare();
-		//Source Filter updated update the filter chains
-		for(FilterAgent sinkAgent:listenerMap.values()){
-			if(this.filterSpec!=sinkAgent.filterSpec){
-				//If the sink has not provided any filter then the only filter in action is 
-				//source filter so chain only when there is a sink filter
-				sinkAgent.filterSpec=filterSpec.chain(sinkAgent.filterSpec);	
-			}else{
-				//Replace the filter as the source filter is only in action.
-				sinkAgent.filterSpec=filterSpec;
+		if(getName().equals(filterSpec.getSinkName())){
+			//Source Filter updated update the filter chains
+			for(FilterAgent sinkAgent:listenerMap.values()){
+				if(this.filterSpec!=sinkAgent.filterSpec){
+					//If the sink has not provided any filter then the only filter in action is 
+					//source filter so chain only when there is a sink filter
+					sinkAgent.filterSpec=filterSpec.chain(sinkAgent.filterSpec);	
+				}else{
+					//Replace the filter as the source filter is only in action.
+					sinkAgent.filterSpec=filterSpec;
+				}
+				sinkAgent.refilter();
 			}
+			//Update the source filter
+			this.filterSpec = filterSpec;
+		}else{
+			//Sink Filter updated
+			FilterAgent sinkAgent = listenerMap.get(filterSpec.getSinkName());
+			sinkAgent.filterSpec=filterSpec.chain(sinkAgent.filterSpec);
+			sinkAgent.refilter();
 		}
-		//Update the source filter
-		this.filterSpec = filterSpec;
-		refilter();
-	}
-	
-	/**
-	 * Re filters the entire container in the event of a filter change. other scenarios which
-	 * may affect the downstream visibility.
-	 * 
-	 */
-	protected void refilter() {
-		//For each dispatch entry added
-		refiltered=true;
-		for(ContainerEntry conEntry:getContainerEntries()){
-			dispatchEntryAdded(conEntry);
-		}
-		refiltered=false;
 	}
 	
 	/**Returns the concurrency support for this container
