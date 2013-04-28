@@ -13,7 +13,9 @@ import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import com.biswa.ep.entities.AbstractContainer.FilterAgent;
 import com.biswa.ep.entities.aggregate.Aggregator;
+import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.store.ConcreteContainerEntry;
 import com.biswa.ep.entities.transaction.Agent;
 
@@ -49,7 +51,6 @@ public class PivotContainer extends ConcreteContainer {
 		private ConcreteContainerEntry[] indexedEntries = null;
 		private PivotAgent(String sink, Agent agent) {
 			super(sink, agent);
-			rePivot();
 		}
 		/**
 		 * Pivoted entry are the virtual entries based the incoming physicals.
@@ -542,14 +543,15 @@ public class PivotContainer extends ConcreteContainer {
 			for (Attribute attribute : pivotArray) {
 				aggrMap.remove(attribute);
 			}
-			rePivot();
+			refilter();
 		}
-
-		private void rePivot() {
+		
+		@Override
+		public void refilter() {
 			root.clear();
 			// Re pivot everything based on new specification
 			for (ContainerEntry containerEntry : getContainerDataEntries()) {
-				root.applyPivot(containerEntry);
+				entryAdded(containerEntry);
 			}
 			root.refreshPageView();
 		}
@@ -639,36 +641,49 @@ public class PivotContainer extends ConcreteContainer {
 			if (pivotedAttributes.containsKey(requestedAttribute)) {
 				pivotedAttributes.remove(requestedAttribute);
 				root.clearAggregation(requestedAttribute);
-				rePivot();
+				refilter();
 			}
 		}
 		public void entryAdded(ContainerEntry containerEntry) {
-			root.applyPivot(containerEntry);
-			root.refreshPageView();
+			if(filterSpec.filter(containerEntry)){
+				containerEntry.setFiltered(primeIdentity,true);
+				root.applyPivot(containerEntry);
+				root.refreshPageView();
+			}
 		}
 		public void entryRemoved(ContainerEntry containerEntry) {
 			PivotEntry pivotEntry = directPivotAccess.get(containerEntry
 					.getIdentitySequence());
-			pivotEntry.unregister(containerEntry);
-			root.refreshPageView();
+			if(pivotEntry!=null){
+				pivotEntry.unregister(containerEntry);
+				root.refreshPageView();
+			}
 		}
 		public void entryUpdated(Attribute attribute, Object substance,
 				ContainerEntry containerEntry) {
 			// fetch the pivot holding this physical
 			PivotEntry pivotEntry = directPivotAccess.get(containerEntry
 					.getIdentitySequence());
-			if (pivotedAttributes.containsKey(attribute)) {
-				pivotEntry.unregister(containerEntry);
-				root.applyPivot(containerEntry);
-				root.refreshPageView();
-			} else {
-				if (aggrMap.containsKey(attribute)) {
-					pivotEntry.aggregateAndPropagate(attribute);
+			if(pivotEntry!=null){//Was it a match before?
+				if(filterSpec.filter(containerEntry)){ //Yes, Still a match?
+					if (pivotedAttributes.containsKey(attribute)) {
+						pivotEntry.unregister(containerEntry);
+						root.applyPivot(containerEntry);
+						root.refreshPageView();
+					} else {
+						if (aggrMap.containsKey(attribute)) {
+							pivotEntry.aggregateAndPropagate(attribute);
+						}
+						if (sortOrder.containsKey(attribute)) {
+							pivotEntry.applySort();
+							root.refreshPageView();
+						}
+					}
+				}else{//Yes,No more a match?
+					entryRemoved(containerEntry);
 				}
-				if (sortOrder.containsKey(attribute)) {
-					pivotEntry.applySort();
-					root.refreshPageView();
-				}
+			}else{//No, Is it matching now?
+				entryAdded(containerEntry);
 			}
 		}
 		public void reallocate(int physicalSize){
@@ -697,7 +712,7 @@ public class PivotContainer extends ConcreteContainer {
 		
 		//2. Add the target container to the listener list
 		listenerMap.put(connectionEvent.getSink(),buildFilterAgent(connectionEvent.getSink(),dcl));
-		
+		replay(connectionEvent);
 	}
 	
 	@Override
@@ -707,6 +722,15 @@ public class PivotContainer extends ConcreteContainer {
 
 	@Override
 	public void replay(ConnectionEvent connectionEvent) {
+		final PivotAgent dcl = (PivotAgent) listenerMap.get(connectionEvent.getSink());
+		FilterSpec incomingFilter = connectionEvent.getFilterSpec();
+		if(incomingFilter!=null){
+			incomingFilter = incomingFilter.prepare();
+			dcl.filterSpec=filterSpec.chain(incomingFilter);
+		}else{
+			dcl.filterSpec=filterSpec;
+		}
+		dcl.refilter();
 	}
 	
 	@Override

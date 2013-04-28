@@ -120,7 +120,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 		public final String name;
 		public final int primeIdentity;
 		public final Agent agent;
-		private FilterSpec filterSpec;
+		protected FilterSpec filterSpec;
 		FilterAgent(String sink,Agent agent){
 			primeIdentity = clientToken.getToken();//Obtain client id
 			this.agent=agent;
@@ -134,6 +134,23 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 			for(ContainerEntry containerEntry:getContainerEntries()){
 				dispatchEntryAdded(this,containerEntry, statelessAttributes,true);
 			}
+		}
+		private final void chainAndReFilter(FilterSpec newFilterSpec,boolean isSinkFilter){
+			if(isSinkFilter){
+				//If it is a sink Filter then
+				this.filterSpec=AbstractContainer.this.filterSpec.chain(newFilterSpec);
+			}else{
+				//If it is a source filter
+				if(AbstractContainer.this.filterSpec!=this.filterSpec){
+					//If the sink has not provided any filter then the only filter in action is 
+					//source filter so chain only when there is a sink filter
+					this.filterSpec=newFilterSpec.chain(this.filterSpec);	
+				}else{
+					//Replace the filter as the source filter is only in action.
+					this.filterSpec=newFilterSpec;
+				}
+			}
+			refilter();
 		}
 	}	
 	/**Constructor with properties to configure the container. properties are
@@ -760,23 +777,14 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 		if(getName().equals(filterSpec.getSinkName())){
 			//Source Filter updated update the filter chains
 			for(FilterAgent sinkAgent:listenerMap.values()){
-				if(this.filterSpec!=sinkAgent.filterSpec){
-					//If the sink has not provided any filter then the only filter in action is 
-					//source filter so chain only when there is a sink filter
-					sinkAgent.filterSpec=filterSpec.chain(sinkAgent.filterSpec);	
-				}else{
-					//Replace the filter as the source filter is only in action.
-					sinkAgent.filterSpec=filterSpec;
-				}
-				sinkAgent.refilter();
+				sinkAgent.chainAndReFilter(filterSpec,false);
 			}
 			//Update the source filter
 			this.filterSpec = filterSpec;
 		}else{
 			//Sink Filter updated
 			FilterAgent sinkAgent = listenerMap.get(filterSpec.getSinkName());
-			sinkAgent.filterSpec=filterSpec.chain(sinkAgent.filterSpec);
-			sinkAgent.refilter();
+			sinkAgent.chainAndReFilter(filterSpec,true);
 		}
 	}
 	
