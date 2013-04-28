@@ -3,7 +3,7 @@ package com.biswa.ep.discovery;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-import com.biswa.ep.entities.Attribute;
+import com.biswa.ep.entities.LightWeightEntry;
 import com.biswa.ep.entities.TransportEntry;
 import com.biswa.ep.entities.spec.FilterSpec;
 
@@ -13,6 +13,6 @@ public interface EntryReader extends Remote{
 	TransportEntry[] getByID(int[] ids) throws RemoteException;
 	TransportEntry[] getByFilter(FilterSpec filterSpec) throws RemoteException;
 	int getEntryCount(String name) throws RemoteException;
-	TransportEntry getSortedEntry(String name,int id) throws RemoteException;
-	Attribute[] getAttributes() throws RemoteException;
+	LightWeightEntry getSortedEntry(String name,int id) throws RemoteException;
+	String[] getAttributes() throws RemoteException;
 }
