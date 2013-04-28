@@ -12,6 +12,8 @@ import com.biswa.ep.deployment.Deployer;
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerEntry;
+import com.biswa.ep.entities.LightWeightEntry;
+import com.biswa.ep.entities.PivotContainer;
 import com.biswa.ep.entities.PivotContainer.PivotAgent;
 import com.biswa.ep.entities.ContainerEvent;
 import com.biswa.ep.entities.ContainerStructureEvent;
@@ -19,6 +21,7 @@ import com.biswa.ep.entities.ContainerTask;
 import com.biswa.ep.entities.TransportEntry;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.spec.Spec;
+import com.biswa.ep.entities.store.ConcreteContainerEntry;
 import com.biswa.ep.entities.transaction.Agent;
 import com.biswa.ep.entities.transaction.FeedbackEvent;
 import com.biswa.ep.entities.transaction.TransactionEvent;
@@ -295,8 +298,8 @@ public class RMIListenerImpl implements RMIListener{
 	}
 
 	@Override
-	public TransportEntry getSortedEntry(final String name,final int id) throws RemoteException {
-		final AtomicReference<TransportEntry> atom = new AtomicReference<TransportEntry>();
+	public LightWeightEntry getSortedEntry(final String name,final int id) throws RemoteException {
+		final AtomicReference<LightWeightEntry> atom = new AtomicReference<LightWeightEntry>();
 		final Semaphore s = new Semaphore(1);
 		s.drainPermits();
 		getAgent().invokeOperation(new ContainerTask() {
@@ -308,8 +311,10 @@ public class RMIListenerImpl implements RMIListener{
 			@Override
 			protected void runtask() {
 				try {
-					ContainerEntry conEntry = ((PivotAgent)(getContainer().getFliterAgent(name))).getContainerEntries()[id];
-					atom.set(conEntry.cloneConcrete());
+					PivotContainer pc = (PivotContainer) getContainer();
+					PivotAgent pa = (PivotAgent) pc.getFliterAgent(name);
+					ConcreteContainerEntry conEntry = pa.getContainerEntries()[id];
+					atom.set(new LightWeightEntry(conEntry.getIdentitySequence(), conEntry.getSubstancesAsArray()));
 				} finally {
 					s.release();
 				}
@@ -320,8 +325,8 @@ public class RMIListenerImpl implements RMIListener{
 	}
 
 	@Override
-	public Attribute[] getAttributes() throws RemoteException {
-		final AtomicReference<Attribute[]> atom = new AtomicReference<Attribute[]>();
+	public String[] getAttributes() throws RemoteException {
+		final AtomicReference<String[]> atom = new AtomicReference<String[]>();
 		final Semaphore s = new Semaphore(1);
 		s.drainPermits();
 		getAgent().invokeOperation(new ContainerTask() {
@@ -333,7 +338,11 @@ public class RMIListenerImpl implements RMIListener{
 			@Override
 			protected void runtask() {
 				try {
-					atom.set(getContainer().getSubscribedAttributes());
+					ArrayList<String> al = new ArrayList<String>();
+					for(Attribute attr:getContainer().getSubscribedAttributes()){
+						al.add(attr.getName());
+					}
+					atom.set(al.toArray(new String[0]));
 				} finally {
 					s.release();
 				}
