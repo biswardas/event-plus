@@ -7,7 +7,7 @@ import java.util.Iterator;
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.LeafAttribute;
-import com.biswa.ep.entities.PivotContainer.PivotEntry;
+import com.biswa.ep.entities.PivotContainer.PivotAgent.PivotEntry;
 /**
  * Abstract aggregator class providing aggregation life cycle methods.
  * @author Biswa

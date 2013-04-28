@@ -7,6 +7,10 @@ import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.dyna.ConcreteAttributeProvider;
 public class ExprAggregator extends Aggregator {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6493232721862230923L;
 	private static final Pattern pattern = Pattern.compile("\\s*(.*?)\\s*\\-\\>\\s*\\((\\s*(.*?)\\s*=.*)\\)");
 	private final String aggregateExpression;
 	private Attribute compiledAttribute = null;

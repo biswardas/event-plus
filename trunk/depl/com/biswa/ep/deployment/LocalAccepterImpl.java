@@ -16,14 +16,14 @@ public class LocalAccepterImpl extends Accepter {
 	public boolean listen(Listen listen, AbstractContainer sinkSchema) {
 		String sourceName = listen.getContext()+"."+listen.getContainer();
 		AbstractContainer sourceSchema = getContainerManager().getSchema(sourceName);
-		sourceSchema.agent().connect(new ConnectionEvent(sourceName,sinkSchema.getName(),sinkSchema.agent(),buildFilter(listen)));
+		sourceSchema.agent().connect(new ConnectionEvent(sourceName,sinkSchema.getName(),sinkSchema.agent(),buildFilter(sinkSchema,listen)));
 		return true;
 	}
 	@Override
 	public void replay(Listen listen, AbstractContainer sinkSchema) {
 		String sourceName = listen.getContext()+"."+listen.getContainer();
 		AbstractContainer sourceSchema = getContainerManager().getSchema(sourceName);
-		sourceSchema.agent().replay(new ConnectionEvent(sourceName,sinkSchema.getName(),sinkSchema.agent(),buildFilter(listen)));
+		sourceSchema.agent().replay(new ConnectionEvent(sourceName,sinkSchema.getName(),sinkSchema.agent(),buildFilter(sinkSchema,listen)));
 	}
 	@Override
 	public boolean addFeedbackSource(Feedback feedback, AbstractContainer sinkSchema) {

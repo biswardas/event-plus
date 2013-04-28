@@ -170,7 +170,7 @@ public class RMIRemoteContainer extends AbstractContainer {
 		throw new UnsupportedOperationException();
 	}
 	@Override
-	protected Attribute[] getSubscribedAttributes() {
+	public Attribute[] getSubscribedAttributes() {
 		throw new UnsupportedOperationException();
 	};
 	@Override

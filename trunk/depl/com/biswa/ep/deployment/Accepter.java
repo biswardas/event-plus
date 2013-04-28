@@ -83,17 +83,18 @@ abstract public class Accepter {
 	}
 	
 	/**Build a sink filter to be applicable to underlying sink container
+	 * @param sinkSchema 
 	 * 
 	 * @param listen
 	 * @return FilterSpec
 	 */
-	protected FilterSpec buildFilter(Listen listen) {
+	protected FilterSpec buildFilter(AbstractContainer sinkSchema, Listen listen) {
 		//Is there a  filter present?
 		Filter filter = listen.getFilter();
 		FilterSpec filterSpec = null;
 		if(filter!=null){
 			Predicate predicate = PredicateBuilder.buildPredicate(filter.getPredicate());
-			filterSpec = new FilterSpec(predicate,filter.getChainMode());
+			filterSpec = new FilterSpec(sinkSchema.getName(),predicate,filter.getChainMode());
 		}
 		return filterSpec;
 	}

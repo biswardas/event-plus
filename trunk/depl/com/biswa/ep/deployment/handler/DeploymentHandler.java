@@ -76,7 +76,7 @@ public abstract class DeploymentHandler extends AbstractDeploymentHandler{
 		Filter filter = container.getFilter();
 		if(filter != null){
 			Predicate pred = PredicateBuilder.buildPredicate(filter.getPredicate());
-			cs.agent().applySpec(new FilterSpec(pred));
+			cs.agent().applySpec(new FilterSpec(cs.getName(),pred));
 		}
 	}
 	protected void addAttributes(Container container,

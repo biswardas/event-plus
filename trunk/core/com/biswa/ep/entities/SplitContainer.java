@@ -112,7 +112,7 @@ public class SplitContainer extends ConcreteContainer {
 		assert isConnected():"How the hell did you reach here";
 		final SplitFilterAgent dcl = getFilterAgent(connectionEvent.getSink());
 		dcl.reset();
-		FilterSpec agentFilter = new FilterSpec(null){
+		FilterSpec agentFilter = new FilterSpec(null,null){
 			/**
 			 * 
 			 */
