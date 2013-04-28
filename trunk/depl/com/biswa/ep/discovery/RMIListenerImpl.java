@@ -287,7 +287,9 @@ public class RMIListenerImpl implements RMIListener{
 			@Override
 			protected void runtask() {
 				try {
-					ai.set(((PivotAgent)(getContainer().getFliterAgent(name))).getContainerEntries().length);
+					PivotContainer pc = (PivotContainer) getContainer();
+					PivotAgent pa = (PivotAgent) pc.getFliterAgent(name);
+					ai.set(pa.getEntryCount());					
 				} finally {
 					s.release();
 				}
