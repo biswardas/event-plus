@@ -39,12 +39,15 @@ import com.biswa.ep.entities.ContainerDeleteEvent;
 import com.biswa.ep.entities.ContainerEvent;
 import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.LightWeightEntry;
+import com.biswa.ep.entities.Predicate;
 import com.biswa.ep.entities.aggregate.Aggregators;
 import com.biswa.ep.entities.spec.AggrSpec;
 import com.biswa.ep.entities.spec.CollapseSpec;
+import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.spec.PivotSpec;
 import com.biswa.ep.entities.spec.SortSpec;
 import com.biswa.ep.entities.store.ConcreteContainerEntry;
+import com.biswa.ep.provider.PredicateBuilder;
 
 public class ViewPortViewer extends ConcreteContainer {
 	final String sourceContextName;
@@ -96,6 +99,7 @@ public class ViewPortViewer extends ConcreteContainer {
 
 	private void addControls() {
 		JPanel jPanel = new JPanel(new GridLayout(0, 2));
+		addFilterControl(jPanel);
 		addCompiledExpression(jPanel);
 		addScriptExpression(jPanel);
 		addPivotControl(jPanel);
@@ -256,6 +260,25 @@ public class ViewPortViewer extends ConcreteContainer {
 					getDataOperation().addScriptAttribute(
 							collapserTextField.getText());
 				} catch (RemoteException e1) {
+					throw new RuntimeException(e1);
+				}
+			}
+		});
+	}
+	
+	private void addFilterControl(JPanel jPanel) {
+		final JTextField collapserTextField = new JTextField();
+		final JButton removeButton = new JButton("Add Filter Expression");
+		jPanel.add(collapserTextField);
+		jPanel.add(removeButton);
+		removeButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					Predicate pred = PredicateBuilder.buildPredicate(collapserTextField.getText());
+					getDataOperation().applySpec(new FilterSpec(getName(),pred));
+				} catch (RemoteException e1) {
+					e1.printStackTrace();
 					throw new RuntimeException(e1);
 				}
 			}
