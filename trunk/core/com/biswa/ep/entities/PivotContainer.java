@@ -710,10 +710,6 @@ public class PivotContainer extends ConcreteContainer {
 	}
 	
 	@Override
-	protected void refilter() {
-	}
-
-	@Override
 	public void dispatchEntryAdded(ContainerEntry containerEntry) {
 		for(FilterAgent dcl : listenerMap.values()){
 			PivotAgent pa = (PivotAgent) dcl;
