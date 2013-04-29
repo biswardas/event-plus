@@ -47,4 +47,9 @@ class EagerContainerEntry extends PersistableContainerEntry {
 	public void reallocate(int size) {
 		underlyingEntry.reallocate(size);
 	}
+
+	@Override
+	public Object[] getSubstancesAsArray() {
+		return underlyingEntry.getSubstancesAsArray();
+	}
 }

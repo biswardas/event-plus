@@ -121,4 +121,6 @@ public interface ContainerEntry extends Serializable{
 
 	int getInternalIdentity();
 
+	Object[] getSubstancesAsArray();
+
 }

@@ -103,4 +103,9 @@ public class JoinContainerEntry extends AbstractPhysicalEntry {
 	public void reallocate(int size) {
 		throw new UnsupportedOperationException();		
 	}
+
+	@Override
+	public Object[] getSubstancesAsArray() {
+		throw new UnsupportedOperationException();
+	}
 }

@@ -55,6 +55,11 @@ class LazyContainerEntry extends PersistableContainerEntry {
 		underlyingEntry.reallocate(size);
 	}
 
+	@Override
+	public Object[] getSubstancesAsArray() {
+		wakeUp();
+		return underlyingEntry.getSubstancesAsArray();
+	}
 	private void wakeUp() {
 		if(markedPassivated()){
 			activate((PassivableContainerEntryStore)getContainer().getContainerEntryStore());

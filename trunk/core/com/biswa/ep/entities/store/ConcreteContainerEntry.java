@@ -110,7 +110,7 @@ public class ConcreteContainerEntry extends AbstractPhysicalEntry{
 		TransportEntry clonedObject = new TransportEntry(getInternalIdentity(),entryQualifier);
 		return clonedObject;
 	}
-	
+	@Override
 	public Object[] getSubstancesAsArray(){
 		return substanceArray;
 	}

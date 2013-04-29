@@ -549,6 +549,7 @@ public class PivotContainer extends ConcreteContainer {
 			// Re pivot everything based on new specification
 			for (ContainerEntry containerEntry : getContainerDataEntries()) {
 				entryAdded(containerEntry);
+				//TODO what about page refresh?
 			}
 			root.refreshPageView();
 		}
@@ -621,10 +622,11 @@ public class PivotContainer extends ConcreteContainer {
 			}
 		}
 
+		@Override
 		public ConcreteContainerEntry[] getContainerEntries() {
 			return indexedEntries != null ? indexedEntries : new ConcreteContainerEntry[0];
 		}
-
+		@Override
 		public int getEntryCount() {
 			return indexedEntries != null ? indexedEntries.length : 0;
 		}
