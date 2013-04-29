@@ -20,6 +20,7 @@ public class InlineViewer {
 								new ConnectionEvent(cs.getName(), name));
 					}
 				};
+				viewer.setSourceAgent(cs.agent());
 				cs.agent()
 						.connect(
 								new ConnectionEvent(cs.getName(), name, viewer

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.WeakHashMap;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -22,25 +23,29 @@ import javax.swing.table.AbstractTableModel;
 
 import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.Attribute;
+import com.biswa.ep.entities.ConcreteContainer;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerDeleteEvent;
-import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.ContainerEvent;
 import com.biswa.ep.entities.ContainerStructureEvent;
 import com.biswa.ep.entities.LeafAttribute;
-import com.biswa.ep.entities.PivotContainer;
+import com.biswa.ep.entities.LightWeightEntry;
+import com.biswa.ep.entities.Predicate;
 import com.biswa.ep.entities.aggregate.Aggregators;
 import com.biswa.ep.entities.spec.AggrSpec;
 import com.biswa.ep.entities.spec.CollapseSpec;
+import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.spec.PivotSpec;
 import com.biswa.ep.entities.spec.SortSpec;
+import com.biswa.ep.entities.transaction.Agent;
 import com.biswa.ep.provider.CompiledAttributeProvider;
+import com.biswa.ep.provider.PredicateBuilder;
 import com.biswa.ep.provider.ScriptEngineAttributeProvider;
-public class GenericViewer extends PivotContainer {
+public class GenericViewer extends ConcreteContainer {
 	private JFrame jframe = null;
 	private JTable jtable = null;
 	private ViewerTableModel vtableModel = null;
-
+	private Agent sourceAgent;
 	public GenericViewer(String name) {
 		super(name,new Properties(){
 			private static final long serialVersionUID = 1L;
@@ -50,6 +55,12 @@ public class GenericViewer extends PivotContainer {
 			}
 		});
 		ContainerContext.initialize(GenericViewer.this);
+	}
+
+	@Override
+	public void connected(ConnectionEvent connectionEvent) {
+		super.connected(connectionEvent);
+
 		jframe = new JFrame(getName()){
 			/**
 			 * 
@@ -73,7 +84,7 @@ public class GenericViewer extends PivotContainer {
 			}
 		};
 		jframe.setLayout(new BorderLayout());
-		vtableModel = new ViewerTableModel(GenericViewer.this);
+		vtableModel = new ViewerTableModel();
 		jtable = new JTable(vtableModel);
 		jtable.setPreferredScrollableViewportSize(new Dimension(500, 200));
 		jtable.setFillsViewportHeight(true);				
@@ -87,6 +98,7 @@ public class GenericViewer extends PivotContainer {
 
 	private void addControls() {
 		JPanel jPanel = new JPanel(new GridLayout(0,2));
+		addFilterControl(jPanel);
 		addCompiledExpression(jPanel);
 		addScriptExpression(jPanel);
 		addPivotControl(jPanel);
@@ -96,7 +108,19 @@ public class GenericViewer extends PivotContainer {
 		addRemoveControl(jPanel);
 		jframe.add(jPanel,BorderLayout.SOUTH);
 	}
-
+	private void addFilterControl(JPanel jPanel) {
+		final JTextField collapserTextField = new JTextField();
+		final JButton removeButton = new JButton("Add Filter Expression");
+		jPanel.add(collapserTextField);
+		jPanel.add(removeButton);
+		removeButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Predicate pred = PredicateBuilder.buildPredicate(collapserTextField.getText());
+				getSourceAgent().applySpec(new FilterSpec(getName(),pred));
+			}
+		});
+	}
 	private void addPivotControl(JPanel jPanel) {
 		final JTextField pivotTextField = new JTextField();	
 		final JButton pivotButton = new JButton("Apply Pivot");	
@@ -111,7 +135,7 @@ public class GenericViewer extends PivotContainer {
 					list.add(new LeafAttribute(stk.nextToken()));
 				}
 				PivotSpec pivotSpec = new PivotSpec(getName(),list.toArray(new Attribute[0]));
-				GenericViewer.this.agent().applySpec(pivotSpec);
+				getSourceAgent().applySpec(pivotSpec);
 			}
 		});
 	}
@@ -129,7 +153,7 @@ public class GenericViewer extends PivotContainer {
 					String[] oneAttribute = stk.nextToken().split(":");
 					aggrSpec.add(Aggregators.valueOf(oneAttribute[1]).newInstance(oneAttribute[0]));
 				}
-				GenericViewer.this.agent().applySpec(aggrSpec);
+				getSourceAgent().applySpec(aggrSpec);
 			}
 		});
 	}
@@ -148,7 +172,7 @@ public class GenericViewer extends PivotContainer {
 					boolean order = oneAttribute.length>1?Boolean.parseBoolean(oneAttribute[1]):true;
 					sortSpec.addSortOrder(new LeafAttribute(oneAttribute[0]),order);
 				}
-				GenericViewer.this.agent().applySpec(sortSpec);
+				getSourceAgent().applySpec(sortSpec);
 			}
 		});
 	}
@@ -163,7 +187,7 @@ public class GenericViewer extends PivotContainer {
 				String[] oneNode = collapserTextField.getText().split(":");
 				boolean order = oneNode.length>1?Boolean.parseBoolean(oneNode[1]):true;
 				CollapseSpec collapseSpec = new CollapseSpec(getName(),Integer.parseInt(oneNode[0]),order);
-				GenericViewer.this.agent().applySpec(collapseSpec);
+				getSourceAgent().applySpec(collapseSpec);
 			}
 		});
 	}
@@ -175,7 +199,7 @@ public class GenericViewer extends PivotContainer {
 		removeButton.addActionListener(new ActionListener() {			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				GenericViewer.this.agent().entryRemoved(new ContainerDeleteEvent(getName(), Integer.parseInt(collapserTextField.getText()), 0));
+				getSourceAgent().entryRemoved(new ContainerDeleteEvent(getName(), Integer.parseInt(collapserTextField.getText()), 0));
 			}
 		});
 	}
@@ -189,8 +213,8 @@ public class GenericViewer extends PivotContainer {
 			public void actionPerformed(ActionEvent e) {
 				com.biswa.ep.entities.Attribute schemaAttribute = new CompiledAttributeProvider().getAttribute(collapserTextField.getText());
 				ContainerEvent ce = new ContainerStructureEvent(getName(),schemaAttribute);
-				GenericViewer.this.agent().attributeRemoved(ce);
-				GenericViewer.this.agent().attributeAdded(ce);
+				getSourceAgent().attributeRemoved(ce);
+				getSourceAgent().attributeAdded(ce);
 			}
 		});
 	}
@@ -204,8 +228,8 @@ public class GenericViewer extends PivotContainer {
 			public void actionPerformed(ActionEvent e) {
 				com.biswa.ep.entities.Attribute schemaAttribute = new ScriptEngineAttributeProvider().getAttribute(collapserTextField.getText());
 				ContainerEvent ce = new ContainerStructureEvent(getName(),schemaAttribute);
-				GenericViewer.this.agent().attributeRemoved(ce);
-				GenericViewer.this.agent().attributeAdded(ce);
+				getSourceAgent().attributeRemoved(ce);
+				getSourceAgent().attributeAdded(ce);
 			}
 		});
 	}
@@ -235,50 +259,72 @@ public class GenericViewer extends PivotContainer {
 		jframe.setTitle(getName()+"/"+jtable.getRowCount()+"--"+GenericViewer.this.getCurrentTransactionID());
 	}
 
+	public Agent getSourceAgent() {
+		return sourceAgent;
+	}
+	
+	public void setSourceAgent(Agent sourceAgent) {
+		this.sourceAgent=sourceAgent;
+	}
+	
 	class ViewerTableModel extends AbstractTableModel {
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = 4352652252566957454L;
-		private GenericViewer cs;
-		private ContainerEntry[] containerEntries = null;
-		private Attribute[] attributes = null;
-		public ViewerTableModel(GenericViewer cs) {
-			this.cs = cs;
-			this.attributes = cs.getSubscribedAttributes();
-			this.containerEntries = cs.getContainerEntries();
+		private WeakHashMap<Integer, LightWeightEntry> cachedEntries = new WeakHashMap<Integer, LightWeightEntry>() {
+			public LightWeightEntry get(Object key) {
+				LightWeightEntry tEntry = super.get(key);
+					if (tEntry == null) {
+						// System.out.println("Requesting record:"+key);
+						tEntry = getSourceAgent().getSortedEntry(getName(), (Integer) key);
+						put((Integer) key, tEntry);
+					}
+				return tEntry;
+			}
+		};
+		private String[] attributes = null;
+
+		public ViewerTableModel() {
+			this.attributes = getSourceAgent().getAttributes();
 		}
 
 		public String getColumnName(int col) {
-			if(col==0) return "Identity";
-			else return attributes[col-1].getName();
+			if (col == 0)
+				return "Identity";
+			else
+				return attributes[col - 1];
 		}
 
 		@Override
 		public int getColumnCount() {
 			int cnt = attributes.length;
-			return cnt+1;
+			return cnt + 1;
 		}
 
 		@Override
 		public int getRowCount() {
-			return cs.getEntryCount();
+			int rowCnt = getSourceAgent().getEntryCount(getName());
+			return rowCnt;
 		}
 
 		@Override
 		public Object getValueAt(int rowIndex, int columnIndex) {
-			if(columnIndex==0) return containerEntries[rowIndex].getIdentitySequence();
-			else 
-			return containerEntries[rowIndex].getSubstance(attributes[columnIndex-1]);
+			if (columnIndex == 0)
+				return cachedEntries.get(rowIndex).id;
+			else
+				return cachedEntries.get(rowIndex).substances[columnIndex - 1];
 		}
+
 		@Override
-		public void fireTableDataChanged(){
-			this.containerEntries = cs.getContainerEntries();
+		public void fireTableDataChanged() {
+			cachedEntries.clear();
 			super.fireTableDataChanged();
 		}
+
 		@Override
-		public void fireTableStructureChanged(){
-			this.attributes = cs.getSubscribedAttributes();
+		public void fireTableStructureChanged() {
+			this.attributes = getSourceAgent().getAttributes();
 			super.fireTableStructureChanged();
 		}
 	}
