@@ -8,18 +8,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.biswa.ep.entities.AbstractContainer;
+import com.biswa.ep.entities.AbstractContainer.FilterAgent;
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ConnectionListener;
+import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.ContainerEvent;
 import com.biswa.ep.entities.ContainerListener;
 import com.biswa.ep.entities.ContainerTask;
 import com.biswa.ep.entities.LightWeightEntry;
 import com.biswa.ep.entities.OuterTask;
-import com.biswa.ep.entities.PivotContainer;
-import com.biswa.ep.entities.PivotContainer.PivotAgent;
 import com.biswa.ep.entities.PropertyConstants;
-import com.biswa.ep.entities.store.ConcreteContainerEntry;
 import com.biswa.ep.subscription.SubscriptionEvent;
 import com.biswa.ep.subscription.SubscriptionSupport;
 /**Any and every operation on the container must be tunneled through this listener to ensure
@@ -411,9 +410,8 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 			@Override
 			protected void runtask() {
 				try {
-					PivotContainer pc = (PivotContainer) getContainer();
-					PivotAgent pa = (PivotAgent) pc.getFliterAgent(name);
-					ai.set(pa.getEntryCount());					
+					FilterAgent pa = getContainer().getFliterAgent(name);
+					ai.set(pa.getEntryCount());
 				} finally {
 					s.release();
 				}
@@ -436,9 +434,8 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 			@Override
 			protected void runtask() {
 				try {
-					PivotContainer pc = (PivotContainer) getContainer();
-					PivotAgent pa = (PivotAgent) pc.getFliterAgent(name);
-					ConcreteContainerEntry conEntry = pa.getContainerEntries()[id];
+					FilterAgent pa = getContainer().getFliterAgent(name);
+					ContainerEntry conEntry = pa.getContainerEntries()[id];
 					atom.set(new LightWeightEntry(conEntry.getIdentitySequence(), conEntry.getSubstancesAsArray()));
 				} finally {
 					s.release();

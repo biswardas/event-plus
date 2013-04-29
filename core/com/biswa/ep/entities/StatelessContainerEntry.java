@@ -131,4 +131,8 @@ final public class StatelessContainerEntry implements ContainerEntry {
 	public int getInternalIdentity() {
 		return containerEntry.getInternalIdentity();
 	}
+	@Override
+	public Object[] getSubstancesAsArray() {
+		throw new UnsupportedOperationException();
+	}
 }

@@ -158,6 +158,14 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 			}
 			refilter(resetSendState);
 		}
+		public int getEntryCount() {
+			//TODO optimize
+			return AbstractContainer.this.getContainerEntries().length;
+		}
+		public ContainerEntry[] getContainerEntries() {
+			//TODO optimize
+			return AbstractContainer.this.getContainerEntries();
+		}
 	}	
 	/**Constructor with properties to configure the container. properties are
 	 * strictly for the container configuration. Do not use it for any business
