@@ -129,14 +129,20 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 		public void setFilterSpec(FilterSpec filterSpec) {
 			this.filterSpec = filterSpec;
 		}
-		public void refilter() {
+		public void refilter(boolean resetSendState) {
 			Attribute[] statelessAttributes = getStatelessAttributes();
 			for(ContainerEntry containerEntry:getContainerEntries()){
+				if(resetSendState){
+					containerEntry.setFiltered(primeIdentity, false);
+				}
 				dispatchEntryAdded(this,containerEntry, statelessAttributes,true);
 			}
 		}
-		private final void chainAndReFilter(FilterSpec newFilterSpec,boolean isSinkFilter){
+		private final void chainAndReFilter(FilterSpec newFilterSpec,boolean isSinkFilter,boolean resetSendState){
 			if(isSinkFilter){
+				if(newFilterSpec!=null){
+					newFilterSpec.prepare();
+				}
 				//If it is a sink Filter then
 				this.filterSpec=AbstractContainer.this.filterSpec.chain(newFilterSpec);
 			}else{
@@ -150,7 +156,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 					this.filterSpec=newFilterSpec;
 				}
 			}
-			refilter();
+			refilter(resetSendState);
 		}
 	}	
 	/**Constructor with properties to configure the container. properties are
@@ -256,20 +262,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	public void replay(final ConnectionEvent connectionEvent) {
 		assert isConnected():"How the hell did you reach here";
 		final FilterAgent dcl = listenerMap.get(connectionEvent.getSink());
-		FilterSpec incomingFilter = connectionEvent.getFilterSpec();
-		if(incomingFilter!=null){
-			incomingFilter = incomingFilter.prepare();
-			dcl.filterSpec=filterSpec.chain(incomingFilter);
-		}else{
-			dcl.filterSpec=filterSpec;
-		}
-		//When an target container requests replay
-		//Dispatch all the qualifying entry in the current container
-		Attribute[] statelessAttributes = getStatelessAttributes();
-		for(ContainerEntry conEntry:getContainerEntries()){
-			conEntry.setFiltered(dcl.primeIdentity, false);
-			AbstractContainer.this.dispatchEntryAdded(dcl,conEntry,statelessAttributes,false);
-		}
+		dcl.chainAndReFilter(connectionEvent.getFilterSpec(), true,true);
 	}
 	
 	@Override
@@ -403,7 +396,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 		if(requestedAttribute.propagate()){
 			requestedAttribute=new LeafAttribute(requestedAttribute);
 			for(FilterAgent dcl : listenerMap.values()){
-				dcl.refilter();
+				dcl.refilter(false);
 				dispatchAttributeRemoved(dcl.agent,requestedAttribute);
 			}
 		}
@@ -773,18 +766,18 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 * @param filterSpec FilterSpec
 	 */
 	public void applyFilter(final FilterSpec filterSpec){
-		filterSpec.prepare();
 		if(getName().equals(filterSpec.getSinkName())){
+			filterSpec.prepare();
 			//Source Filter updated update the filter chains
 			for(FilterAgent sinkAgent:listenerMap.values()){
-				sinkAgent.chainAndReFilter(filterSpec,false);
+				sinkAgent.chainAndReFilter(filterSpec,false,false);
 			}
 			//Update the source filter
 			this.filterSpec = filterSpec;
 		}else{
 			//Sink Filter updated
 			FilterAgent sinkAgent = listenerMap.get(filterSpec.getSinkName());
-			sinkAgent.chainAndReFilter(filterSpec,true);
+			sinkAgent.chainAndReFilter(filterSpec,true,false);
 		}
 	}
 	

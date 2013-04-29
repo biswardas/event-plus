@@ -13,9 +13,7 @@ import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import com.biswa.ep.entities.AbstractContainer.FilterAgent;
 import com.biswa.ep.entities.aggregate.Aggregator;
-import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.store.ConcreteContainerEntry;
 import com.biswa.ep.entities.transaction.Agent;
 
@@ -382,9 +380,8 @@ public class PivotContainer extends ConcreteContainer {
 					}
 				}
 				if (registeredEntries != null) {
-					registeredEntries.clear();
-					if (parent != null) {
-						parent.removePivot(this.substance);
+					for (ContainerEntry containerEntry : registeredEntries.toArray(new ContainerEntry[0])) {
+						unregister(containerEntry);
 					}
 				}
 			}
@@ -543,11 +540,11 @@ public class PivotContainer extends ConcreteContainer {
 			for (Attribute attribute : pivotArray) {
 				aggrMap.remove(attribute);
 			}
-			refilter();
+			refilter(false);
 		}
 		
 		@Override
-		public void refilter() {
+		public void refilter(boolean resetSendState) {
 			root.clear();
 			// Re pivot everything based on new specification
 			for (ContainerEntry containerEntry : getContainerDataEntries()) {
@@ -641,7 +638,7 @@ public class PivotContainer extends ConcreteContainer {
 			if (pivotedAttributes.containsKey(requestedAttribute)) {
 				pivotedAttributes.remove(requestedAttribute);
 				root.clearAggregation(requestedAttribute);
-				refilter();
+				refilter(false);
 			}
 		}
 		public void entryAdded(ContainerEntry containerEntry) {
@@ -720,19 +717,6 @@ public class PivotContainer extends ConcreteContainer {
 		return new PivotAgent(sink, dcl);
 	}
 
-	@Override
-	public void replay(ConnectionEvent connectionEvent) {
-		final PivotAgent dcl = (PivotAgent) listenerMap.get(connectionEvent.getSink());
-		FilterSpec incomingFilter = connectionEvent.getFilterSpec();
-		if(incomingFilter!=null){
-			incomingFilter = incomingFilter.prepare();
-			dcl.filterSpec=filterSpec.chain(incomingFilter);
-		}else{
-			dcl.filterSpec=filterSpec;
-		}
-		dcl.refilter();
-	}
-	
 	@Override
 	public void dispatchEntryAdded(ContainerEntry containerEntry) {
 		for(FilterAgent dcl : listenerMap.values()){
