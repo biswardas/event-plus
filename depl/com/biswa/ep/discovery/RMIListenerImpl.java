@@ -5,23 +5,19 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.biswa.ep.deployment.Deployer;
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerEntry;
-import com.biswa.ep.entities.LightWeightEntry;
-import com.biswa.ep.entities.PivotContainer;
-import com.biswa.ep.entities.PivotContainer.PivotAgent;
 import com.biswa.ep.entities.ContainerEvent;
 import com.biswa.ep.entities.ContainerStructureEvent;
 import com.biswa.ep.entities.ContainerTask;
+import com.biswa.ep.entities.LightWeightEntry;
 import com.biswa.ep.entities.TransportEntry;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.spec.Spec;
-import com.biswa.ep.entities.store.ConcreteContainerEntry;
 import com.biswa.ep.entities.transaction.Agent;
 import com.biswa.ep.entities.transaction.FeedbackEvent;
 import com.biswa.ep.entities.transaction.TransactionEvent;
@@ -275,83 +271,17 @@ public class RMIListenerImpl implements RMIListener{
 
 	@Override
 	public int getEntryCount(final String name) throws RemoteException {
-		final AtomicInteger ai = new AtomicInteger(0);
-		final Semaphore s = new Semaphore(1);
-		s.drainPermits();
-		getAgent().invokeOperation(new ContainerTask() {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 6263129328893041488L;
-
-			@Override
-			protected void runtask() {
-				try {
-					PivotContainer pc = (PivotContainer) getContainer();
-					PivotAgent pa = (PivotAgent) pc.getFliterAgent(name);
-					ai.set(pa.getEntryCount());					
-				} finally {
-					s.release();
-				}
-			}
-		});
-		s.acquireUninterruptibly();
-		return ai.get();
+		return getAgent().getEntryCount(name);
 	}
 
 	@Override
 	public LightWeightEntry getSortedEntry(final String name,final int id) throws RemoteException {
-		final AtomicReference<LightWeightEntry> atom = new AtomicReference<LightWeightEntry>();
-		final Semaphore s = new Semaphore(1);
-		s.drainPermits();
-		getAgent().invokeOperation(new ContainerTask() {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 6263129328893041488L;
-
-			@Override
-			protected void runtask() {
-				try {
-					PivotContainer pc = (PivotContainer) getContainer();
-					PivotAgent pa = (PivotAgent) pc.getFliterAgent(name);
-					ConcreteContainerEntry conEntry = pa.getContainerEntries()[id];
-					atom.set(new LightWeightEntry(conEntry.getIdentitySequence(), conEntry.getSubstancesAsArray()));
-				} finally {
-					s.release();
-				}
-			}
-		});
-		s.acquireUninterruptibly();
-		return atom.get();
+		return getAgent().getSortedEntry(name, id);
 	}
 
 	@Override
 	public String[] getAttributes() throws RemoteException {
-		final AtomicReference<String[]> atom = new AtomicReference<String[]>();
-		final Semaphore s = new Semaphore(1);
-		s.drainPermits();
-		getAgent().invokeOperation(new ContainerTask() {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 6263129328893041488L;
-
-			@Override
-			protected void runtask() {
-				try {
-					ArrayList<String> al = new ArrayList<String>();
-					for(Attribute attr:getContainer().getSubscribedAttributes()){
-						al.add(attr.getName());
-					}
-					atom.set(al.toArray(new String[0]));
-				} finally {
-					s.release();
-				}
-			}
-		});
-		s.acquireUninterruptibly();
-		return atom.get();
+		return getAgent().getAttributes();
 	}
 	@Override
 	public String getDeployerName() throws RemoteException {
