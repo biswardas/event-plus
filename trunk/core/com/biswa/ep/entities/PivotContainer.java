@@ -29,7 +29,9 @@ public class PivotContainer extends ConcreteContainer {
 	 * Default substance in case pivoting is requested on a null value.
 	 */
 	static final private Object DEFAULT_SUBSTANCE = "";
-	
+	private enum Refresh{
+		FORCE,INTRAN,TRANCOMPLETE;
+	}
 	public class PivotAgent extends FilterAgent{
 		/**
 		 * Attributes pivoted on
@@ -553,13 +555,23 @@ public class PivotContainer extends ConcreteContainer {
 			for (ContainerEntry containerEntry : getContainerDataEntries()) {
 				entryAdded(containerEntry);
 			}
-			refreshPageView(true);
+			refreshPageView(Refresh.FORCE);
 		}
-		private void refreshPageView(boolean force) {
-			if(force){
-				this.dirty=force;
+		private void refreshPageView(Refresh refresh) {
+			switch(refresh){
+			case FORCE:
+				this.dirty=true;
+				indexedEntries = root.getContainerEntries();
+				break;
+			case INTRAN:
+				if(getCurrentTransactionID()==0){
+					indexedEntries = root.getContainerEntries();					
+				}
+				break;
+			case TRANCOMPLETE:
+				indexedEntries = root.getContainerEntries();
+				break;			
 			}
-			indexedEntries = root.getContainerEntries();
 		}
 		/**
 		 * Behavior method to apply sort on this container.
@@ -577,7 +589,7 @@ public class PivotContainer extends ConcreteContainer {
 						entry.getValue());
 			}
 			root.applySort();
-			refreshPageView(true);
+			refreshPageView(Refresh.FORCE);
 		}
 
 		/**
@@ -628,7 +640,7 @@ public class PivotContainer extends ConcreteContainer {
 		public void applyCollapse(int identity, boolean state) {
 			PivotEntry pivotEntry = directPivotAccess.get(identity);
 			if (pivotEntry != null && pivotEntry.collapse(state)) {
-				refreshPageView(true);
+				refreshPageView(Refresh.FORCE);
 			}
 		}
 
@@ -729,7 +741,7 @@ public class PivotContainer extends ConcreteContainer {
 		for(FilterAgent dcl : listenerMap.values()){
 			PivotAgent pa = (PivotAgent) dcl;
 			pa.entryAdded(containerEntry);
-			pa.refreshPageView(true);
+			pa.refreshPageView(Refresh.INTRAN);
 		}
 	}
 
@@ -738,7 +750,7 @@ public class PivotContainer extends ConcreteContainer {
 		for(FilterAgent dcl : listenerMap.values()){
 			PivotAgent pa = (PivotAgent) dcl;
 			pa.entryRemoved(containerEntry);
-			pa.refreshPageView(true);
+			pa.refreshPageView(Refresh.INTRAN);
 		}
 	}
 
@@ -748,7 +760,7 @@ public class PivotContainer extends ConcreteContainer {
 		for(FilterAgent dcl : listenerMap.values()){
 			PivotAgent pa = (PivotAgent) dcl;
 			pa.entryUpdated(attribute, substance, containerEntry);
-			pa.refreshPageView(false);
+			pa.refreshPageView(Refresh.INTRAN);
 		}
 	}
 
@@ -768,6 +780,16 @@ public class PivotContainer extends ConcreteContainer {
 		}
 		super.dispatchAttributeRemoved(requestedAttribute);
 	}
+	
+	@Override
+	protected void dispatchCommitTransaction() {
+		for(FilterAgent dcl : listenerMap.values()){
+			PivotAgent pa = (PivotAgent) dcl;
+			pa.refreshPageView(Refresh.TRANCOMPLETE);
+		}
+		super.dispatchCommitTransaction();
+	}
+
 	@Override
 	public PivotAgent getFilterAgent(String sink){
 		return (PivotAgent)super.getFilterAgent(sink);
