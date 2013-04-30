@@ -58,6 +58,24 @@ abstract public class Aggregator implements Serializable{
 		}
 		return aggergatedSubstance;
 	}
+
+	/**
+	 * Entry point for aggregation. Returns aggregated substance.
+	 * @param pivotEntry PivotEntry
+	 * @param preUpdate Object
+	 * @param postUpdate Object
+	 * @return Object
+	 */
+	public final Object failSafeaggregate(PivotEntry pivotEntry,Object preUpdate,Object postUpdate) {
+		this.pivotEntry=pivotEntry;
+		Object aggergatedSubstance = null;
+		try{
+			aggergatedSubstance = aggregate(preUpdate,postUpdate);
+		}catch(Exception e){
+			aggergatedSubstance = null; 
+		}
+		return aggergatedSubstance;
+	}
 	/**
 	 * Before this aggregator is used in this container. This method must be called. This
 	 * is the hook for any necessary optimization required in this aggregator.
@@ -113,6 +131,10 @@ abstract public class Aggregator implements Serializable{
 	protected final boolean hasNext(){
 		return iter.hasNext();
 	}
-	
+
 	protected abstract Object aggregate();
+	
+	protected Object aggregate(Object preUpdate,Object postUpdate){
+		return aggregate();
+	}
 }
