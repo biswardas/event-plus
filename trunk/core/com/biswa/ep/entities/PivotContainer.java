@@ -465,6 +465,12 @@ public class PivotContainer extends ConcreteContainer {
 			}
 
 			public void clearAggregation(Attribute attribute) {
+				Aggregator hostAggregator = aggrMap.get(attribute);
+				if(hostAggregator!=null){
+					for(Aggregator aggr:hostAggregator.getChainedAggregators()){
+						clearAggregation(aggr.getTargetAttr());
+					}
+				}
 				if (!pivotedAttributes.containsKey(attribute)) {
 					if (childPivotEntries != null && pivotedAttributes.size() > 0) {
 						for (PivotEntry innerPivot : childPivotEntries.values()) {
@@ -584,21 +590,24 @@ public class PivotContainer extends ConcreteContainer {
 		 */
 		public void applyAggregation(
 				final LinkedHashMap<Attribute, Aggregator> aggrSpec) {
-			// Clear aggregations on the attributes which no longer require
-			// aggregation in new specification.
+			//Prepare the aggregators
+			for (Aggregator oneAggregator : aggrSpec.values()) {
+				oneAggregator.prepare();
+			}
+			
+			// Clear existing aggregations
 			for (Attribute oneAttribute : aggrMap.keySet()) {
-				for(Aggregator aggr:aggrMap.get(oneAttribute).getChainedAggregators()){
-					root.clearAggregation(aggr.getTargetAttr());
-				}
 				// Clear aggregations on outstanding ones
 				root.clearAggregation(oneAttribute);
 			}
 			// Clear old stuff entirely
 			this.aggrMap.clear();
+			
+			//Reinstall the new aggregators
 			for (Aggregator oneAggregator : aggrSpec.values()) {
-				oneAggregator.prepare();
 				this.aggrMap.put(oneAggregator.getAggrAttr(),oneAggregator);
 			}
+			//Reaggregate universe..
 			root.aggregateUniverse();
 		}
 

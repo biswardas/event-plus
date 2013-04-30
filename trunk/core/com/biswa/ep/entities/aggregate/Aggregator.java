@@ -63,9 +63,14 @@ abstract public class Aggregator implements Serializable{
 	 * is the hook for any necessary optimization required in this aggregator.
 	 */
 	public void prepare() {
-		aggrAttr=aggrAttr.getRegisteredAttribute();
-		for(Aggregator oneChainedAggregator:chainedAggrList){
-			oneChainedAggregator.prepare();
+		Attribute tempAttr=aggrAttr.getRegisteredAttribute();
+		if(tempAttr!=null){
+			aggrAttr=tempAttr;
+			for(Aggregator oneChainedAggregator:chainedAggrList){
+				oneChainedAggregator.prepare();
+			}
+		}else{
+			throw new RuntimeException("Referencing non existent Attribute:"+aggrAttr);
 		}
 	}
 
