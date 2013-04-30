@@ -47,6 +47,10 @@ public class PivotContainer extends ConcreteContainer {
 		private final PivotEntry root = new PivotEntry();
 
 		private ConcreteContainerEntry[] indexedEntries = null;
+		/**
+		 * Is indexedEntries possibly dirty?
+		 */
+		private boolean dirty = false;
 		private PivotAgent(String sink, Agent agent) {
 			super(sink, agent);
 		}
@@ -152,10 +156,6 @@ public class PivotContainer extends ConcreteContainer {
 			 * State of this pivot entry
 			 */
 			private boolean collapsed = false;
-			/**
-			 * Is this node dirty?
-			 */
-			private boolean dirty = false;
 
 			/**
 			 * Constructor to create the Pivot entry. This is the ROOT constructor
@@ -257,6 +257,7 @@ public class PivotContainer extends ConcreteContainer {
 			 */
 			private void unregister(ContainerEntry containerEntry) {
 				dirty = true;
+				containerEntry.setFiltered(primeIdentity,false);
 				// Remove the physical data
 				registeredEntries.remove(containerEntry);
 				directPivotAccess.remove(containerEntry.getIdentitySequence());
@@ -292,6 +293,7 @@ public class PivotContainer extends ConcreteContainer {
 			 */
 			private void register(ContainerEntry containerEntry) {
 				dirty = true;
+				containerEntry.setFiltered(primeIdentity,true);
 				directPivotAccess.put(containerEntry.getIdentitySequence(), this);
 				registeredEntries.add(containerEntry);
 				for (Attribute attribute : aggrMap.keySet()) {
@@ -333,11 +335,6 @@ public class PivotContainer extends ConcreteContainer {
 				result = prime * result
 						+ ((substance == null) ? 0 : substance.hashCode());
 				return result;
-			}
-
-			private void refreshPageView() {
-				root.dirty = true;
-				indexedEntries = root.getContainerEntries();
 			}
 
 			@Override
@@ -555,11 +552,15 @@ public class PivotContainer extends ConcreteContainer {
 			// Re pivot everything based on new specification
 			for (ContainerEntry containerEntry : getContainerDataEntries()) {
 				entryAdded(containerEntry);
-				//TODO what about page refresh?
 			}
-			root.refreshPageView();
+			refreshPageView(true);
 		}
-
+		private void refreshPageView(boolean force) {
+			if(force){
+				this.dirty=force;
+			}
+			indexedEntries = root.getContainerEntries();
+		}
 		/**
 		 * Behavior method to apply sort on this container.
 		 * 
@@ -576,7 +577,7 @@ public class PivotContainer extends ConcreteContainer {
 						entry.getValue());
 			}
 			root.applySort();
-			root.refreshPageView();
+			refreshPageView(true);
 		}
 
 		/**
@@ -627,7 +628,7 @@ public class PivotContainer extends ConcreteContainer {
 		public void applyCollapse(int identity, boolean state) {
 			PivotEntry pivotEntry = directPivotAccess.get(identity);
 			if (pivotEntry != null && pivotEntry.collapse(state)) {
-				root.refreshPageView();
+				refreshPageView(true);
 			}
 		}
 
@@ -654,9 +655,7 @@ public class PivotContainer extends ConcreteContainer {
 		}
 		public void entryAdded(ContainerEntry containerEntry) {
 			if(filterSpec.filter(containerEntry)){
-				containerEntry.setFiltered(primeIdentity,true);
 				root.applyPivot(containerEntry);
-				root.refreshPageView();
 			}
 		}
 		public void entryRemoved(ContainerEntry containerEntry) {
@@ -664,7 +663,6 @@ public class PivotContainer extends ConcreteContainer {
 					.getIdentitySequence());
 			if(pivotEntry!=null){
 				pivotEntry.unregister(containerEntry);
-				root.refreshPageView();
 			}
 		}
 		public void entryUpdated(Attribute attribute, Object substance,
@@ -677,14 +675,12 @@ public class PivotContainer extends ConcreteContainer {
 					if (pivotedAttributes.containsKey(attribute)) {
 						pivotEntry.unregister(containerEntry);
 						root.applyPivot(containerEntry);
-						root.refreshPageView();
 					} else {
 						if (aggrMap.containsKey(attribute)) {
 							pivotEntry.aggregateAndPropagate(attribute);
 						}
 						if (sortOrder.containsKey(attribute)) {
 							pivotEntry.applySort();
-							root.refreshPageView();
 						}
 					}
 				}else{//Yes,No more a match?
@@ -733,6 +729,7 @@ public class PivotContainer extends ConcreteContainer {
 		for(FilterAgent dcl : listenerMap.values()){
 			PivotAgent pa = (PivotAgent) dcl;
 			pa.entryAdded(containerEntry);
+			pa.refreshPageView(true);
 		}
 	}
 
@@ -741,6 +738,7 @@ public class PivotContainer extends ConcreteContainer {
 		for(FilterAgent dcl : listenerMap.values()){
 			PivotAgent pa = (PivotAgent) dcl;
 			pa.entryRemoved(containerEntry);
+			pa.refreshPageView(true);
 		}
 	}
 
@@ -750,6 +748,7 @@ public class PivotContainer extends ConcreteContainer {
 		for(FilterAgent dcl : listenerMap.values()){
 			PivotAgent pa = (PivotAgent) dcl;
 			pa.entryUpdated(attribute, substance, containerEntry);
+			pa.refreshPageView(false);
 		}
 	}
 
