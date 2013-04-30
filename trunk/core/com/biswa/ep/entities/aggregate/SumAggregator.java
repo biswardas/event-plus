@@ -25,4 +25,21 @@ public class SumAggregator extends Aggregator {
 		}
 		return intermediateAggr;
 	}
+	@Override
+	protected Object aggregate(Object preUpdate,Object postUpdate){
+		Double intermediateAggr = (Double) getCurrentPivotEntry().getSubstance(getAggrAttr());
+		if(intermediateAggr==null){
+			if(preUpdate==null){
+				return postUpdate;
+			}else{
+				return (Double) postUpdate-(Double) preUpdate;
+			}
+		}else{ 
+			if(preUpdate==null){
+				return intermediateAggr+(Double)postUpdate;
+			}else{
+				return intermediateAggr+(Double) postUpdate-(Double) preUpdate;
+			}
+		}
+	}
 }

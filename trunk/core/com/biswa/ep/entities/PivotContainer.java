@@ -310,16 +310,35 @@ public class PivotContainer extends ConcreteContainer {
 			 *            Attribute
 			 */
 			public void aggregateAndPropagate(Attribute attribute) {
-				aggregate(attribute);
+				Object preUpdate = this.getSubstance(attribute);
+				Object postUpdate = aggregate(attribute);
 				if (parent != null)
-					parent.aggregateAndPropagate(attribute);
+					parent.aggregateAndPropagate(attribute,preUpdate,postUpdate);
+			}
+			/**
+			 * Aggregates and propagates the attribute vertically outward.
+			 * 
+			 * @param attribute
+			 *            Attribute
+			 */
+			public void aggregateAndPropagate(Attribute attribute,Object preUpdate,Object postUpdate) {
+				Object p_preUpdate = this.getSubstance(attribute);
+				Object p_postUpdate = aggregate(attribute,true,preUpdate,postUpdate);
+				if (parent != null)
+					parent.aggregateAndPropagate(attribute,p_preUpdate,p_postUpdate);
 			}
 
-			private void aggregate(Attribute attribute) {
+			private Object aggregate(Attribute attribute) {
+				return aggregate(attribute,false,null,null);
+			}
+			
+			private Object aggregate(Attribute attribute,boolean delta,Object preUpdate,Object postUpdate) {
+				Object outCome = null;
 				if (!pivotedAttributes.containsKey(attribute)) {
 					Aggregator aggregator = aggrMap.get(attribute);
-					this.silentUpdate(aggregator.getTargetAttr(), aggregator
-							.failSafeaggregate(this));
+					outCome = this.silentUpdate(aggregator.getTargetAttr(), 
+							delta?aggregator.failSafeaggregate(this,preUpdate,postUpdate)
+									:aggregator.failSafeaggregate(this));
 					for(Aggregator oneAggregator:aggregator.getChainedAggregators()){
 						if (!pivotedAttributes.containsKey(oneAggregator.getTargetAttr())) {
 							this.silentUpdate(oneAggregator.getTargetAttr(), oneAggregator
@@ -327,6 +346,7 @@ public class PivotContainer extends ConcreteContainer {
 						}
 					}
 				}
+				return outCome;
 			}
 
 			@Override
