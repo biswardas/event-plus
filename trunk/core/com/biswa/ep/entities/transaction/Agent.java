@@ -1,8 +1,11 @@
 package com.biswa.ep.entities.transaction;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -397,11 +400,11 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 		semaphore.acquireUninterruptibly();
 	}
 	
-	public int getEntryCount(final String name){
+	public int getEntryCount(final String name,final int isolation){
 		final AtomicInteger ai = new AtomicInteger(0);
 		final Semaphore s = new Semaphore(1);
 		s.drainPermits();
-		invokeOperation(new ContainerTask() {
+		ContainerTask runnable = new ContainerTask() {
 			/**
 			 * 
 			 */
@@ -416,16 +419,27 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 					s.release();
 				}
 			}
-		});
-		s.acquireUninterruptibly();
-		return ai.get();
+		};
+		switch(isolation){
+			case 0:
+				invokeOperation(runnable);
+				s.acquireUninterruptibly();
+				return ai.get();
+			case 1:
+				getEventCollector().execute(runnable);
+				s.acquireUninterruptibly();
+				return ai.get();
+			default:
+				FilterAgent pa = cl.getFliterAgent(name);
+				return pa.getEntryCount();
+		}
 	}
 
-	public LightWeightEntry getSortedEntry(final String name,final int id){
+	public LightWeightEntry getSortedEntry(final String name,final int id,final int isolation){
 		final AtomicReference<LightWeightEntry> atom = new AtomicReference<LightWeightEntry>();
 		final Semaphore s = new Semaphore(1);
 		s.drainPermits();
-		invokeOperation(new ContainerTask() {
+		ContainerTask runnable = new ContainerTask() {
 			/**
 			 * 
 			 */
@@ -441,9 +455,22 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 					s.release();
 				}
 			}
-		});
-		s.acquireUninterruptibly();
-		return atom.get();
+		};
+
+		switch(isolation){
+			case 0:
+				invokeOperation(runnable);
+				s.acquireUninterruptibly();
+				return atom.get();
+			case 1:
+				getEventCollector().execute(runnable);
+				s.acquireUninterruptibly();
+				return atom.get();
+			default:
+				FilterAgent pa = cl.getFliterAgent(name);
+				ContainerEntry conEntry = pa.getContainerEntries()[id];
+				return new LightWeightEntry(conEntry.getIdentitySequence(), conEntry.getSubstancesAsArray());
+		}
 	}
 
 	public String[] getAttributes(){
@@ -459,8 +486,15 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 			@Override
 			protected void runtask() {
 				try {
+					TreeSet<Attribute> trees = new TreeSet<Attribute>(new Comparator<Attribute>(){
+						@Override
+						public int compare(Attribute o1, Attribute o2) {
+							return o1.getOrdinal()-o2.getOrdinal();
+						}						
+					});
+					trees.addAll(Arrays.asList(getContainer().getSubscribedAttributes()));
 					ArrayList<String> al = new ArrayList<String>();
-					for(Attribute attr:getContainer().getSubscribedAttributes()){
+					for(Attribute attr:trees){
 						al.add(attr.getName());
 					}
 					atom.set(al.toArray(new String[0]));

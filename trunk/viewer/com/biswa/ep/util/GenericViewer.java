@@ -277,7 +277,7 @@ public class GenericViewer extends ConcreteContainer {
 				LightWeightEntry tEntry = super.get(key);
 					if (tEntry == null) {
 						// System.out.println("Requesting record:"+key);
-						tEntry = getSourceAgent().getSortedEntry(getName(), (Integer) key);
+						tEntry = getSourceAgent().getSortedEntry(getName(), (Integer) key,2);
 						put((Integer) key, tEntry);
 					}
 				return tEntry;
@@ -304,7 +304,7 @@ public class GenericViewer extends ConcreteContainer {
 
 		@Override
 		public int getRowCount() {
-			int rowCnt = getSourceAgent().getEntryCount(getName());
+			int rowCnt = getSourceAgent().getEntryCount(getName(),2);
 			return rowCnt;
 		}
 

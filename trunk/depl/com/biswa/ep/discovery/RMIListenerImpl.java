@@ -270,13 +270,13 @@ public class RMIListenerImpl implements RMIListener{
 
 
 	@Override
-	public int getEntryCount(final String name) throws RemoteException {
-		return getAgent().getEntryCount(name);
+	public int getEntryCount(final String name,final int isolation) throws RemoteException {
+		return getAgent().getEntryCount(name,isolation);
 	}
 
 	@Override
-	public LightWeightEntry getSortedEntry(final String name,final int id) throws RemoteException {
-		return getAgent().getSortedEntry(name, id);
+	public LightWeightEntry getSortedEntry(final String name,final int id,final int isolation) throws RemoteException {
+		return getAgent().getSortedEntry(name, id,isolation);
 	}
 
 	@Override
