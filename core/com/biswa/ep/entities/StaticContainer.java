@@ -48,7 +48,7 @@ public class StaticContainer extends CascadeContainer {
 		listenerMap.put(connectionEvent.getSink(),filterAgent);
 		FilterSpec incomingFilter = connectionEvent.getFilterSpec();
 		if(incomingFilter!=null){
-			incomingFilter = incomingFilter.prepare();
+			incomingFilter = incomingFilter.prepare(this);
 			filterAgent.setFilterSpec(filterSpec.chain(incomingFilter));
 		}else{
 			filterAgent.setFilterSpec(filterSpec);

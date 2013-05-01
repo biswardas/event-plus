@@ -61,8 +61,8 @@ public class FilterSpec extends Spec {
 		abstractSchema.applyFilter(this);
 	}
 
-	public FilterSpec prepare() {
-		predicate.prepare();
+	public FilterSpec prepare(AbstractContainer appliedContainer) {
+		predicate.prepare(appliedContainer.getTypeMap());
 		return this;
 	}
 	

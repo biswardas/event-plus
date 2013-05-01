@@ -14,7 +14,6 @@ import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.provider.PredicateBuilder;
 
 public class CSOperation implements CSOperationMBean {
-	private ConcreteAttributeProvider attrProvider = new ConcreteAttributeProvider();
 	private AbstractContainer cs;
 	private Thread pausedThread;
 	
@@ -22,26 +21,6 @@ public class CSOperation implements CSOperationMBean {
 		this.cs=cs;
 	}
 	
-	@Override
-	public void addBeanShellAttribute(String expression) {
-		com.biswa.ep.entities.Attribute schemaAttribute = attrProvider.getAttribute(expression);
-		ContainerEvent ce = new ContainerStructureEvent(cs.getName(),schemaAttribute);
-		cs.agent().attributeAdded(ce);
-	}
-	
-	@Override
-	public void addKnownAttribute(String name) {
-		try{
-			Class<?> className = Class.forName(name);
-			Attribute schemaAttribute = null;
-			schemaAttribute = (com.biswa.ep.entities.Attribute) className.newInstance();
-			ContainerEvent ce = new ContainerStructureEvent(cs.getName(),schemaAttribute);
-			cs.agent().attributeAdded(ce);
-		}catch(Exception e){
-			throw new RuntimeException(e);
-		}
-	}
-
 	@Override
 	public void removeAttribute(String name) {
 		Attribute schemaAttribute = new LeafAttribute(name);

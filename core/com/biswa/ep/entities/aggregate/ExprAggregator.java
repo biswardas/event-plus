@@ -3,6 +3,7 @@ package com.biswa.ep.entities.aggregate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.dyna.ConcreteAttributeProvider;
@@ -35,9 +36,9 @@ public class ExprAggregator extends Aggregator {
 	}
 
 	@Override
-	public void prepare() {
-		compiledAttribute = new ConcreteAttributeProvider().getAttribute(aggregateExpression);
-		super.prepare();
+	public void prepare(AbstractContainer abs) {
+		compiledAttribute = new ConcreteAttributeProvider().getAttribute(aggregateExpression,abs.getTypeMap());
+		super.prepare(abs);
 	}
 	@Override
 	public final boolean isExpression(){

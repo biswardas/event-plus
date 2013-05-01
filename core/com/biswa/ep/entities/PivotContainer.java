@@ -625,7 +625,7 @@ public class PivotContainer extends ConcreteContainer {
 				final LinkedHashMap<Attribute, Aggregator> aggrSpec) {
 			//Prepare the aggregators
 			for (Aggregator oneAggregator : aggrSpec.values()) {
-				oneAggregator.prepare();
+				oneAggregator.prepare(PivotContainer.this);
 			}
 			
 			// Clear existing aggregations

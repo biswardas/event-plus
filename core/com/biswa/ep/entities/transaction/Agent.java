@@ -506,6 +506,30 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 		s.acquireUninterruptibly();
 		return atom.get();
 	}
+
+
+	public Map<String,Class<? extends Object>> getTypeMap(){
+		final AtomicReference<Map<String,Class<? extends Object>>> atom = new AtomicReference<Map<String,Class<? extends Object>>>();
+		final Semaphore s = new Semaphore(1);
+		s.drainPermits();
+		invokeOperation(new ContainerTask() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 6263129328893041488L;
+
+			@Override
+			protected void runtask() {
+				try {
+					atom.set(getContainer().getTypeMap());
+				} finally {
+					s.release();
+				}
+			}
+		});
+		s.acquireUninterruptibly();
+		return atom.get();
+	}
 	public String getName() {
 		return cl.getName();
 	}
