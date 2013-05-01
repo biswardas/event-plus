@@ -433,7 +433,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		writeln("return " + arg0.getName() + ";");
 
 		writeln("}");
-
+		writeType(arg0.getType());
 		writeln("}");
 		return returnValue;
 	}
@@ -474,10 +474,21 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			writeln("}");
 
 			returnValue = super.visitMethod(arg0, arg1);
-
+			writeType(arg0.getReturnType());
 			writeln("}");
 		}
 		return returnValue;
+	}
+
+	private void writeType(Tree arg0) {
+		writeln("@Override public Class<? extends Object> getType() {");
+			String outputType=arg0.toString();
+			int index = outputType.indexOf('<');
+			if(index>-1){
+				outputType=outputType.substring(0,index);
+			}
+			writeln("return "+outputType+".class;");
+		writeln("}");
 	}
 
 	private void beginClass(Name name, List<? extends AnnotationTree> list,
