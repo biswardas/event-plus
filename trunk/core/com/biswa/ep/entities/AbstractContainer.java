@@ -141,7 +141,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 		private final void chainAndReFilter(FilterSpec newFilterSpec,boolean isSinkFilter,boolean resetSendState){
 			if(isSinkFilter){
 				if(newFilterSpec!=null){
-					newFilterSpec.prepare();
+					newFilterSpec.prepare(AbstractContainer.this);
 				}
 				//If it is a sink Filter then
 				this.filterSpec=AbstractContainer.this.filterSpec.chain(newFilterSpec);
@@ -775,7 +775,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 */
 	public void applyFilter(final FilterSpec filterSpec){
 		if(getName().equals(filterSpec.getSinkName())){
-			filterSpec.prepare();
+			filterSpec.prepare(this);
 			//Source Filter updated update the filter chains
 			for(FilterAgent sinkAgent:listenerMap.values()){
 				sinkAgent.chainAndReFilter(filterSpec,false,false);
@@ -887,5 +887,13 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 
 	public void destroy() {
 		getEventDispatcher().destroy();		
+	}
+	
+	public Map<String,Class<? extends Object>> getTypeMap(){
+		HashMap<String,Class<? extends Object>> typeMap = new HashMap<String,Class<? extends Object>>();
+		for(Attribute attr:getSubscribedAttributes()){
+			typeMap.put(attr.getName(),Object.class);
+		}
+		return typeMap;
 	}
 }

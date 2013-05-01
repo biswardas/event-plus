@@ -628,7 +628,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 						updateStatic(containerEntry,attribute);
 					}	
 				} else {
-					appliedFilter.prepare();
+					appliedFilter.prepare(this);
 					for(ContainerEntry containerEntry:getContainerEntries()){
 						if(appliedFilter.filter(containerEntry)){
 							updateStatic(containerEntry,attribute);

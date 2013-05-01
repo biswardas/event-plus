@@ -2,8 +2,11 @@ package com.biswa.ep.entities.aggregate;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
+import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.LeafAttribute;
@@ -80,12 +83,12 @@ abstract public class Aggregator implements Serializable{
 	 * Before this aggregator is used in this container. This method must be called. This
 	 * is the hook for any necessary optimization required in this aggregator.
 	 */
-	public void prepare() {
+	public void prepare(AbstractContainer abs) {
 		Attribute tempAttr=aggrAttr.getRegisteredAttribute();
 		if(tempAttr!=null){
 			aggrAttr=tempAttr;
 			for(Aggregator oneChainedAggregator:chainedAggrList){
-				oneChainedAggregator.prepare();
+				oneChainedAggregator.prepare(abs);
 			}
 		}else{
 			throw new RuntimeException("Referencing non existent Attribute:"+aggrAttr);

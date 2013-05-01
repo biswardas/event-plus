@@ -1,6 +1,7 @@
 package com.biswa.ep.entities.dyna;
 
 import java.util.Iterator;
+import java.util.Map;
 import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
 
@@ -13,12 +14,12 @@ public class ConcreteAttributeProvider implements DynamicAttributeProvider {
 	}
 	
 	@Override
-	public Attribute getAttribute(String expression) {
+	public Attribute getAttribute(String expression,Map<String,Class<? extends Object>> types) {
         try {
             Iterator<DynamicAttributeProvider> dynamicAttributeProvider = loader.iterator();
             while (dynamicAttributeProvider.hasNext()) {
             	DynamicAttributeProvider d = dynamicAttributeProvider.next();
-                return d.getAttribute(expression);
+                return d.getAttribute(expression,types);
             }
         } catch (ServiceConfigurationError serviceError) {
             throw new RuntimeException(serviceError);

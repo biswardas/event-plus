@@ -8,7 +8,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.WeakHashMap;
@@ -211,7 +213,7 @@ public class GenericViewer extends ConcreteContainer {
 		removeButton.addActionListener(new ActionListener() {			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				com.biswa.ep.entities.Attribute schemaAttribute = new CompiledAttributeProvider().getAttribute(collapserTextField.getText());
+				com.biswa.ep.entities.Attribute schemaAttribute = new CompiledAttributeProvider().getAttribute(collapserTextField.getText(),getSourceAgent().getTypeMap());
 				ContainerEvent ce = new ContainerStructureEvent(getName(),schemaAttribute);
 				getSourceAgent().attributeRemoved(ce);
 				getSourceAgent().attributeAdded(ce);
@@ -226,7 +228,7 @@ public class GenericViewer extends ConcreteContainer {
 		removeButton.addActionListener(new ActionListener() {			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				com.biswa.ep.entities.Attribute schemaAttribute = new ScriptEngineAttributeProvider().getAttribute(collapserTextField.getText());
+				com.biswa.ep.entities.Attribute schemaAttribute = new ScriptEngineAttributeProvider().getAttribute(collapserTextField.getText(),getSourceAgent().getTypeMap());
 				ContainerEvent ce = new ContainerStructureEvent(getName(),schemaAttribute);
 				getSourceAgent().attributeRemoved(ce);
 				getSourceAgent().attributeAdded(ce);
@@ -266,7 +268,7 @@ public class GenericViewer extends ConcreteContainer {
 	public void setSourceAgent(Agent sourceAgent) {
 		this.sourceAgent=sourceAgent;
 	}
-	
+
 	class ViewerTableModel extends AbstractTableModel {
 		/**
 		 * 

@@ -3,12 +3,12 @@ package com.biswa.ep.discovery;
 import java.lang.ref.WeakReference;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicReference;
 
 import com.biswa.ep.deployment.Deployer;
-import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.ContainerEvent;
@@ -290,7 +290,7 @@ public class RMIListenerImpl implements RMIListener{
 
 	@Override
 	public void addCompiledAttribute(String expression) throws RemoteException {
-		com.biswa.ep.entities.Attribute schemaAttribute = new CompiledAttributeProvider().getAttribute(expression);
+		com.biswa.ep.entities.Attribute schemaAttribute = new CompiledAttributeProvider().getAttribute(expression,getAgent().getTypeMap());
 		ContainerEvent ce = new ContainerStructureEvent(getAgent().getName(),schemaAttribute);
 		getAgent().attributeRemoved(ce);
 		getAgent().attributeAdded(ce);		
@@ -298,7 +298,7 @@ public class RMIListenerImpl implements RMIListener{
 
 	@Override
 	public void addScriptAttribute(String expression) throws RemoteException {
-		com.biswa.ep.entities.Attribute schemaAttribute = new ScriptEngineAttributeProvider().getAttribute(expression);
+		com.biswa.ep.entities.Attribute schemaAttribute = new ScriptEngineAttributeProvider().getAttribute(expression,getAgent().getTypeMap());
 		ContainerEvent ce = new ContainerStructureEvent(getAgent().getName(),schemaAttribute);
 		getAgent().attributeRemoved(ce);
 		getAgent().attributeAdded(ce);		

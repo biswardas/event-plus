@@ -1,6 +1,7 @@
 package com.biswa.ep.entities;
 
 import java.io.Serializable;
+import java.util.Map;
 
 import com.biswa.ep.entities.dyna.ConcreteAttributeProvider;
 
@@ -28,8 +29,8 @@ public class Predicate implements Serializable {
 		return booleanValue;
 	}
 
-	public void prepare() {
+	public void prepare(Map<String,Class<? extends Object>> typeMap) {
 		compiledAttribute = new ConcreteAttributeProvider()
-				.getAttribute(predicate);
+				.getAttribute(predicate,typeMap);
 	}
 }

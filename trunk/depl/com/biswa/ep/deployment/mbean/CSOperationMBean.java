@@ -5,16 +5,6 @@ package com.biswa.ep.deployment.mbean;
  *
  */
 public interface CSOperationMBean {
-	/**
-	 * Adds a bean shell attribute to the current container.
-	 * @param Expression String Bean shell expression
-	 */
-	public void addBeanShellAttribute(String Expression);
-	/**
-	 * Adds a compiled attribute to the current container. Fully qualified className.
-	 * @param name String
-	 */
-	public void addKnownAttribute(String name);
 	/**Removes an attribute from the container.
 	 * 
 	 * @param name
