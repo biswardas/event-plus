@@ -6,7 +6,9 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.security.SecureClassLoader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
@@ -23,10 +25,12 @@ public class CompiledJavaObject extends SimpleJavaFileObject {
 	private String expression;
 	private String name = null;
 	private Attribute attribute = null; 
-	protected CompiledJavaObject(String expression) {
+	private final Map<String, Class<? extends Object>> typeMap; 
+	protected CompiledJavaObject(String expression, Map<String, Class<? extends Object>> typeMap) {
 		super(URI.create("string:///com/biswa/ep/provider/CompiledAttribute"+expression.substring(0, expression.indexOf("="))+".java"), Kind.SOURCE);
 		this.expression = expression;
 		this.name = expression.substring(0, expression.indexOf("="));
+		this.typeMap=typeMap;
 		JavaCompiler jc = ToolProvider.getSystemJavaCompiler();
 		JavaFileManager fileManager = new ClassFileManager(jc.getStandardFileManager(null, null, null));
 		List<JavaFileObject> jfiles = new ArrayList<JavaFileObject>();
@@ -52,7 +56,9 @@ public class CompiledJavaObject extends SimpleJavaFileObject {
 		sb.append(" extends Attribute{");
 		sb.append("{\n");
 		for(String oneVariable:epJavaObject.getVariables()){
-			sb.append("addDependency(new LeafAttribute(\""+oneVariable+"\"));\n");
+			if(typeMap.containsKey(oneVariable)){
+				sb.append("addDependency(new LeafAttribute(\""+oneVariable+"\"));\n");
+			}
 		}
 		sb.append("}\n");
 
@@ -61,7 +67,9 @@ public class CompiledJavaObject extends SimpleJavaFileObject {
 		sb.append("}\n");
 		sb.append("public Object evaluate(Attribute attribute,ContainerEntry ce){\n");
 			for(String oneVariable:epJavaObject.getVariables()){
-				sb.append("Object "+oneVariable+" = super.getValue(ce,\""+oneVariable+"\");\n");
+				if(typeMap.containsKey(oneVariable)){
+					sb.append("Object "+oneVariable+" = super.getValue(ce,\""+oneVariable+"\");\n");
+				}
 			}
 			sb.append("return "+expression.substring(expression.indexOf("=") + 1)+";\n");
 		sb.append("}\n");
@@ -110,7 +118,7 @@ public class CompiledJavaObject extends SimpleJavaFileObject {
 	}
 
 	public static void main(String[] args) {
-		CompiledJavaObject jfo = new CompiledJavaObject("x=(double)a+(double)b");
+		CompiledJavaObject jfo = new CompiledJavaObject("x=(double)a+(double)b",new HashMap<String,Class<? extends Object>>());
 		System.out.println(jfo.getCompiledAttribute());
 	}
 }
