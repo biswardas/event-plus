@@ -395,6 +395,10 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 		return getContainer().getAttributeByName(name);
 	}
 
+	public Class<? extends Object> getType() {
+		return Object.class;
+	}
+	
 	/**
 	 * Returns the associated current container.
 	 * 

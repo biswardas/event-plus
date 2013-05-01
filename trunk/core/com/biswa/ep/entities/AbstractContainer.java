@@ -892,7 +892,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	public Map<String,Class<? extends Object>> getTypeMap(){
 		HashMap<String,Class<? extends Object>> typeMap = new HashMap<String,Class<? extends Object>>();
 		for(Attribute attr:getSubscribedAttributes()){
-			typeMap.put(attr.getName(),Object.class);
+			typeMap.put(attr.getName(),attr.getType());
 		}
 		return typeMap;
 	}
