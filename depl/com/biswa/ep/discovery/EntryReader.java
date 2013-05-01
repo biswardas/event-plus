@@ -12,7 +12,7 @@ public interface EntryReader extends Remote{
 	TransportEntry getByID(int id) throws RemoteException;
 	TransportEntry[] getByID(int[] ids) throws RemoteException;
 	TransportEntry[] getByFilter(FilterSpec filterSpec) throws RemoteException;
-	int getEntryCount(String name) throws RemoteException;
-	LightWeightEntry getSortedEntry(String name,int id) throws RemoteException;
+	int getEntryCount(String name,int isolation) throws RemoteException;
+	LightWeightEntry getSortedEntry(String name,int id,int isolation) throws RemoteException;
 	String[] getAttributes() throws RemoteException;
 }

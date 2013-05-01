@@ -354,7 +354,7 @@ public class ViewPortViewer extends ConcreteContainer {
 					tEntry = super.get(key);
 					if (tEntry == null) {
 						// System.out.println("Requesting record:"+key);
-						tEntry = er.getSortedEntry(getName(), (Integer) key);
+						tEntry = er.getSortedEntry(getName(), (Integer) key,2);
 						put((Integer) key, tEntry);
 					}
 				} catch (RemoteException e) {
@@ -393,7 +393,7 @@ public class ViewPortViewer extends ConcreteContainer {
 		public int getRowCount() {
 			int rowCnt = 0;
 			try {
-				rowCnt = er.getEntryCount(getName());
+				rowCnt = er.getEntryCount(getName(),2);
 			} catch (RemoteException e) {
 			}
 			return rowCnt;
