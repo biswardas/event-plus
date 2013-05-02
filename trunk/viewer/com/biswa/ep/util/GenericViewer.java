@@ -8,9 +8,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.WeakHashMap;
@@ -39,11 +37,12 @@ import com.biswa.ep.entities.spec.CollapseSpec;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.entities.spec.PivotSpec;
 import com.biswa.ep.entities.spec.SortSpec;
+import com.biswa.ep.entities.spec.Spec;
 import com.biswa.ep.entities.transaction.Agent;
 import com.biswa.ep.provider.CompiledAttributeProvider;
 import com.biswa.ep.provider.PredicateBuilder;
 import com.biswa.ep.provider.ScriptEngineAttributeProvider;
-public class GenericViewer extends ConcreteContainer {
+public class GenericViewer extends ConcreteContainer implements UIOperations {
 	private JFrame jframe = null;
 	private JTable jtable = null;
 	private ViewerTableModel vtableModel = null;
@@ -119,7 +118,7 @@ public class GenericViewer extends ConcreteContainer {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Predicate pred = PredicateBuilder.buildPredicate(collapserTextField.getText());
-				getSourceAgent().applySpec(new FilterSpec(getName(),pred));
+				applySpecInSource(new FilterSpec(getName(),pred));
 			}
 		});
 	}
@@ -137,7 +136,7 @@ public class GenericViewer extends ConcreteContainer {
 					list.add(new LeafAttribute(stk.nextToken()));
 				}
 				PivotSpec pivotSpec = new PivotSpec(getName(),list.toArray(new Attribute[0]));
-				getSourceAgent().applySpec(pivotSpec);
+				applySpecInSource(pivotSpec);
 			}
 		});
 	}
@@ -155,7 +154,7 @@ public class GenericViewer extends ConcreteContainer {
 					String[] oneAttribute = stk.nextToken().split(":");
 					aggrSpec.add(Aggregators.valueOf(oneAttribute[1]).newInstance(oneAttribute[0]));
 				}
-				getSourceAgent().applySpec(aggrSpec);
+				applySpecInSource(aggrSpec);
 			}
 		});
 	}
@@ -174,7 +173,7 @@ public class GenericViewer extends ConcreteContainer {
 					boolean order = oneAttribute.length>1?Boolean.parseBoolean(oneAttribute[1]):true;
 					sortSpec.addSortOrder(new LeafAttribute(oneAttribute[0]),order);
 				}
-				getSourceAgent().applySpec(sortSpec);
+				applySpecInSource(sortSpec);
 			}
 		});
 	}
@@ -189,7 +188,7 @@ public class GenericViewer extends ConcreteContainer {
 				String[] oneNode = collapserTextField.getText().split(":");
 				boolean order = oneNode.length>1?Boolean.parseBoolean(oneNode[1]):true;
 				CollapseSpec collapseSpec = new CollapseSpec(getName(),Integer.parseInt(oneNode[0]),order);
-				getSourceAgent().applySpec(collapseSpec);
+				applySpecInSource(collapseSpec);
 			}
 		});
 	}
@@ -201,7 +200,7 @@ public class GenericViewer extends ConcreteContainer {
 		removeButton.addActionListener(new ActionListener() {			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				getSourceAgent().entryRemoved(new ContainerDeleteEvent(getName(), Integer.parseInt(collapserTextField.getText()), 0));
+				removeEntryFromSource(collapserTextField.getText());
 			}
 		});
 	}
@@ -213,10 +212,7 @@ public class GenericViewer extends ConcreteContainer {
 		removeButton.addActionListener(new ActionListener() {			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				com.biswa.ep.entities.Attribute schemaAttribute = new CompiledAttributeProvider().getAttribute(collapserTextField.getText(),getSourceAgent().getTypeMap());
-				ContainerEvent ce = new ContainerStructureEvent(getName(),schemaAttribute);
-				getSourceAgent().attributeRemoved(ce);
-				getSourceAgent().attributeAdded(ce);
+				addCompiledAttributeToSource(collapserTextField.getText());
 			}
 		});
 	}
@@ -228,10 +224,7 @@ public class GenericViewer extends ConcreteContainer {
 		removeButton.addActionListener(new ActionListener() {			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				com.biswa.ep.entities.Attribute schemaAttribute = new ScriptEngineAttributeProvider().getAttribute(collapserTextField.getText(),getSourceAgent().getTypeMap());
-				ContainerEvent ce = new ContainerStructureEvent(getName(),schemaAttribute);
-				getSourceAgent().attributeRemoved(ce);
-				getSourceAgent().attributeAdded(ce);
+				addScriptAttributeToSource(collapserTextField.getText());
 			}
 		});
 	}
@@ -261,10 +254,6 @@ public class GenericViewer extends ConcreteContainer {
 		jframe.setTitle(getName()+"/"+jtable.getRowCount()+"--"+GenericViewer.this.getCurrentTransactionID());
 	}
 
-	public Agent getSourceAgent() {
-		return sourceAgent;
-	}
-	
 	public void setSourceAgent(Agent sourceAgent) {
 		this.sourceAgent=sourceAgent;
 	}
@@ -274,21 +263,11 @@ public class GenericViewer extends ConcreteContainer {
 		 * 
 		 */
 		private static final long serialVersionUID = 4352652252566957454L;
-		private WeakHashMap<Integer, LightWeightEntry> cachedEntries = new WeakHashMap<Integer, LightWeightEntry>() {
-			public LightWeightEntry get(Object key) {
-				LightWeightEntry tEntry = super.get(key);
-					if (tEntry == null) {
-						// System.out.println("Requesting record:"+key);
-						tEntry = getSourceAgent().getSortedEntry(getName(), (Integer) key,2);
-						put((Integer) key, tEntry);
-					}
-				return tEntry;
-			}
-		};
+		
 		private String[] attributes = null;
 
 		public ViewerTableModel() {
-			this.attributes = getSourceAgent().getAttributes();
+			this.attributes = getAttributes();
 		}
 
 		public String getColumnName(int col) {
@@ -306,8 +285,7 @@ public class GenericViewer extends ConcreteContainer {
 
 		@Override
 		public int getRowCount() {
-			int rowCnt = getSourceAgent().getEntryCount(getName(),2);
-			return rowCnt;
+			return getSortedEntryCount();
 		}
 
 		@Override
@@ -315,7 +293,7 @@ public class GenericViewer extends ConcreteContainer {
 			if (columnIndex == 0)
 				return cachedEntries.get(rowIndex).id;
 			else
-				return cachedEntries.get(rowIndex).substances[columnIndex - 1];
+				return cachedEntries.get(rowIndex).substance(columnIndex - 1);
 		}
 
 		@Override
@@ -326,8 +304,57 @@ public class GenericViewer extends ConcreteContainer {
 
 		@Override
 		public void fireTableStructureChanged() {
-			this.attributes = getSourceAgent().getAttributes();
+			this.attributes = getAttributes();
 			super.fireTableStructureChanged();
 		}
 	}
+
+	@Override
+	public int getSortedEntryCount() {
+		return sourceAgent.getEntryCount(getName(), 2);
+	}
+	
+	@Override
+	public LightWeightEntry getLightWeightEntry(int id) {
+		return sourceAgent.getSortedEntry(getName(), id, 2);
+	}
+	
+	@Override
+	public void applySpecInSource(Spec spec) {
+		sourceAgent.applySpec(spec);		
+	}
+
+	@Override
+	public void addCompiledAttributeToSource(String data) {
+		com.biswa.ep.entities.Attribute schemaAttribute = new CompiledAttributeProvider().getAttribute(data,sourceAgent.getTypeMap());
+		ContainerEvent ce = new ContainerStructureEvent(getName(),schemaAttribute);
+		sourceAgent.attributeRemoved(ce);		
+		sourceAgent.attributeAdded(ce);
+	}
+	@Override
+	public void addScriptAttributeToSource(String data) {
+		com.biswa.ep.entities.Attribute schemaAttribute = new ScriptEngineAttributeProvider().getAttribute(data,sourceAgent.getTypeMap());
+		ContainerEvent ce = new ContainerStructureEvent(getName(),schemaAttribute);
+		sourceAgent.attributeRemoved(ce);
+		sourceAgent.attributeAdded(ce);
+	}
+	@Override
+	public void removeEntryFromSource(String data) {
+		sourceAgent.entryRemoved(new ContainerDeleteEvent(getName(), Integer.parseInt(data), 0));
+	}
+	@Override
+	public String[] getAttributes(){
+		return sourceAgent.getAttributes();
+	}
+	private WeakHashMap<Integer, LightWeightEntry> cachedEntries = new WeakHashMap<Integer, LightWeightEntry>() {
+		public LightWeightEntry get(Object key) {
+			LightWeightEntry tEntry = super.get(key);
+				if (tEntry == null) {
+					// System.out.println("Requesting record:"+key);
+					tEntry = getLightWeightEntry((Integer)key);
+					put((Integer) key, tEntry);
+				}
+			return tEntry;
+		}
+	};
 }
