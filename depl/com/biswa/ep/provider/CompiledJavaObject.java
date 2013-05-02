@@ -74,6 +74,11 @@ public class CompiledJavaObject extends SimpleJavaFileObject {
 			}
 			sb.append("return "+expression.substring(expression.indexOf("=") + 1)+";\n");
 		sb.append("}\n");
+		if(typeMap.containsKey(name)){
+			sb.append("@Override public Class<? extends Object> getType(){\n");
+			sb.append("return "+ typeMap.get(name).getName()+".class;\n");
+			sb.append("}\n");
+		}
 		sb.append("}\n");
 		return sb.toString();
 	}
@@ -119,7 +124,11 @@ public class CompiledJavaObject extends SimpleJavaFileObject {
 	}
 
 	public static void main(String[] args) {
-		CompiledJavaObject jfo = new CompiledJavaObject("x=(double)a+(double)b",new HashMap<String,Class<? extends Object>>());
+		HashMap<String,Class<? extends Object>> typeMap = new HashMap<String,Class<? extends Object>>();
+		typeMap.put("a", double.class);
+		typeMap.put("b", double.class);
+		typeMap.put("x", double.class);
+		CompiledJavaObject jfo = new CompiledJavaObject("x=a+b",typeMap);
 		System.out.println(jfo.getCompiledAttribute());
 	}
 }
