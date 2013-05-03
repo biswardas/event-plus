@@ -2,9 +2,7 @@ package com.biswa.ep.entities.aggregate;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.Attribute;
