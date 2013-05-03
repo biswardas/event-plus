@@ -48,7 +48,7 @@ public class PivotContainer extends ConcreteContainer {
 		 */
 		private final PivotEntry root = new PivotEntry();
 
-		private ConcreteContainerEntry[] indexedEntries = null;
+		private ContainerEntry[] indexedEntries = null;
 		/**
 		 * Is indexedEntries possibly dirty?
 		 */
@@ -405,12 +405,12 @@ public class PivotContainer extends ConcreteContainer {
 				}
 			}
 
-			public ConcreteContainerEntry[] getContainerEntries() {
+			public ContainerEntry[] getContainerEntries() {
 				if (dirty) {
 					dirty = false;
 					return computeContainerEntries(
 							pivotedAttributes.keySet().toArray(new Attribute[0]))
-							.toArray(new ConcreteContainerEntry[0]);
+							.toArray(new ContainerEntry[0]);
 				} else {
 					return indexedEntries;
 				}
@@ -665,8 +665,8 @@ public class PivotContainer extends ConcreteContainer {
 		}
 
 		@Override
-		public ConcreteContainerEntry[] getContainerEntries() {
-			return indexedEntries != null ? indexedEntries : new ConcreteContainerEntry[0];
+		public ContainerEntry[] getContainerEntries() {
+			return indexedEntries != null ? indexedEntries : new ContainerEntry[0];
 		}
 		@Override
 		public int getEntryCount() {
