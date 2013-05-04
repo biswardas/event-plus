@@ -11,4 +11,5 @@ public interface UIOperations {
 	void addScriptAttributeToSource(String data);
 	void removeEntryFromSource(String data);
 	String[] getAttributes();
+	void disConnectFromSource();
 }

@@ -76,7 +76,7 @@ public class GenericViewer extends ConcreteContainer implements UIOperations {
 					public void windowClosing(WindowEvent e) {
 						if(++x==2) System.exit(0);
 						try{
-							disconnect(null);
+							disConnectFromSource();
 						}finally{
 							super.windowClosed(e);
 						}
@@ -357,4 +357,8 @@ public class GenericViewer extends ConcreteContainer implements UIOperations {
 			return tEntry;
 		}
 	};
+	@Override
+	public void disConnectFromSource() {
+		sourceAgent.disconnect(new ConnectionEvent(sourceAgent.getName(), getName()));
+	}
 }

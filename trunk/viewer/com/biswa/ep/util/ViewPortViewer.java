@@ -13,6 +13,7 @@ import com.biswa.ep.discovery.RMIListener;
 import com.biswa.ep.discovery.RegistryHelper;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerDeleteEvent;
+import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.LightWeightEntry;
 import com.biswa.ep.entities.spec.Spec;
 
@@ -57,7 +58,11 @@ public class ViewPortViewer extends GenericViewer {
 	@Override
 	public int getSortedEntryCount() {
 		try {
-			return sourceAgent.getEntryCount(getName(), 2);
+			if(isPivot()){
+				return sourceAgent.getEntryCount(getName(), 2);
+			}else{
+				return getEntryCount();
+			}
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -68,7 +73,12 @@ public class ViewPortViewer extends GenericViewer {
 	@Override
 	public LightWeightEntry getLightWeightEntry(int id) {
 		try {
-			return sourceAgent.getSortedEntry(getName(), id, 2);
+			if(isPivot()){
+				return sourceAgent.getSortedEntry(getName(), id, 2);
+			}else{
+				ContainerEntry conEntry = getContainerEntries()[id];
+				return new LightWeightEntry(conEntry.getIdentitySequence(),conEntry.getSubstancesAsArray());
+			}
 		} catch (RemoteException e) {
 			return new LightWeightEntry(getDefaultEntry()
 					.getIdentitySequence(),getDefaultEntry().getSubstancesAsArray());
@@ -113,11 +123,28 @@ public class ViewPortViewer extends GenericViewer {
 	@Override
 	public String[] getAttributes(){
 		try {
-			return sourceAgent.getAttributes();
+			if(isPivot()){
+				return sourceAgent.getAttributes();
+			}else{
+				return getSubscribedAttrStrNames();
+			}
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
 		return new String[0];
+	}
+
+	@Override
+	public void disConnectFromSource() {
+		try {
+			sourceAgent.disconnect(sourceName, getName());
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public boolean isPivot(){
+		return true;
 	}
 	public static void main(final String[] args) {
 		if (args.length < 2) {
