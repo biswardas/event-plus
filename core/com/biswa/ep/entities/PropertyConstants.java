@@ -52,11 +52,6 @@ public interface PropertyConstants {
 	String MEM_OPTIMIZATION = "memory.optimization";
 	
 	/**
-	 * D3 Support Enabled
-	 */
-	String D3_SUPPORT= "d3.enabled";
-	
-	/**
 	 * Passivation after certain time
 	 */
 	String PASSIVATION_IDLE_DURATION="passivation_idle_period";

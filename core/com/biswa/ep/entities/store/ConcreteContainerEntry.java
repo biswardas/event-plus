@@ -53,20 +53,30 @@ public class ConcreteContainerEntry extends AbstractPhysicalEntry{
 	public Object silentUpdate(Attribute attribute, Object substance){
 		return substanceArray[attribute.getOrdinal()]= substance;
 	}
-	
+
 	@Override
-	public Object silentUpdate(Attribute attribute, Object substance,int minor){
-		return silentUpdate(attribute,substance);
+	public Object silentUpdate(Attribute attribute, Object substance,int minor) {
+		Object[] multiSubstance = (Object[]) getSubstance(attribute);
+		if(multiSubstance==null){
+			multiSubstance = new Object[minor+1];
+		}else if(minor>=multiSubstance.length){
+			multiSubstance = Arrays.copyOf(multiSubstance, minor+1);
+		}
+		multiSubstance[minor]=substance;
+		return silentUpdate(attribute, multiSubstance);
 	}
 
 	@Override
 	public void remove(Attribute attribute){
 		substanceArray[attribute.getOrdinal()]= null;
 	}
-	
+
 	@Override
-	public void remove(Attribute attribute,int minor){
-		remove(attribute);
+	public void remove(Attribute attribute,int minor) {
+		Object[] multiSubstance = (Object[]) getSubstance(attribute);
+		if(multiSubstance!=null && minor<multiSubstance.length){
+			multiSubstance[minor] = null;
+		}
 	}
 	
 	@Override
