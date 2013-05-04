@@ -46,19 +46,14 @@ public class SubscriptionAttrHandlerImpl implements SubscriptionAttrHandler {
 			SubscriptionAttribute subscriptionAttribute,
 			ContainerEntry containerEntry, Object[] data) {
 		Object[] currentSubscriptionSet = (Object[]) getMultiSubstance(
-				subscriptionAttribute, containerEntry,0);
+				subscriptionAttribute, containerEntry,0);		
+		if (data.length == currentSubscriptionSet.length) {
+			return substituteMultiValue(subscriptionAttribute, containerEntry, data);
+		} else {
+			unsubscribe(subscriptionAttribute, containerEntry);
 
-		if (data != null) {
-			if (currentSubscriptionSet != null
-					&& data.length == currentSubscriptionSet.length) {
-				return substituteMultiValue(subscriptionAttribute, containerEntry, data);
-			} else {
-				unsubscribe(subscriptionAttribute, containerEntry);
-
-				return subscribe(subscriptionAttribute, containerEntry);
-			}
+			return subscribe(subscriptionAttribute, containerEntry);
 		}
-		return currentSubscriptionSet;
 	}
 
 	@Override
