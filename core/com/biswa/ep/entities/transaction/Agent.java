@@ -1,18 +1,13 @@
 package com.biswa.ep.entities.transaction;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.AbstractContainer.FilterAgent;
-import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ConnectionListener;
 import com.biswa.ep.entities.ContainerEntry;
@@ -486,18 +481,7 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 			@Override
 			protected void runtask() {
 				try {
-					TreeSet<Attribute> trees = new TreeSet<Attribute>(new Comparator<Attribute>(){
-						@Override
-						public int compare(Attribute o1, Attribute o2) {
-							return o1.getOrdinal()-o2.getOrdinal();
-						}						
-					});
-					trees.addAll(Arrays.asList(getContainer().getSubscribedAttributes()));
-					ArrayList<String> al = new ArrayList<String>();
-					for(Attribute attr:trees){
-						al.add(attr.getName());
-					}
-					atom.set(al.toArray(new String[0]));
+					atom.set(getContainer().getSubscribedAttrStrNames());
 				} finally {
 					s.release();
 				}
