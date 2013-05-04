@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -290,10 +291,15 @@ public class GenericViewer extends ConcreteContainer implements UIOperations {
 
 		@Override
 		public Object getValueAt(int rowIndex, int columnIndex) {
+			Object objectToDisplay = null;
 			if (columnIndex == 0)
-				return cachedEntries.get(rowIndex).id;
+				objectToDisplay = cachedEntries.get(rowIndex).id;
 			else
-				return cachedEntries.get(rowIndex).substance(columnIndex - 1);
+				objectToDisplay = cachedEntries.get(rowIndex).substance(columnIndex - 1);
+			if(objectToDisplay!=null && objectToDisplay.getClass().isArray()){
+				objectToDisplay = Arrays.toString((Object[])objectToDisplay);
+			}
+			return objectToDisplay;
 		}
 
 		@Override
