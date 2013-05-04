@@ -1,3 +1,4 @@
+#summary Different Business Cases where this framework will be useful.
 === Case Studies ===
 
   * *Best Bid Ask* Merging quotes from different market and providing best quote to client and calculating simple profit and loss. Checkout the [EventPlus example].
