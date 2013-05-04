@@ -1,37 +1,43 @@
 package com.biswa.ep.subscription;
 
-import java.util.HashMap;
-import java.util.Map.Entry;
-
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.LeafAttribute;
+
 /**
  * Default Client side subscription processor.
  * 
  * @author biswa
- *
+ * 
  */
 public class SubscriptionAttrHandlerImpl implements SubscriptionAttrHandler {
-	private boolean isMulti(Object data){
-		return data!=null && data.getClass().isArray();
+	private boolean isMulti(Object data) {
+		return data != null && data.getClass().isArray();
 	}
-	
+
 	@Override
-	public Object substitute(SubscriptionAttribute subscriptionAttribute,ContainerEntry containerEntry) {
-		Object data = containerEntry.getSubstance(subscriptionAttribute.getDependsAttribute().getRegisteredAttribute());
-		if(isMulti(data)){
-			return substituteMultiValue(subscriptionAttribute, containerEntry, (Object[])data);
-		}else{
-			return substituteSingleValue(subscriptionAttribute, containerEntry, data);
+	public Object substitute(SubscriptionAttribute subscriptionAttribute,
+			ContainerEntry containerEntry) {
+		Object data = containerEntry.getSubstance(subscriptionAttribute
+				.getDependsAttribute().getRegisteredAttribute());
+		if (isMulti(data)) {
+			return substituteMultiValue(subscriptionAttribute, containerEntry,
+					(Object[]) data);
+		} else {
+			return substituteSingleValue(subscriptionAttribute, containerEntry,
+					data);
 		}
 	}
-	
+
 	private Object substituteSingleValue(
 			SubscriptionAttribute subscriptionAttribute,
 			ContainerEntry containerEntry, Object data) {
-		SubscriptionRequest subRequest = new SubscriptionRequest(containerEntry.getContainer().getName(), containerEntry.getIdentitySequence(), subscriptionAttribute.getResponseAttribute());
-		SubscriptionEvent subscriptionEvent = new SubscriptionEvent(data,subscriptionAttribute.getSource(),subRequest);
+		SubscriptionRequest subRequest = new SubscriptionRequest(containerEntry
+				.getContainer().getName(),
+				containerEntry.getIdentitySequence(),
+				subscriptionAttribute.getResponseAttribute());
+		SubscriptionEvent subscriptionEvent = new SubscriptionEvent(data,
+				subscriptionAttribute.getSource(), subRequest);
 		subscriptionAttribute.getSubAgent().substitute(subscriptionEvent);
 		return data;
 	}
@@ -39,146 +45,128 @@ public class SubscriptionAttrHandlerImpl implements SubscriptionAttrHandler {
 	private Object substituteMultiValue(
 			SubscriptionAttribute subscriptionAttribute,
 			ContainerEntry containerEntry, Object[] data) {
-		HashMap<Integer,Object> currentSubscriptionSet =(HashMap<Integer,Object>)getMultiSubstance(
-				subscriptionAttribute, containerEntry);
-		
+		Object[] currentSubscriptionSet = (Object[]) getMultiSubstance(
+				subscriptionAttribute, containerEntry,0);
+
 		if (data != null) {
 			if (currentSubscriptionSet != null
-					&& data.length == currentSubscriptionSet.size()) {
-				Attribute responseAttribute = subscriptionAttribute
-						.getResponseAttribute();
-				
-				int minor = 0;
-				
-				for (Object substance:data) {
-					LeafAttribute leafAttribute = new LeafAttribute(
-							responseAttribute.getName(), minor);
-					
-					SubscriptionRequest subRequest = new SubscriptionRequest(
-							containerEntry.getContainer().getName(),
-							containerEntry.getIdentitySequence(), leafAttribute);
-					
-					
-					SubscriptionEvent subscriptionEvent = new SubscriptionEvent(
-							substance, subscriptionAttribute.getSource(),
-							subRequest);
-					
-					subscriptionAttribute.getSubAgent().substitute(
-							subscriptionEvent);
-					
-					currentSubscriptionSet.put(minor++, substance);
-				}
+					&& data.length == currentSubscriptionSet.length) {
+				return substituteMultiValue(subscriptionAttribute, containerEntry, data);
 			} else {
-				unsubscribe(subscriptionAttribute,
-						containerEntry);
-				
-				return subscribe(subscriptionAttribute,
-						containerEntry);
+				unsubscribe(subscriptionAttribute, containerEntry);
+
+				return subscribe(subscriptionAttribute, containerEntry);
 			}
 		}
 		return currentSubscriptionSet;
 	}
-	
+
 	@Override
-	public Object unsubscribe(SubscriptionAttribute subscriptionAttribute,ContainerEntry containerEntry) {
-		Object data = containerEntry.getSubstance(subscriptionAttribute.getDependsAttribute().getRegisteredAttribute());
-		if(isMulti(data)){
-			return unsubscribeMultiValue(subscriptionAttribute, containerEntry, (Object[])data);
-		}else{
-			return unsubscribeSingleValue(subscriptionAttribute, containerEntry,data);
+	public Object unsubscribe(SubscriptionAttribute subscriptionAttribute,
+			ContainerEntry containerEntry) {
+		Object data = containerEntry.getSubstance(subscriptionAttribute
+				.getDependsAttribute().getRegisteredAttribute());
+		if (isMulti(data)) {
+			return unsubscribeMultiValue(subscriptionAttribute, containerEntry,
+					(Object[]) data);
+		} else {
+			return unsubscribeSingleValue(subscriptionAttribute,
+					containerEntry, data);
 		}
-		
+
 	}
 
 	private Object unsubscribeSingleValue(
 			SubscriptionAttribute subscriptionAttribute,
 			ContainerEntry containerEntry, Object data) {
-		SubscriptionRequest subRequest = new SubscriptionRequest(containerEntry.getContainer().getName(), containerEntry.getIdentitySequence(), subscriptionAttribute.getResponseAttribute());
-		SubscriptionEvent subscriptionEvent = new SubscriptionEvent(data,subscriptionAttribute.getSource(),subRequest);
+		SubscriptionRequest subRequest = new SubscriptionRequest(containerEntry
+				.getContainer().getName(),
+				containerEntry.getIdentitySequence(),
+				subscriptionAttribute.getResponseAttribute());
+		SubscriptionEvent subscriptionEvent = new SubscriptionEvent(data,
+				subscriptionAttribute.getSource(), subRequest);
 		subscriptionAttribute.getSubAgent().unsubscribe(subscriptionEvent);
 		return data;
 	}
 
-	private HashMap<Integer, Object> unsubscribeMultiValue(
+	private Object[] unsubscribeMultiValue(
 			SubscriptionAttribute subscriptionAttribute,
 			ContainerEntry containerEntry, Object data[]) {
-		HashMap<Integer,Object> currentSubscriptionSet = getMultiSubstance(
-				subscriptionAttribute, containerEntry);
-		
+		Object[] currentSubscriptionSet = getMultiSubstance(subscriptionAttribute, containerEntry,0);
+
 		Attribute responseAttribute = subscriptionAttribute
 				.getResponseAttribute();
-		
-		for (Entry<Integer, Object> oneEntry : currentSubscriptionSet.entrySet()) {
-			LeafAttribute leafAttribute = new LeafAttribute(responseAttribute
-					.getName(), oneEntry.getKey());
-			
+
+		for (int minor=0;minor<currentSubscriptionSet.length;minor++) {
+			LeafAttribute leafAttribute = new LeafAttribute(
+					responseAttribute.getName(), minor);
+
 			SubscriptionRequest subRequest = new SubscriptionRequest(
-					containerEntry.getContainer().getName(), containerEntry
-							.getIdentitySequence(), leafAttribute);
-			
-			Object substance =oneEntry.getValue();
-			
+					containerEntry.getContainer().getName(),
+					containerEntry.getIdentitySequence(), leafAttribute);
+
 			SubscriptionEvent subscriptionEvent = new SubscriptionEvent(
-					substance, subscriptionAttribute.getSource(), subRequest);
-			
+					currentSubscriptionSet[minor], subscriptionAttribute.getSource(), subRequest);
+
 			subscriptionAttribute.getSubAgent().unsubscribe(subscriptionEvent);
+			currentSubscriptionSet[minor]=null;
 		}
-		// Return the empty multi substance
-		currentSubscriptionSet.clear();
-		
 		return currentSubscriptionSet;
 	}
+
 	@Override
-	public Object subscribe(SubscriptionAttribute subscriptionAttribute,ContainerEntry containerEntry) {
-		Object data = containerEntry.getSubstance(subscriptionAttribute.getDependsAttribute().getRegisteredAttribute());
-		if(isMulti(data)){
-			return subscribeMultiValue(subscriptionAttribute, containerEntry, (Object[])data);
-		}else{
-			return subscribeSingleValue(subscriptionAttribute, containerEntry, data);
+	public Object subscribe(SubscriptionAttribute subscriptionAttribute,
+			ContainerEntry containerEntry) {
+		Object data = containerEntry.getSubstance(subscriptionAttribute
+				.getDependsAttribute().getRegisteredAttribute());
+		if (isMulti(data)) {
+			return subscribeMultiValue(subscriptionAttribute, containerEntry,
+					(Object[]) data);
+		} else {
+			return subscribeSingleValue(subscriptionAttribute, containerEntry,
+					data);
 		}
 	}
+
 	private Object subscribeSingleValue(
 			SubscriptionAttribute subscriptionAttribute,
 			ContainerEntry containerEntry, Object data) {
-		SubscriptionRequest subRequest = new SubscriptionRequest(containerEntry.getContainer().getName(), containerEntry.getIdentitySequence(), subscriptionAttribute.getResponseAttribute());
-		SubscriptionEvent subscriptionEvent = new SubscriptionEvent(data,subscriptionAttribute.getSource(),subRequest);
+		SubscriptionRequest subRequest = new SubscriptionRequest(containerEntry
+				.getContainer().getName(),
+				containerEntry.getIdentitySequence(),
+				subscriptionAttribute.getResponseAttribute());
+		SubscriptionEvent subscriptionEvent = new SubscriptionEvent(data,
+				subscriptionAttribute.getSource(), subRequest);
 		subscriptionAttribute.getSubAgent().subscribe(subscriptionEvent);
 		return data;
 	}
 
-	private HashMap<Integer, Object> subscribeMultiValue(
+	private Object[] subscribeMultiValue(
 			SubscriptionAttribute subscriptionAttribute,
 			ContainerEntry containerEntry, Object[] data) {
-		HashMap<Integer,Object> multiSubstance = getMultiSubstance(
-				subscriptionAttribute, containerEntry);
 		Attribute responseAttribute = subscriptionAttribute
 				.getResponseAttribute();
-		int minor = 0;
-		
-		for (Object substance:data) {
-			LeafAttribute leafAttribute = new LeafAttribute(responseAttribute
-					.getName(), minor);
+		for (int minor = 0; minor < data.length; minor++) {
+			LeafAttribute leafAttribute = new LeafAttribute(
+					responseAttribute.getName(), minor);
 			SubscriptionRequest subRequest = new SubscriptionRequest(
-					containerEntry.getContainer().getName(), containerEntry
-							.getIdentitySequence(), leafAttribute);
-			
-			
+					containerEntry.getContainer().getName(),
+					containerEntry.getIdentitySequence(), leafAttribute);
+
 			SubscriptionEvent subscriptionEvent = new SubscriptionEvent(
-					substance, subscriptionAttribute.getSource(), subRequest);
-			
+					data[minor], subscriptionAttribute.getSource(), subRequest);
+
 			subscriptionAttribute.getSubAgent().subscribe(subscriptionEvent);
-			
-			multiSubstance.put(minor++, substance);
 		}
-		return multiSubstance;
+		return data;
 	}
-	@SuppressWarnings("unchecked")
-	private HashMap<Integer,Object> getMultiSubstance(
+
+	private Object[] getMultiSubstance(
 			SubscriptionAttribute subscriptionAttribute,
-			ContainerEntry containerEntry) {
-		HashMap<Integer,Object> currentSubscriptionSet = (HashMap<Integer,Object>) containerEntry
+			ContainerEntry containerEntry, int length) {
+		Object[] currentSubscriptionSet = (Object[]) containerEntry
 				.getSubstance(subscriptionAttribute);
-		return currentSubscriptionSet == null ? new HashMap<Integer,Object>()
+		return currentSubscriptionSet == null ? new Object[length]
 				: currentSubscriptionSet;
 	}
 }
