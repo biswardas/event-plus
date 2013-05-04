@@ -1,3 +1,4 @@
+#summary Language, Syntax and key features
 =`EventPlus` Language=
 
 *`EventPlus`* framework can be divided into 3 components. *Language* (just a bit restrictive Java), *[EPCompiler Compiler]*, and *[EPRuntime Runtime]*. We can code everything by hand and deploy it in `EventPlus` run-time. Just like a java class can be manufactured from thin air bypassing entire Java Language and Compiler and run in Java run-time its that simple and easy.
