@@ -371,7 +371,7 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	 * @return Object
 	 */
 	final protected Object getStatic(String attributeName) {
-		AbstractContainer container = getContainer();
+		AbstractContainer container = ContainerContext.CONTAINER.get();
 		return container.getStatic(container.getAttributeByName(attributeName));
 	}
 
@@ -383,7 +383,7 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	 * @return Substance
 	 */
 	final protected Object getStatic(Attribute attribute) {
-		return getContainer().getStatic(attribute);
+		return ContainerContext.CONTAINER.get().getStatic(attribute);
 	}
 
 	/**
@@ -392,22 +392,13 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	 * @return Attribute
 	 */
 	public Attribute getRegisteredAttribute() {
-		return getContainer().getAttributeByName(name);
+		return ContainerContext.CONTAINER.get().getAttributeByName(name);
 	}
 
 	public Class<? extends Object> getType() {
 		return Object.class;
 	}
 	
-	/**
-	 * Returns the associated current container.
-	 * 
-	 * @return AbstractContainer
-	 */
-	final public AbstractContainer getContainer() {
-		return ContainerContext.CONTAINER.get();
-	}
-
 	@Override
 	final public int compareTo(Attribute o) {
 		if (getDependencyDepth() < o.getDependencyDepth()) {
