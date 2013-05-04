@@ -28,34 +28,9 @@ public class ContainerStoreFactoryTest    extends TestCase{
 	}
 
 	@Test
-	public void testGetD3PassiveEager() {
-		Properties props = new Properties();
-		props.put("passivation_idle_period","15");
-		props.put("d3.enabled","true");
-		props.put("passivation_wakeup","true");
-		
-		ConcreteContainer concreteContainer  = new ConcreteContainer("Temp", props);
-		ContainerEntryStore contStore = ContainerStoreFactory.getContainerEntryStore(concreteContainer);
-		Assert.assertEquals(D3PassivableContainerEntryStore.class, contStore.getClass());
-	}
-
-	@Test
-	public void testGetD3Regular() {
-		Properties props = new Properties();
-		props.put("passivation_idle_period","0");
-		props.put("d3.enabled","true");
-		props.put("passivation_wakeup","true");
-		
-		ConcreteContainer concreteContainer  = new ConcreteContainer("Temp", props);
-		ContainerEntryStore contStore = ContainerStoreFactory.getContainerEntryStore(concreteContainer);
-		Assert.assertEquals(D3ContainerEntryStore.class, contStore.getClass());
-	}
-
-	@Test
 	public void testRegular() {
 		Properties props = new Properties();
-		props.put("passivation_idle_period","0");
-		props.put("d3.enabled","false");
+		props.put("passivation_idle_period","0"); 
 		props.put("passivation_wakeup","true");
 		
 		ConcreteContainer concreteContainer  = new ConcreteContainer("Temp", props);
@@ -66,8 +41,7 @@ public class ContainerStoreFactoryTest    extends TestCase{
 	@Test
 	public void testPassiveRegular() {
 		Properties props = new Properties();
-		props.put("passivation_idle_period","10");
-		props.put("d3.enabled","false");
+		props.put("passivation_idle_period","10"); 
 		props.put("passivation_wakeup","true");
 		
 		ConcreteContainer concreteContainer  = new ConcreteContainer("Temp", props);
