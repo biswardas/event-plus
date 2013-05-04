@@ -394,6 +394,21 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 		});
 		semaphore.acquireUninterruptibly();
 	}
+
+
+	private void executeWithRequestedIsolation(final int isolation,
+			ContainerTask runnable) {
+		switch(isolation){
+			case 0:
+				invokeOperation(runnable);
+				break;
+			case 1:
+				getEventCollector().execute(runnable);
+				break;
+			default:
+				runnable.run();
+		}
+	}
 	
 	public int getEntryCount(final String name,final int isolation){
 		final AtomicInteger ai = new AtomicInteger(0);
@@ -408,26 +423,18 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 			@Override
 			protected void runtask() {
 				try {
-					FilterAgent pa = getContainer().getFliterAgent(name);
-					ai.set(pa.getEntryCount());
+					FilterAgent pa = cl.getFliterAgent(name);
+					if(pa!=null){
+						ai.set(pa.getEntryCount());
+					}
 				} finally {
 					s.release();
 				}
 			}
 		};
-		switch(isolation){
-			case 0:
-				invokeOperation(runnable);
-				s.acquireUninterruptibly();
-				return ai.get();
-			case 1:
-				getEventCollector().execute(runnable);
-				s.acquireUninterruptibly();
-				return ai.get();
-			default:
-				FilterAgent pa = cl.getFliterAgent(name);
-				return pa.getEntryCount();
-		}
+		executeWithRequestedIsolation(isolation, runnable);
+		s.acquireUninterruptibly();
+		return ai.get();
 	}
 
 	public LightWeightEntry getSortedEntry(final String name,final int id,final int isolation){
@@ -443,29 +450,20 @@ public class Agent extends TransactionAdapter implements ContainerListener,Conne
 			@Override
 			protected void runtask() {
 				try {
-					FilterAgent pa = getContainer().getFliterAgent(name);
-					ContainerEntry conEntry = pa.getContainerEntries()[id];
-					atom.set(new LightWeightEntry(conEntry.getIdentitySequence(), conEntry.getSubstancesAsArray()));
+					FilterAgent pa = cl.getFliterAgent(name);
+					if(pa!=null){
+						ContainerEntry conEntry = pa.getContainerEntries()[id];
+						atom.set(new LightWeightEntry(conEntry.getIdentitySequence(), conEntry.getSubstancesAsArray()));
+					}
 				} finally {
 					s.release();
 				}
 			}
 		};
 
-		switch(isolation){
-			case 0:
-				invokeOperation(runnable);
-				s.acquireUninterruptibly();
-				return atom.get();
-			case 1:
-				getEventCollector().execute(runnable);
-				s.acquireUninterruptibly();
-				return atom.get();
-			default:
-				FilterAgent pa = cl.getFliterAgent(name);
-				ContainerEntry conEntry = pa.getContainerEntries()[id];
-				return new LightWeightEntry(conEntry.getIdentitySequence(), conEntry.getSubstancesAsArray());
-		}
+		executeWithRequestedIsolation(isolation, runnable);
+		s.acquireUninterruptibly();
+		return atom.get();
 	}
 
 	public String[] getAttributes(){
