@@ -814,4 +814,8 @@ public class PivotContainer extends ConcreteContainer {
 	public PivotAgent getFilterAgent(String sink){
 		return (PivotAgent)super.getFilterAgent(sink);
 	}
+	
+	@Override
+	protected void performPostUpdateStatelessAttribution(ContainerEntry containerEntry) {		
+	}
 }
