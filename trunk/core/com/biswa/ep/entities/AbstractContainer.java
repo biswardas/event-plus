@@ -1,10 +1,13 @@
 package com.biswa.ep.entities;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
 import com.biswa.ep.ClientToken;
@@ -588,6 +591,20 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 */
 	public abstract Attribute[] getSubscribedAttributes();
 
+	public String[] getSubscribedAttrStrNames(){
+		TreeSet<Attribute> trees = new TreeSet<Attribute>(new Comparator<Attribute>(){
+			@Override
+			public int compare(Attribute o1, Attribute o2) {
+				return o1.getOrdinal()-o2.getOrdinal();
+			}						
+		});
+		trees.addAll(Arrays.asList(getSubscribedAttributes()));
+		ArrayList<String> al = new ArrayList<String>();
+		for(Attribute attr:trees){
+			al.add(attr.getName());
+		}
+		return al.toArray(new String[0]);
+	}
 	/**Returns all stateless attributes in this container.
 	 * 
 	 * @return Attribute[]
