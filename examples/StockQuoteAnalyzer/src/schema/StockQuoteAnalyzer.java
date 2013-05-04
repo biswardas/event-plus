@@ -30,7 +30,7 @@ public interface StockQuoteAnalyzer {
 		Double tranPrice = null;
 	}
 
-	@EPContainer(publish=EPPublish.RMI)
+	@EPContainer(type=EPConType.Pivot,publish=EPPublish.RMI)
 	public interface Portfolio extends InputStocks {
 		@EPAttribute(type = EPAttrType.Subscriber, depends = "symbol", container = "NYSE")
 		public Quote nysePrice = null;
