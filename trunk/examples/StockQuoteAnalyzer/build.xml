@@ -40,7 +40,7 @@
 		</java>
 	</target>
 	<target name="run-client">
-		<java classname="com.biswa.ep.util.RemoteViewer" fork="true">
+		<java classname="com.biswa.ep.util.ViewPortViewer" fork="true">
 			<arg value="StockQuoteAnalyzer"/>
 			<arg value="Portfolio"/>
 		    <classpath>
