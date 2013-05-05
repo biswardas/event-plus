@@ -31,8 +31,7 @@ public class ConcreteContainerEntry extends AbstractPhysicalEntry{
 	
 	/** The actual entry which is made into the container. This creates a concrete entry
 	 * 
-	 * @param externalidentity
-	 * @param cs
+	 * @param externalidentity int
 	 */
 	protected ConcreteContainerEntry(int externalidentity) {
 		super(externalidentity);

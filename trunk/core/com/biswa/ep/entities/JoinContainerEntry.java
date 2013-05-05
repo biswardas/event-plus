@@ -19,8 +19,8 @@ public class JoinContainerEntry extends AbstractPhysicalEntry {
 	/**Constructor
 	 * 
 	 * @param externalIdentity int
-	 * @param cs JoinContainer
-	 * @param entryQualifier Map<Attribute, Substance>
+	 * @param left ContainerEntry
+	 * @param right ContainerEntry
 	 */
 	JoinContainerEntry(int externalIdentity, ContainerEntry left, ContainerEntry right){
 		super(externalIdentity);

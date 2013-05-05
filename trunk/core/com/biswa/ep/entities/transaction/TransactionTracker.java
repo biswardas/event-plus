@@ -229,8 +229,8 @@ public final class TransactionTracker {
 
 	/**Source and the group they belong
 	 * 
-	 * @param sourceName
-	 * @param transactionGroup
+	 * @param sourceName String
+	 * @param transactionOrigin String[]
 	 */
 	protected void addSource(String sourceName,String[] transactionOrigin) {
 		originToSourceManager.buildCircuit(sourceName,transactionOrigin);
@@ -273,8 +273,7 @@ public final class TransactionTracker {
 	
 	/**Track transaction begin.
 	 * 
-	 * @param transactionId
-	 * @param sourceName
+	 * @param te TransactionEvent
 	 */
 	protected void trackBeginTransaction(final TransactionEvent te){
 		assert transactionAdapter.log("Track Begin Transaction: "+te);
@@ -316,8 +315,7 @@ public final class TransactionTracker {
 
 	/**Track transaction commit.
 	 * 
-	 * @param transactionId
-	 * @param sourceName
+	 * @param te TransactionEvent
 	 */
 	protected void trackCommitTransaction(TransactionEvent te){
 		assert transactionAdapter.log("Track Commit Transaction: "+te);
@@ -356,8 +354,7 @@ public final class TransactionTracker {
 	
 	/**Track transaction rollback.
 	 * 
-	 * @param transactionId
-	 * @param sourceName
+	 * @param te TransactionEvent
 	 */
 	protected void trackRollbackTransaction(TransactionEvent te){
 		assert transactionAdapter.log("Track Rollback Transaction: "+te);

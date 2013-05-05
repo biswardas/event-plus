@@ -106,7 +106,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 		
 		/**Assigns ordinal to the attribute either from the reusable storage or generates a new one.
 		 * 
-		 * @return
+		 * @return int
 		 */
 		private int generateOrdinal(){
 			int assignedOrdinal = -1;
@@ -161,7 +161,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 		
 		/**Returns the Attribute names along with transitively added attributes.
 		 * 
-		 * @return
+		 * @return String[]
 		 */
 		private String[] getAllAttributeNames() {
 			return allAttributes;
@@ -271,14 +271,13 @@ public abstract class CascadeContainer extends AbstractContainer{
 		/**AttributeMap Entry with attribute and entry type
 		 * 
 		 * @param attribute Attribute
-		 * @param entryType EntryType
 		 */
 		private AttributeMapEntry(Attribute attribute) {
 			this.attribute = attribute;
 		}
 		/**Returns if this dependency graph is dirty.
 		 * 
-		 * @return
+		 * @return boolean
 		 */
 		private boolean isDependencyGraphDirty() {
 			return dependencyGraphDirty;
@@ -464,7 +463,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 	
 	/**Cleanup any removal dependency
 	 * 
-	 * @param attributeMapEntry
+	 * @param requestedAttribute Attribute
 	 */
 	private void manageRemovedDependencies(Attribute requestedAttribute) {
 		// Manages its dependencies
