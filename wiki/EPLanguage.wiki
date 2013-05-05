@@ -136,7 +136,7 @@ public interface StockQuoteAnalyzer {
    # *Join* It offers relational join of 2 entries from 2 different containers based on certain criteria. Performing a true join is extremely expensive its like comparing two flowing water streams. Try to avoid this container whenever other alternatives are available. This will be discussed in detail in run-time section.
    # *Split* container partition the entries in its downstream container for data parallel processing. Any container connecting is assumed to be a processor node. Do *NOT* connect a viewer to a split container. When a processor node disconnects this container re-balances task among other available processing nodes.
    # *ForkJoin* This container can only connect to *Split* and Static container and divides work across hardware and aggregate the result back into the host process. This container will try to obtain `ep.slave.count` # of slave process(max 31 allowed will be discussed in run-time section in more detail) to distribute its work. In the event of untimely death of a slave Split will redistribute the work among other available slave processes.[http://event-plus.googlecode.com/svn/trunk/examples/SplitForkJoinDemo/forkjoin.png]
-   # *Pivot* This is a presentation layer container and needed to be used with user interfaces requiring to pivot/sort/summarize results.
+   # *Pivot* This is a presentation layer container and needed to be used with user interfaces requiring to pivot/sort/summarize results. This offers windowing capabilities so you can virtualize your application user interface.
 
 
 ===Attribute===
