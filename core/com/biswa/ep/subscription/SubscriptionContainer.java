@@ -17,6 +17,9 @@ public class SubscriptionContainer extends FeedbackAwareContainer implements Sub
 		subscriptionHandler = new SubscriptionContainerHandler(this);		
 	}
 
+	protected void initThrottling(){
+	}
+	
 	@Override
 	public void replay(ConnectionEvent connectionEvent) {
 	}

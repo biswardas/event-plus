@@ -67,12 +67,12 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 	/**
 	 * Cached entries in this container. Will not allow passivation?//TODO
 	 */
-	private ContainerEntry[] allEntries=new ContainerEntry[0];
+	private ContainerEntry[] allEntries=null;
 	
 	/**
 	 * Change set Containing Updates
 	 */
-	private Map<Integer,Map<Attribute,Object>> collectedUpdates = new HashMap<Integer,Map<Attribute,Object>>();
+	private Map<Integer,Map<Attribute,Object>> collectedUpdates = null;
 	
 	/**Constructor to build throttled container.
 	 * 
@@ -81,8 +81,13 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 	 */
 	public ThrottledContainer(String name,Properties props) {
 		super(name,props);
+		initThrottling();
 	}
-
+	
+	protected void initThrottling(){
+		allEntries=new ContainerEntry[0];
+		collectedUpdates = new HashMap<Integer,Map<Attribute,Object>>();
+	}
 	@Override
 	public void dispatchAttributeRemoved(Attribute requestedAttribute) {
 		super.dispatchAttributeRemoved(requestedAttribute);
