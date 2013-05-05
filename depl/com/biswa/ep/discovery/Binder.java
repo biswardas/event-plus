@@ -38,8 +38,7 @@ public interface Binder extends EPService {
 	
 	/**This method binds application in registry.
 	 * 
-	 * @param acceptName String
-	 * @param obj Remote
+	 * @param obj EPDeployer
 	 */
 	void bindApp(EPDeployer obj) throws RemoteException;
 	

@@ -26,7 +26,7 @@ public @interface EPContainer {
 	 * <code>EPPublish.LOCAL</code> in event of a container needs to be used across 
 	 * processes specify <code>EPPublish.RMI</code>. All colocated container will talk
 	 * locally instead going over wire.
-	 * @return
+	 * @return EPPublish
 	 */
 	EPPublish publish() default EPPublish.LOCAL;
 

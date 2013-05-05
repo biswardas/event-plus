@@ -663,7 +663,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 
 	/**Enqueue the container tasks in pre connected queue.
 	 * 
-	 * @param outer OuterTask
+	 * @param r ContainerTask
 	 */
 	protected void enqueueInPreConnectedQueue(ContainerTask r) {
 		preConnectedQueue.add(r);
@@ -671,7 +671,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	
 	/**Enqueue the container tasks in post connected queue.
 	 * 
-	 * @param outer OuterTask
+	 * @param r ContainerTask
 	 */
 	protected void enqueueInPostConnectedQueue(ContainerTask r) {
 		postConnectedQueue.add(r);

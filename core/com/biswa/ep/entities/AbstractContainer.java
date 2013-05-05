@@ -284,7 +284,6 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 
 	/**
 	 * Method which delegates the begin transaction to the dispatcher thread.
-	 * @param transactionID int
 	 */
 	protected void dispatchBeginTransaction(){
 		for(FilterAgent dcl : listenerMap.values()){
