@@ -13,7 +13,7 @@ public abstract class SimpleSubscriptionProcessor extends
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 8024137952578533439L;
 	private Thread subscriptionThread = null;
 	final protected SynchronousQueue<Map<Object, Object>> queue = new SynchronousQueue<Map<Object, Object>>();
 	
