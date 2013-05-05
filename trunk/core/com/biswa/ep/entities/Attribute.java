@@ -2,6 +2,7 @@ package com.biswa.ep.entities;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 
 import com.biswa.ep.ContainerContext;
@@ -70,7 +71,7 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	 * This attribute is dependent on following attribute list. The attributes
 	 * in the list below are direct dependencies
 	 */
-	final transient private Collection<Attribute> dependsOnList = new HashSet<Attribute>();
+	final transient private Collection<Attribute> dependsOnList;
 
 	/**
 	 * Attributes dependent on this attribute (including transitively dependent)
@@ -87,7 +88,9 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	 * @param name
 	 */
 	protected Attribute(String name) {
-		this(name, INVALID_MINOR);
+		this.name = name.trim();
+		this.minor = INVALID_MINOR;
+		this.dependsOnList = new HashSet<Attribute>();
 	}
 
 	/**
@@ -100,6 +103,7 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 		assert name != null && name.trim().length() > 0 : "Can not create Attribute with name null or empty String";
 		this.name = name.trim();
 		this.minor = minor;
+		this.dependsOnList = Collections.emptySet();
 	}
 
 	/**
