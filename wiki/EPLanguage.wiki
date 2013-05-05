@@ -114,7 +114,7 @@ public interface StockQuoteAnalyzer {
 		public interface Portfolio extends InputStocks {
 			@EPAttribute(type = EPAttrType.Subscriber, depends = "symbol", container = "NYSE")
 			public Quote nysePrice = null;
-			public String optionSymbols = {symbol+"-mar",symbol+"-jun",symbol+"-sep",symbol+"-dec"};
+			public String[] optionSymbols = {symbol+"-mar",symbol+"-jun",symbol+"-sep",symbol+"-dec"};
 			@EPAttribute(type = EPAttrType.Subscriber, depends = "optionSymbols", container = "NYSE")
 			public Quote[] optionPrices = null;
 
