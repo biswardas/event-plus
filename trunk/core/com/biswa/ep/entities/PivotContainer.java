@@ -163,7 +163,7 @@ public class PivotContainer extends ConcreteContainer {
 			 * Constructor to create the Pivot entry. This is the ROOT constructor
 			 */
 			private PivotEntry() {
-				super(generateIdentity());
+				super(generateIdentity(),false);
 				this.parent = null;
 				this.pivotDepth = 0;
 				this.substance = DEFAULT_SUBSTANCE;
@@ -182,7 +182,7 @@ public class PivotContainer extends ConcreteContainer {
 			 *            PivotEntry
 			 */
 			private PivotEntry(Object substanceAtDepth, PivotEntry parent) {
-				super(generateIdentity());
+				super(generateIdentity(),false);
 				this.substance = substanceAtDepth;
 				this.parent = parent;
 				this.pivotDepth = parent.pivotDepth + 1;
@@ -382,15 +382,6 @@ public class PivotContainer extends ConcreteContainer {
 				return PivotContainer.this;
 			}
 			
-			@Override
-			public String toString() {
-				StringBuffer sb = new StringBuffer();
-				if (parent != null) {
-					sb.append(parent.toString()).append(":").append(substance);
-				}
-				return sb.toString();
-			}
-
 			public void clear() {
 				if (childPivotEntries != null) {
 					for (PivotEntry pivotEntry : childPivotEntries.values()

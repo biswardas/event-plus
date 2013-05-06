@@ -24,9 +24,7 @@ public class ConcreteContainerEntry extends AbstractPhysicalEntry{
 
 	
 	protected ConcreteContainerEntry() {
-		super(0);
-		ConcreteContainer concreteContainer = this.getContainer();
-		substanceArray=new Object[concreteContainer.getPhysicalSize()];
+		this(0,false);
 	}
 	
 	/** The actual entry which is made into the container. This creates a concrete entry
@@ -34,14 +32,22 @@ public class ConcreteContainerEntry extends AbstractPhysicalEntry{
 	 * @param externalidentity int
 	 */
 	protected ConcreteContainerEntry(int externalidentity) {
+		this(externalidentity,true);
+	}
+	
+	/** The actual entry which is made into the container. This creates a concrete entry
+	 * 
+	 * @param externalidentity int
+	 */
+	protected ConcreteContainerEntry(int externalidentity,boolean clone) {
 		super(externalidentity);
 		ConcreteContainer concreteContainer = this.getContainer();
-		substanceArray=((ConcreteContainerEntry)concreteContainer.getDefaultEntry()).substanceArray.clone();
+		if(clone){
+			substanceArray=((ConcreteContainerEntry)concreteContainer.getDefaultEntry()).substanceArray.clone();
+		}else{
+			substanceArray=new Object[concreteContainer.getPhysicalSize()];
+		}
 	}
-
-
-
-
 
 	@Override
 	final public Object getSubstance(Attribute attribute) {
