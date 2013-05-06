@@ -20,7 +20,7 @@ abstract public class Aggregator implements Serializable{
 	 */
 	private static final long serialVersionUID = -716425530339944777L;
 	private Attribute aggrAttr;
-	private ContainerEntry pivotEntry;
+	private PivotEntry pivotEntry;
 	private Iterator<? extends ContainerEntry> iter;
 	private final ArrayList<Aggregator> chainedAggrList = new ArrayList<Aggregator>();
 	public Aggregator(String aggrAttr){
@@ -136,6 +136,7 @@ abstract public class Aggregator implements Serializable{
 	protected abstract Object aggregate();
 	
 	protected Object aggregate(Object preUpdate,Object postUpdate){
+		iter=pivotEntry.iterator();
 		return aggregate();
 	}
 }
