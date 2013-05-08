@@ -1,5 +1,6 @@
 package com.biswa.ep.entities.store;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -63,7 +64,7 @@ public class ConcreteContainerEntry extends AbstractPhysicalEntry{
 	public Object silentUpdate(Attribute attribute, Object substance,int minor) {
 		Object[] multiSubstance = (Object[]) getSubstance(attribute);
 		if(multiSubstance==null){
-			multiSubstance = new Object[minor+1];
+			multiSubstance = (Object[]) Array.newInstance(attribute.getType().getComponentType(), minor+1);
 		}else if(minor>=multiSubstance.length){
 			multiSubstance = Arrays.copyOf(multiSubstance, minor+1);
 		}
