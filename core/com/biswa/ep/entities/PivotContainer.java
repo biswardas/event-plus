@@ -809,4 +809,13 @@ public class PivotContainer extends ConcreteContainer {
 	@Override
 	protected void performPostUpdateStatelessAttribution(ContainerEntry containerEntry) {		
 	}
+
+	@Override
+	public int concurrencySupport(){
+		int concurrencyLevel = super.concurrencySupport();
+		if(concurrencyLevel>0){
+			throw new RuntimeException("Pivot Container does not support multithreading..");
+		}
+		return concurrencyLevel;
+	}
 }
