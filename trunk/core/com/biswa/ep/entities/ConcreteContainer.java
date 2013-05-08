@@ -49,6 +49,7 @@ public class ConcreteContainer extends CascadeContainer{
 			//Obtain the existing Entry being updated
 			ContainerEntry containerEntry = containerEntryStore.getEntry(containerEvent.getIdentitySequence());
 			if(containerEntry!=null){
+				Object oldSubstance = containerEntry.getSubstance(notifyingAttribute);
 				//Extract the substance received
 				Object substance = containerEvent.getSubstance();
 	
@@ -60,7 +61,7 @@ public class ConcreteContainer extends CascadeContainer{
 				}
 				
 				//Dispatch the entry with registered attribute not with guest attribute
-				dispatchEntryUpdated(notifyingAttribute,substance,containerEntry);
+				dispatchEntryUpdated(notifyingAttribute,substance,oldSubstance,containerEntry);
 				
 				//Update dependent Attributes and notify listeners
 				for (Attribute notifiedAttribute : notifyingAttribute.getDependents()) {
@@ -127,9 +128,10 @@ public class ConcreteContainer extends CascadeContainer{
 			for(Attribute attribute:transportEntry.getEntryQualifier().keySet()){
 				attribute = attribute.getRegisteredAttribute();
 				if(attribute!=null){
+					Object oldSubstance = containerEntry.getSubstance(attribute);
 					Object initialSubstance = containerEntry.silentUpdate(attribute, transportEntry.getEntryQualifier().get(attribute));
 					if(merge){
-						dispatchEntryUpdated(attribute,initialSubstance,containerEntry);
+						dispatchEntryUpdated(attribute,initialSubstance,oldSubstance,containerEntry);
 					}
 					for (Attribute notifiedAttribute : attribute.getDependents()) {		
 						if(!notifiedAttribute.isStateless()){

@@ -14,13 +14,13 @@ public class SumAggregator extends Aggregator {
 
 	@Override
 	protected Object aggregate() {
-		Double intermediateAggr = 0d;
+		double intermediateAggr = 0d;
 		while(hasNext()){
 			Object substance = getNextObject();
 			if(substance==null){
 				continue;
 			}else{
-				intermediateAggr = intermediateAggr + (Double) substance;
+				intermediateAggr = intermediateAggr + ((Number) substance).doubleValue();
 			}
 		}
 		return intermediateAggr;

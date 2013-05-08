@@ -14,7 +14,7 @@ public class AverageAggregator extends Aggregator {
 
 	@Override
 	protected Object aggregate() {
-		Double intermediateAggr = 0d;
+		double intermediateAggr = 0d;
 		int i=0;
 		while(hasNext()){
 			i++;
@@ -22,7 +22,7 @@ public class AverageAggregator extends Aggregator {
 			if(substance==null){
 				continue;
 			}else{
-				intermediateAggr = intermediateAggr + (Double) substance;
+				intermediateAggr = intermediateAggr + ((Number) substance).doubleValue();
 			}
 		}
 		return intermediateAggr/i;

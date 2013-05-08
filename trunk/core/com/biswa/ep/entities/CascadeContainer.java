@@ -677,15 +677,19 @@ public abstract class CascadeContainer extends AbstractContainer{
 			//defer the stateless attribution
 			ContainerContext.STATELESS_QUEUE.get().add(notifiedAttribute);
 		}else{
+			Object oldSubstance = containerEntry.getSubstance(notifiedAttribute);
 			//Evaluate the being notified attribute
 			Object substance = notifiedAttribute.failSafeEvaluate(notifyingAttribute, containerEntry);
 			//Update the notified attribute entry
 			substance = containerEntry.silentUpdate(notifiedAttribute, substance);
 			//Dispatch it to the downstream containers.
-			dispatchEntryUpdated(notifiedAttribute,substance,containerEntry);
+			dispatchEntryUpdated(notifiedAttribute,substance,oldSubstance,containerEntry);
 		}
 	}
-	
+
+	protected void dispatchEntryUpdated(Attribute notifiedAttribute, Object substance,Object oldSubstance, ContainerEntry containerEntry){
+		dispatchEntryUpdated(notifiedAttribute,substance,containerEntry);
+	}
 	/**Method generates the entry update events when the attribute is later added / promoted to subscribed attributes.
 	 * 
 	 * @param attribute
@@ -693,6 +697,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 	private void dispatchDataUpdates(Attribute attribute) {
 		for(PhysicalEntry containerEntry : getContainerDataEntries()){
 			containerEntry.reallocate(getPhysicalSize());
+			Object oldSubstance = containerEntry.getSubstance(attribute);
 			Object substance  = attribute.failSafeEvaluate(attribute, containerEntry);
 			if(!attribute.isStateless()){
 				ContainerEvent ce = new ContainerUpdateEvent(getName(),
@@ -701,7 +706,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 						,getCurrentTransactionID());
 				entryUpdated(ce);
 			}else{
-				dispatchEntryUpdated(attribute, substance, containerEntry);
+				dispatchEntryUpdated(attribute, substance,oldSubstance, containerEntry);
 			}
 		}
 	}
