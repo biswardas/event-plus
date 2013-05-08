@@ -688,7 +688,7 @@ public class PivotContainer extends ConcreteContainer {
 				pivotEntry.unregister(containerEntry);
 			}
 		}
-		public void entryUpdated(Attribute attribute, Object substance,
+		public void entryUpdated(Attribute attribute, Object substance, Object oldSubstance,
 				ContainerEntry containerEntry) {
 			// fetch the pivot holding this physical
 			PivotEntry pivotEntry = directPivotAccess.get(containerEntry
@@ -700,7 +700,7 @@ public class PivotContainer extends ConcreteContainer {
 						root.applyPivot(containerEntry);
 					} else {
 						if (aggrMap.containsKey(attribute)) {
-							pivotEntry.aggregateAndPropagate(attribute);
+							pivotEntry.aggregateAndPropagate(attribute,oldSubstance,substance);
 						}
 						if (sortOrder.containsKey(attribute)) {
 							pivotEntry.applySort();
@@ -766,11 +766,11 @@ public class PivotContainer extends ConcreteContainer {
 	}
 
 	@Override
-	public void dispatchEntryUpdated(Attribute attribute, Object substance,
+	public void dispatchEntryUpdated(Attribute attribute, Object substance, Object oldSubstance,
 			ContainerEntry containerEntry) {
 		for(FilterAgent dcl : listenerMap.values()){
 			PivotAgent pa = (PivotAgent) dcl;
-			pa.entryUpdated(attribute, substance, containerEntry);
+			pa.entryUpdated(attribute, substance,oldSubstance, containerEntry);
 			pa.refreshPageView(Refresh.INTRAN);
 		}
 	}
