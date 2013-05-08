@@ -30,15 +30,31 @@ public class SumAggregator extends Aggregator {
 		Double intermediateAggr = (Double) getCurrentPivotEntry().getSubstance(getAggrAttr());
 		if(intermediateAggr==null){
 			if(preUpdate==null){
-				return postUpdate;
+				if(postUpdate==null){
+					return intermediateAggr;
+				}else{
+					return postUpdate;
+				}
 			}else{
-				return (Double) postUpdate-(Double) preUpdate;
+				if(postUpdate==null){
+					return -((Number) preUpdate).doubleValue();
+				}else{
+					return ((Number) postUpdate).doubleValue()-((Number) preUpdate).doubleValue();
+				}
 			}
-		}else{ 
+		}else{
 			if(preUpdate==null){
-				return intermediateAggr+(Double)postUpdate;
+				if(postUpdate==null){
+					return intermediateAggr;
+				}else{
+					return intermediateAggr+((Number) postUpdate).doubleValue();
+				}
 			}else{
-				return intermediateAggr+(Double) postUpdate-(Double) preUpdate;
+				if(postUpdate==null){
+					return intermediateAggr -((Number) preUpdate).doubleValue();					
+				} else {
+					return intermediateAggr+((Number) postUpdate).doubleValue()-((Number) preUpdate).doubleValue();
+				}
 			}
 		}
 	}
