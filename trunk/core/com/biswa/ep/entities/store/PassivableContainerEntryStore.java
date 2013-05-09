@@ -64,15 +64,16 @@ class PassivableContainerEntryStore extends ConcreteContainerEntryStore{
 		long begin = System.currentTimeMillis();
 		int i = 0;
 		System.out.println("Passivation Triggered");
-		for(ContainerEntry persistEntry:getEntries()){
+		for(ContainerEntry persistEntry:super.getEntries()){
 			 PersistableContainerEntry perEntry=(PersistableContainerEntry)persistEntry;
 			 if((System.currentTimeMillis()-perEntry.getLastAccessed())>passivation_idle_period){
-				 perEntry.passivate(this);
-				 i++;
+				 if(perEntry.passivate(this)){
+					 i++;
+				 }
 			 }
 		}
 		long end = System.currentTimeMillis();
-		System.out.println("Took " +(begin-end)+" milliseconds to passivate " +i+ " records");
+		System.out.println("Took " +(end-begin)+" milliseconds to passivate " +i+ " records");
 	}
 
 	private PhysicalEntry[] wakeUp(PhysicalEntry[] maybePassive) {
