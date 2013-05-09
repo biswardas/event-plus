@@ -12,7 +12,6 @@ public interface ContainerEntry extends Serializable{
 	static final int MARKED_ADDED=1<<29;
 	static final int MARKED_REMOVED=1<<28;
 	static final int MARKED_DIRTY=1<<27;
-	static final int MARKED_PASSIVATED=1<<26;
 	/**Which clients this entry is assigned.
 	 * 
 	 * @return int
