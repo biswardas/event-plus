@@ -28,16 +28,18 @@ abstract class PersistableContainerEntry extends AbstractPhysicalEntry {
 		return lastAccessed;
 	}
 	
-	final protected void passivate(PassivableContainerEntryStore passiveStore){
+	final protected boolean passivate(PassivableContainerEntryStore passiveStore){
 		if(!markedPassivated()){
 			try{
 				writeToDisk(passiveStore);
 				underlyingEntry = null;
-				markPassivated(true);				
+				markPassivated(true);
+				return true;
 			}catch(Exception e){
-				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 		}
+		return false;
 	}
 	
 	private void writeToDisk(PassivableContainerEntryStore passiveStore) throws Exception {
@@ -101,4 +103,10 @@ abstract class PersistableContainerEntry extends AbstractPhysicalEntry {
 			metainfo=metainfo&(ClientToken.ALL_AVAILABLE^MARKED_PASSIVATED);			
 		}		
 	}
+
+	@Override
+	public String toString() {
+		return String.valueOf(underlyingEntry);
+	}
+	
 }
