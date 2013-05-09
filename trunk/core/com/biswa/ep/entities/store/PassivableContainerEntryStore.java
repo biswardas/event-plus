@@ -15,12 +15,10 @@ import com.biswa.ep.entities.ContainerTask;
  */
 class PassivableContainerEntryStore extends ConcreteContainerEntryStore{
 	private final File directory;
-	private final boolean eager;
 	private final int passivation_idle_period;
-	public PassivableContainerEntryStore(ConcreteContainer concreteContainer, int passivation_idle_period, boolean eager) {
+	public PassivableContainerEntryStore(ConcreteContainer concreteContainer, int passivation_idle_period) {
 		super(concreteContainer);
 		this.passivation_idle_period = passivation_idle_period;
-		this.eager = eager;
 		directory = new File(UUID.randomUUID().toString());
 		directory.mkdir();
 		final ContainerTask containerTask = new ContainerTask(){
@@ -39,32 +37,16 @@ class PassivableContainerEntryStore extends ConcreteContainerEntryStore{
 	
 	@Override
 	public PhysicalEntry create(int id){
-		PhysicalEntry containerEntry =  buildPassiveEntry(super.create(id));
+		PhysicalEntry containerEntry =  new PersistableContainerEntry(super.create(id));
 		save(containerEntry);
 		return containerEntry;
 	}
 	
-	@Override
-	public PhysicalEntry[] getEntries() {
-		PhysicalEntry[] maybePassive = super.getEntries();
-		return eager?wakeUp(maybePassive):maybePassive;
-	}
-	
-	@Override
-	public PhysicalEntry getEntry(int id) {
-		PhysicalEntry singleEntry = super.getEntry(id);
-		if(singleEntry!=null && eager){
-			PhysicalEntry[] containerEntry = {singleEntry};
-			wakeUp(containerEntry);
-		}
-		return singleEntry;		
-	}
-
 	private void passivate() {
 		long begin = System.currentTimeMillis();
 		int i = 0;
 		System.out.println("Passivation Triggered");
-		for(ContainerEntry persistEntry:super.getEntries()){
+		for(ContainerEntry persistEntry:getEntries()){
 			 PersistableContainerEntry perEntry=(PersistableContainerEntry)persistEntry;
 			 if((System.currentTimeMillis()-perEntry.getLastAccessed())>passivation_idle_period){
 				 if(perEntry.passivate(this)){
@@ -74,18 +56,6 @@ class PassivableContainerEntryStore extends ConcreteContainerEntryStore{
 		}
 		long end = System.currentTimeMillis();
 		System.out.println("Took " +(end-begin)+" milliseconds to passivate " +i+ " records");
-	}
-
-	private PhysicalEntry[] wakeUp(PhysicalEntry[] maybePassive) {
-		for(ContainerEntry oneEntry:maybePassive){
-			PersistableContainerEntry perEntry = (PersistableContainerEntry)oneEntry;
-			perEntry.activate(this);
-		}
-		return maybePassive;
-	}
-
-	protected PhysicalEntry buildPassiveEntry(PhysicalEntry containerEntry) {
-		return eager?new EagerContainerEntry(containerEntry):new LazyContainerEntry(containerEntry);
 	}
 
 	public File getDirectory() {
