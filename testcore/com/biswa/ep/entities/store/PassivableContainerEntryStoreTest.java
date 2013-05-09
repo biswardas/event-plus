@@ -31,25 +31,15 @@ public class PassivableContainerEntryStoreTest  extends TestCase{
 	public void testCreateEager() {
 		Properties props = new Properties();	
 		ConcreteContainer concreteContainer  = new ConcreteContainer("Temp", props);
-		PassivableContainerEntryStore concStore = new PassivableContainerEntryStore(concreteContainer,10,true);
+		PassivableContainerEntryStore concStore = new PassivableContainerEntryStore(concreteContainer,10);
 		ContainerContext.CONTAINER.set(concreteContainer);
 		PhysicalEntry oneEntry = concStore.create(1);
-		Assert.assertEquals(EagerContainerEntry.class, oneEntry.getClass());
+		Assert.assertEquals(PersistableContainerEntry.class, oneEntry.getClass());
 		
 		concStore.save(oneEntry);
 		Assert.assertNotNull(concStore.getEntry(1));
 		Assert.assertEquals(1,concStore.getEntries().length);
 		concStore.remove(1);		
 		Assert.assertEquals(0,concStore.getEntries().length);
-	}
-
-	@Test
-	public void testCreateLazy() {
-		Properties props = new Properties();	
-		ConcreteContainer concreteContainer  = new ConcreteContainer("Temp", props);
-		PassivableContainerEntryStore concStore = new PassivableContainerEntryStore(concreteContainer,10,false);
-		ContainerContext.CONTAINER.set(concreteContainer);
-		PhysicalEntry oneEntry = concStore.create(1);
-		Assert.assertEquals(LazyContainerEntry.class, oneEntry.getClass());
 	}
 }
