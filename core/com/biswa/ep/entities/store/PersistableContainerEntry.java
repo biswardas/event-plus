@@ -10,8 +10,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 import com.biswa.ep.ClientToken;
+import com.biswa.ep.entities.Attribute;
+import com.biswa.ep.entities.TransportEntry;
 
-abstract class PersistableContainerEntry extends AbstractPhysicalEntry {
+class PersistableContainerEntry extends AbstractPhysicalEntry {
 	/**
 	 * 
 	 */
@@ -60,18 +62,6 @@ abstract class PersistableContainerEntry extends AbstractPhysicalEntry {
 		}
 	}
 
-	final protected void activate(PassivableContainerEntryStore passiveStore){
-		if(markedPassivated()){
-			try{
-				underlyingEntry = readFromDisk(passiveStore);
-				markPassivated(false);
-			}catch(Exception e){
-				throw new RuntimeException("Unable to restore passivated entry");
-			}	
-		}
-		lastAccessed = System.currentTimeMillis();
-	}
-
 	private ConcreteContainerEntry readFromDisk(PassivableContainerEntryStore passiveStore) throws Exception {
 		ObjectInputStream ois = null;
 		try {
@@ -105,8 +95,68 @@ abstract class PersistableContainerEntry extends AbstractPhysicalEntry {
 	}
 
 	@Override
+	public Object getSubstance(Attribute attribute) {
+		wakeUp();
+		return underlyingEntry.getSubstance(attribute);
+	}
+
+	@Override
+	public Object silentUpdate(Attribute attribute, Object substance) {
+		wakeUp();
+		return underlyingEntry.silentUpdate(attribute, substance);
+	}
+
+	@Override
+	public Object silentUpdate(Attribute attribute, Object substance,int minor) {
+		wakeUp();
+		return underlyingEntry.silentUpdate(attribute, substance, minor);
+	}
+
+	@Override
+	public void remove(Attribute attribute) {
+		wakeUp();
+		underlyingEntry.remove(attribute);
+	}
+
+	@Override
+	public void remove(Attribute attribute,int minor) {
+		wakeUp();
+		underlyingEntry.remove(attribute,minor);
+	}
+	
+	@Override
+	public TransportEntry cloneConcrete() {
+		wakeUp();
+		return underlyingEntry.cloneConcrete();
+	}
+	
+	@Override
+	public void reallocate(int size) {
+		wakeUp();
+		underlyingEntry.reallocate(size);
+	}
+
+	@Override
+	public Object[] getSubstancesAsArray() {
+		wakeUp();
+		return underlyingEntry.getSubstancesAsArray();
+	}
+	
+	@Override
 	public String toString() {
+		wakeUp();
 		return String.valueOf(underlyingEntry);
 	}
 	
+	private void wakeUp() {
+		lastAccessed = System.currentTimeMillis();
+		if(markedPassivated()){
+			try{
+				underlyingEntry = readFromDisk((PassivableContainerEntryStore)getContainer().getContainerEntryStore());
+				markPassivated(false);
+			}catch(Exception e){
+				throw new RuntimeException("Unable to restore passivated entry");
+			}
+		}
+	}
 }

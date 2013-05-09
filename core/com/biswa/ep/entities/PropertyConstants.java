@@ -57,14 +57,6 @@ public interface PropertyConstants {
 	String PASSIVATION_IDLE_DURATION="passivation_idle_period";
 	
 	/**
-	 * Wake up mode 
-	 * Allowed values
-	 * true - eager
-	 * false - lazy
-	 */
-	String PASSIVATION_WAKEUP="passivation_wakeup";
-	
-	/**
 	 * Property which tells how to react when a duplicate entry is attempted to be inserted.
 	 * Allowed values:
 	 * 0-Delete & Reinsert (Default)
