@@ -1,6 +1,13 @@
 package com.biswa.ep.entities.store;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -49,7 +56,7 @@ class PassivableContainerEntryStore extends ConcreteContainerEntryStore{
 		for(ContainerEntry persistEntry:getEntries()){
 			 PersistableContainerEntry perEntry=(PersistableContainerEntry)persistEntry;
 			 if((System.currentTimeMillis()-perEntry.getLastAccessed())>passivation_idle_period){
-				 if(perEntry.passivate(this)){
+				 if(perEntry.passivate()){
 					 i++;
 				 }
 			 }
@@ -58,7 +65,60 @@ class PassivableContainerEntryStore extends ConcreteContainerEntryStore{
 		System.out.println("Took " +(end-begin)+" milliseconds to passivate " +i+ " records");
 	}
 
-	public File getDirectory() {
-		return directory;
+	protected void store(PhysicalEntry underlyingEntry)
+			throws Exception {
+		ObjectOutputStream oos = null;
+		try {
+			File sourceFile = new File(getDirectory(underlyingEntry.getIdentitySequence()), String
+					.valueOf(underlyingEntry.getIdentitySequence()));
+			BufferedOutputStream boos = new BufferedOutputStream(
+					new FileOutputStream(sourceFile));
+			oos = new ObjectOutputStream(boos);
+			oos.writeObject(underlyingEntry);
+		} finally {
+			if (oos != null) {
+				try {
+					oos.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	protected PhysicalEntry load(int externalIdentity) throws Exception {
+		ObjectInputStream ois = null;
+		File sourceFile = null;
+		try {
+			sourceFile = new File(getDirectory(externalIdentity), String
+					.valueOf(externalIdentity));
+			BufferedInputStream bis = new BufferedInputStream(
+					new FileInputStream(sourceFile));
+			ois = new ObjectInputStream(bis);
+			PhysicalEntry readObject = (PhysicalEntry) ois
+					.readObject();
+			return readObject;
+		} finally {
+			if (ois != null) {
+				try {
+					ois.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				sourceFile.delete();
+			}
+		}
+	}
+	private File getDirectory(int index) {
+		StringBuilder sb = new StringBuilder();
+		while(index>0){
+			sb.insert(0, '/').insert(0, index%10);
+			index=index/10;
+		}
+		File file = new File(directory,sb.toString());
+		if(!file.exists()){
+			file.mkdirs();
+		}
+		return file;
 	}
 }
