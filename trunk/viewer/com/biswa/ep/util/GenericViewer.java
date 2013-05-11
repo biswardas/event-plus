@@ -29,6 +29,7 @@ import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerDeleteEvent;
 import com.biswa.ep.entities.ContainerEvent;
 import com.biswa.ep.entities.ContainerStructureEvent;
+import com.biswa.ep.entities.ContainerTask;
 import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.LightWeightEntry;
 import com.biswa.ep.entities.Predicate;
@@ -118,8 +119,12 @@ public class GenericViewer extends ConcreteContainer implements UIOperations {
 		removeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Predicate pred = PredicateBuilder.buildPredicate(collapserTextField.getText());
-				applySpecInSource(new FilterSpec(getName(),pred));
+				String filter = collapserTextField.getText().trim();
+				if(filter.isEmpty()){
+					filter=String.valueOf(Boolean.TRUE);
+				}
+				Predicate pred = PredicateBuilder.buildPredicate(filter);
+				applySpecInSource(new FilterSpec(getName(),pred));				
 			}
 		});
 	}
@@ -247,12 +252,28 @@ public class GenericViewer extends ConcreteContainer implements UIOperations {
 		super.attributeRemoved(ce);
 		if(vtableModel!=null)vtableModel.fireTableStructureChanged();
 	}
-	
+	private boolean paintDirty = false;
+	private int tranId = 0;
 	@Override
 	public void commitTran(){
+		tranId = GenericViewer.this.getCurrentTransactionID();
+		if(!paintDirty){
+			paintDirty=true;
+			agent().invokeOperation(new ContainerTask() {				
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 697340123919646656L;
+
+				@Override
+				protected void runtask() throws Throwable { 
+					vtableModel.fireTableDataChanged();
+					jframe.setTitle(getName()+"/"+jtable.getRowCount()+"--"+tranId);
+					paintDirty=false;
+				}
+			});
+		}
 		super.commitTran();
-		vtableModel.fireTableDataChanged();
-		jframe.setTitle(getName()+"/"+jtable.getRowCount()+"--"+GenericViewer.this.getCurrentTransactionID());
 	}
 
 	public void setSourceAgent(Agent sourceAgent) {
