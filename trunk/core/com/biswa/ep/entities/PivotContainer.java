@@ -573,16 +573,24 @@ public class PivotContainer extends ConcreteContainer {
 			case FORCE:
 				this.dirty=true;
 				indexedEntries = root.getContainerEntries();
+				refreshUI();
 				break;
 			case INTRAN:
 				if(getCurrentTransactionID()==0){
-					indexedEntries = root.getContainerEntries();					
+					indexedEntries = root.getContainerEntries();	
+					refreshUI();				
 				}
 				break;
 			case TRANCOMPLETE:
 				indexedEntries = root.getContainerEntries();
 				break;			
 			}
+		}
+
+		private void refreshUI() {
+			//TODO Can't we can do better than this?
+			agent().beginDefaultTran();
+			agent().commitDefaultTran();
 		}
 		/**
 		 * Behavior method to apply sort on this container.
@@ -633,6 +641,7 @@ public class PivotContainer extends ConcreteContainer {
 			}
 			//Reaggregate universe..
 			root.aggregateUniverse();
+			refreshPageView(Refresh.FORCE);
 		}
 
 		/**
