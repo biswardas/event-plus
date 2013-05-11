@@ -88,15 +88,15 @@ class PersistableContainerEntry extends AbstractPhysicalEntry {
 	private ConcreteContainerEntry readFromDisk(
 			PassivableContainerEntryStore passiveStore) throws Exception {
 		ObjectInputStream ois = null;
+		File sourceFile = null;
 		try {
-			File sourceFile = new File(passiveStore.getDirectory(), String
+			sourceFile = new File(passiveStore.getDirectory(), String
 					.valueOf(externalIdentity));
 			BufferedInputStream bis = new BufferedInputStream(
 					new FileInputStream(sourceFile));
 			ois = new ObjectInputStream(bis);
 			ConcreteContainerEntry readObject = (ConcreteContainerEntry) ois
 					.readObject();
-			sourceFile.delete();
 			return readObject;
 		} finally {
 			if (ois != null) {
@@ -105,6 +105,7 @@ class PersistableContainerEntry extends AbstractPhysicalEntry {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+				sourceFile.delete();
 			}
 		}
 	}
