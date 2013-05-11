@@ -100,7 +100,6 @@ public abstract class Attribute implements Comparable<Attribute>, Serializable {
 	 * @param name
 	 */
 	protected Attribute(String name, int minor) {
-		assert name != null && name.trim().length() > 0 : "Can not create Attribute with name null or empty String";
 		this.name = name.trim();
 		this.minor = minor;
 		this.dependsOnList = Collections.emptySet();
