@@ -68,8 +68,14 @@ public class CompiledJavaObject extends SimpleJavaFileObject {
 		sb.append("public Object evaluate(Attribute attribute,ContainerEntry ce){\n");
 			for(String oneVariable:epJavaObject.getVariables()){
 				if(typeMap.containsKey(oneVariable)){
-					String type=typeMap.get(oneVariable).getName();
-					sb.append(type+" "+oneVariable+" =("+type+") super.getValue(ce,\""+oneVariable+"\");\n");
+					Class<?> classType = typeMap.get(oneVariable);
+					if(classType.isArray()){
+						String type=classType.getComponentType().getName();
+						sb.append(type+"[] "+oneVariable+" =("+type+"[]) super.getValue(ce,\""+oneVariable+"\");\n");
+					}else{
+						String type=classType.getName();
+						sb.append(type+" "+oneVariable+" =("+type+") super.getValue(ce,\""+oneVariable+"\");\n");
+					}
 				}
 			}
 			sb.append("return "+expression.substring(expression.indexOf("=") + 1)+";\n");
