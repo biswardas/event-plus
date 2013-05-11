@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -318,7 +319,15 @@ public class GenericViewer extends ConcreteContainer implements UIOperations {
 			else
 				objectToDisplay = cachedEntries.get(rowIndex).substance(columnIndex - 1);
 			if(objectToDisplay!=null && objectToDisplay.getClass().isArray()){
-				objectToDisplay = Arrays.toString((Object[])objectToDisplay);
+				if(objectToDisplay.getClass().getComponentType().isPrimitive()){
+					try {
+						Method m =Arrays.class.getMethod("toString",objectToDisplay.getClass());
+						objectToDisplay = m.invoke(Arrays.class, objectToDisplay);
+					} catch (Exception e) {
+					}
+				}else{
+					objectToDisplay = Arrays.toString((Object[])objectToDisplay);
+				}
 			}
 			return objectToDisplay;
 		}
