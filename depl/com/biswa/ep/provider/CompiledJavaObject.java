@@ -82,7 +82,14 @@ public class CompiledJavaObject extends SimpleJavaFileObject {
 		sb.append("}\n");
 		if(typeMap.containsKey(name)){
 			sb.append("@Override public Class<? extends Object> getType(){\n");
-			sb.append("return "+ typeMap.get(name).getName()+".class;\n");
+			Class<?> classType = typeMap.get(name);
+			if(classType.isArray()){
+				String type=classType.getComponentType().getName();
+				sb.append("return "+ type+"[].class;\n");
+			}else{
+				String type=classType.getName();
+				sb.append("return "+ type+".class;\n");
+			}
 			sb.append("}\n");
 		}
 		sb.append("}\n");
