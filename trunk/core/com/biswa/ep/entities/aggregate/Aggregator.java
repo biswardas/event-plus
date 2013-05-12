@@ -117,7 +117,7 @@ abstract public class Aggregator implements Serializable{
 		return false;
 	}	
 
-	protected final ContainerEntry getCurrentPivotEntry(){
+	protected final PivotEntry getCurrentPivotEntry(){
 		return pivotEntry;
 	}
 	
