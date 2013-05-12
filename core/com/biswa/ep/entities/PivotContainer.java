@@ -13,6 +13,7 @@ import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import com.biswa.ep.ObjectComparator;
 import com.biswa.ep.entities.aggregate.Aggregator;
 import com.biswa.ep.entities.store.ConcreteContainerEntry;
 import com.biswa.ep.entities.transaction.Agent;
@@ -67,31 +68,7 @@ public class PivotContainer extends ConcreteContainer {
 			 * 
 			 */
 			private static final long serialVersionUID = -5874874959467249733L;
-			private final Comparator<Object> objectComparator = new Comparator<Object>(){
-
-				@Override
-				public int compare(Object o1Substance, Object o2Substance) {
-
-					int compareValue = 0;
-					if (o1Substance != null && o2Substance != null) {
-						if (o1Substance.getClass().isAssignableFrom(
-								Number.class)
-								&& o2Substance.getClass().isAssignableFrom(
-										Number.class)) {
-							compareValue = compare((Number) o1Substance,
-									(Number) o2Substance);
-						}else{
-							compareValue = o1Substance.toString().compareTo(o2Substance.toString());
-						}
-					} else if (o1Substance == null && o2Substance != null) {
-						compareValue = -1;
-					} else if (o1Substance == null && o2Substance != null) {
-						compareValue = 1;
-					}
-					return compareValue;
-				}
-				
-			};
+			private final Comparator<Object> objectComparator = new ObjectComparator();
 			private final Comparator<ContainerEntry> recordComparator = new Comparator<ContainerEntry>() {
 				@Override
 				public int compare(ContainerEntry o1, ContainerEntry o2) {
