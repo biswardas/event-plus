@@ -1,5 +1,7 @@
 package com.biswa.ep.entities.aggregate;
 
+import com.biswa.ep.ObjectComparator;
+
 
 public class PropagateAggregator extends Aggregator { 
 
@@ -7,7 +9,7 @@ public class PropagateAggregator extends Aggregator {
 	 * 
 	 */
 	private static final long serialVersionUID = -8877702159215112794L;
-
+	private ObjectComparator objectComparator = new ObjectComparator();
 	public PropagateAggregator(String aggrAttr) {
 		super(aggrAttr);
 	}
@@ -32,6 +34,14 @@ public class PropagateAggregator extends Aggregator {
 					}
 				}				
 			}
+		}
+		return intermediateAggr;
+	}
+	@Override
+	protected Object aggregate(Object preUpdate,Object postUpdate){
+		Object intermediateAggr = getCurrentPivotEntry().getSubstance(getAggrAttr());		
+		if(objectComparator.compare(intermediateAggr, postUpdate)!=0){
+			intermediateAggr = failSafeaggregate(getCurrentPivotEntry());
 		}
 		return intermediateAggr;
 	}
