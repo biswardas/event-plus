@@ -15,7 +15,7 @@ public class MinAggregator extends Aggregator {
 
 	@Override
 	protected Object aggregate() {
-		Object intermediateAggr = getNextObject();
+		Object intermediateAggr = null;
 		while(hasNext()){
 			Object substance = getNextObject();
 			if(substance==null){
@@ -40,7 +40,7 @@ public class MinAggregator extends Aggregator {
 		}else{
 			if(objectComparator.compare(intermediateAggr, postUpdate)>0){
 				intermediateAggr = postUpdate;
-			} else {
+			} else if(objectComparator.compare(intermediateAggr, preUpdate)==0){
 				intermediateAggr = failSafeaggregate(getCurrentPivotEntry());
 			}
 		}
