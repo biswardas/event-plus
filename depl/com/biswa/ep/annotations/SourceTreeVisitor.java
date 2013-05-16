@@ -20,6 +20,7 @@ import javax.lang.model.type.TypeMirror;
 
 import com.sun.source.tree.AnnotationTree;
 import com.sun.source.tree.ArrayAccessTree;
+import com.sun.source.tree.AssignmentTree;
 import com.sun.source.tree.BinaryTree;
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.CompilationUnitTree;
@@ -120,6 +121,16 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 	protected Boolean defaultAction(Tree tree, Element e) {
 		write(tree.toString());
 		return true;
+	}
+
+	@Override
+	public Boolean visitAssignment(AssignmentTree arg0, Element arg1) {
+		boolean returnValue = true;
+		if (dependencyManager.isInjectDependency()) {
+			arg0.getVariable().accept(this, arg1);
+			arg0.getExpression().accept(this, arg1);
+		}
+		return returnValue;
 	}
 
 	@Override
