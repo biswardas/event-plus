@@ -33,7 +33,7 @@ public class RMIDiscoveryManager extends UncaughtExceptionHandler implements Dis
 					port=Integer.getInteger(PP_REGISTRY_PORT,Registry.REGISTRY_PORT);
 					Registry registry = LocateRegistry.createRegistry(port);
 					
-					binderimpl = new BinderImpl(registry);
+					binderimpl = new BinderImpl();
 					Binder binder = (Binder) UnicastRemoteObject
 							.exportObject(binderimpl, 0);
 					registry.rebind(Binder.BINDER, binder);
