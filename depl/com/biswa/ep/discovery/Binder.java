@@ -24,6 +24,14 @@ public interface Binder extends EPService {
 	 */
 	void bind(String name, RMIListener obj) throws RemoteException;
 	
+	/** Method returns the remote stub bound by above.
+	 * 
+	 * @param name
+	 * @return Remote Object
+	 * @throws RemoteException
+	 */
+	Object lookup(String name) throws RemoteException;
+	
 	/**This method unbinds an name from the registry.
 	 * 
 	 * @param acceptName String
@@ -48,5 +56,6 @@ public interface Binder extends EPService {
 	 */
 	EPDeployer getSlave() throws RemoteException;
 
-	void checkHealth(boolean waitTillDone) throws RemoteException;;
+	void checkHealth(boolean waitTillDone) throws RemoteException;
+
 }

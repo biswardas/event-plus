@@ -53,7 +53,7 @@ public class RegistryHelper implements DiscProperties{
 	
 	public static RMIListener getRMIListener(String name){
         try{
-        	Object obj = registry.lookup(name);
+        	Object obj = binder.lookup(name);
         	return (RMIListener)  PortableRemoteObject.narrow(obj, RMIListener.class);
         }catch(Exception e){
         	throw new RuntimeException("Could not obtain the remote handle",e);
@@ -61,7 +61,7 @@ public class RegistryHelper implements DiscProperties{
 	}
 	
 	public static Connector getConnecter(String name) throws AccessException, RemoteException, NotBoundException{
-    	Object obj = registry.lookup(name);
+    	Object obj = binder.lookup(name);
     	return (Connector) PortableRemoteObject.narrow(obj, Connector.class);
 	}
 	

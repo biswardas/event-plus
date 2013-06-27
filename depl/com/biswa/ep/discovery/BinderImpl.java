@@ -2,9 +2,7 @@ package com.biswa.ep.discovery;
 
 import static com.biswa.ep.discovery.RMIDiscoveryManager.MBS;
 
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.rmi.registry.Registry;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,10 +21,9 @@ public class BinderImpl implements Binder,BinderImplMBean {
 	private ConcurrentHashMap<String,String> containerToInstanceMap = new ConcurrentHashMap<String,String>();
 	private ConcurrentHashMap<String,EPDeployer> instanceMap = new ConcurrentHashMap<String,EPDeployer>();
 	private CopyOnWriteArrayList<EPDeployer> slaveFreePool = new CopyOnWriteArrayList<EPDeployer>();
-	private Registry registry;
-	ScheduledThreadPoolExecutor stp = new ScheduledThreadPoolExecutor(1,new NamedThreadFactory("HealthCheckThread",true));
-	public BinderImpl(Registry registry){
-		this.registry=registry;
+	private ScheduledThreadPoolExecutor stp = new ScheduledThreadPoolExecutor(1,new NamedThreadFactory("HealthCheckThread",true));
+	private ConcurrentHashMap<String,Object> remoteObjects = new ConcurrentHashMap<String,Object>();
+	public BinderImpl(){
 		stp.scheduleAtFixedRate(new Runnable(){
 			public void run(){
 				checkHealthNow();
@@ -39,7 +36,7 @@ public class BinderImpl implements Binder,BinderImplMBean {
 		if(containerToInstanceMap.containsKey(name)){
 			throw new RemoteException(name+" instance already exists...");
 		}
-		registry.rebind(name, obj);
+		remoteObjects.put(name, obj);
 		String memberName = obj.getDeployerName();
 		if(memberName==null){
 			memberName=name;
@@ -47,6 +44,15 @@ public class BinderImpl implements Binder,BinderImplMBean {
 		containerToInstanceMap.put(name, memberName);
 		addToMBeanServer(name, obj);
 		broadCastContainerDeployed(name);
+	}
+
+	@Override
+	public Object lookup(String name) throws RemoteException {
+		Object remoteObj = remoteObjects.get(name);
+		if(remoteObj==null){
+			throw new RemoteException(name + " object not bound");
+		}
+		return remoteObj;
 	}
 
 	private void broadCastContainerDeployed(String name) {
@@ -71,12 +77,8 @@ public class BinderImpl implements Binder,BinderImplMBean {
 
 	@Override
 	public void unbind(String acceptName) throws RemoteException {
-		try {
-			registry.unbind(acceptName);
-			containerToInstanceMap.remove(acceptName);
-		} catch (NotBoundException e) {
-			System.err.println("Error while unbinding from registry: "+acceptName);
-		}
+		remoteObjects.remove(acceptName);
+		containerToInstanceMap.remove(acceptName);
 		removeFromMBeanServer(acceptName);
 		broadCastContainerDestroyed(acceptName);
 	}
