@@ -362,7 +362,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 			manageAddedDependencies(attributeMapEntry);
 			// Add the requested attribute
 			attributeMap.addAttribute(requestedAttribute, attributeMapEntry);
-			postAdded(requestedAttribute, attributeMapEntry);
+			postAdded(requestedAttribute, attributeMapEntry,ce.getSource());
 		} else if(!attributeMapEntry.attribute.propagate()){
 			requestedAttribute = attributeMapEntry.attribute;
 			//Come here if earlier added with a transitive dependency
@@ -371,7 +371,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 			dispatchAttributeAdded(requestedAttribute);
 			//Manage requested attribute dependencies 
 			manageAddedDependencies(attributeMapEntry);
-			postAdded(requestedAttribute, attributeMapEntry);
+			postAdded(requestedAttribute, attributeMapEntry,ce.getSource());
 		}	
 	}
 	
@@ -534,7 +534,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 	 * @param attributeMapEntry
 	 */
 	private void postAdded(Attribute requestedAttribute,
-			AttributeMapEntry attributeMapEntry) {
+			AttributeMapEntry attributeMapEntry,String source) {
 		attributeMap.revalidateDependencyGraph();
 		if(isConnected()){
 			reComputeDefaultValues(null);
@@ -542,7 +542,11 @@ public abstract class CascadeContainer extends AbstractContainer{
 		if(requestedAttribute.isStatic()){
 			updateStatic(requestedAttribute, requestedAttribute.failSafeEvaluate(requestedAttribute, null),null);	
 		}else{
-			dispatchDataUpdates(attributeMapEntry.attribute);
+			if(getName().equals(source)){
+				//Why imagine a column added later, as the column propagate through its structure
+				//we do not want to propagate millions of useless values through the system.
+				dispatchDataUpdates(attributeMapEntry.attribute);
+			}
 		}
 	}
 	
@@ -695,6 +699,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 	 * @param attribute
 	 */
 	private void dispatchDataUpdates(Attribute attribute) {
+		agent().beginDefaultTran();
 		for(PhysicalEntry containerEntry : getContainerDataEntries()){
 			containerEntry.reallocate(getPhysicalSize());
 			Object oldSubstance = containerEntry.getSubstance(attribute);
@@ -709,6 +714,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 				dispatchEntryUpdated(attribute, substance,oldSubstance, containerEntry);
 			}
 		}
+		agent().commitDefaultTran();
 	}
 
 	@Override
