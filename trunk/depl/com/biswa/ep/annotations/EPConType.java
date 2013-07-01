@@ -27,11 +27,35 @@ public enum EPConType {
 			}
 		}
 	},
-	Feedback(FeedbackDeploymentHandler.class,true), 
-	Timed(TimedDeploymentHandler.class),
+	Feedback(FeedbackDeploymentHandler.class,true){
+		public boolean handleAttribute(EPAttrType type) {
+			switch(type){
+				case Stateless:
+					throw new RuntimeException("Feedback containers can not handle Stateless Attributes.");
+				default: return true;
+			}
+		}
+	},
+	Timed(TimedDeploymentHandler.class){
+		public boolean handleAttribute(EPAttrType type) {
+			switch(type){
+				case Stateless:
+					throw new RuntimeException("Timed containers can only inherit Split,Static containers.");
+				default: return true;
+			}
+		}
+	},
 	Pivot(PivotDeploymentHandler.class), 
 	Join(JoinDeploymentHandler.class),
-	Subscription(SubscriptionDeploymentHandler.class,true),
+	Subscription(SubscriptionDeploymentHandler.class,true){
+		public boolean handleAttribute(EPAttrType type) {
+			switch(type){
+				case Stateless:
+					throw new RuntimeException("Subscription containers can only inherit Split,Static containers.");
+				default: return true;
+			}
+		}
+	},
 	Proxy(ProxyDeploymentHandler.class),
 	Static(StaticDeploymentHandler.class),
 	Viewer(ViewerDeploymentHandler.class);
@@ -66,6 +90,10 @@ public enum EPConType {
 	}
 
 	public boolean handleInheritancce(EPConType type) {
+		return true;
+	}
+	
+	public boolean handleAttribute(EPAttrType type) {
 		return true;
 	}
 }
