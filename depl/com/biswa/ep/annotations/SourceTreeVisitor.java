@@ -427,6 +427,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 	
 	@Override
 	public Boolean visitVariable(VariableTree arg0, Element arg1) {
+		attributePermissibilityCheck(arg1);
 		boolean returnValue = true;
 		Tree initializer = arg0.getInitializer();
 		if (initializer != null) {
@@ -451,6 +452,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 
 	@Override
 	public Boolean visitMethod(MethodTree arg0, Element arg1) {
+		attributePermissibilityCheck(arg1);
 		boolean returnValue = true;
 		if (arg1.getKind() != ElementKind.CONSTRUCTOR) {
 			if (arg0.getParameters().size() > 0) {
@@ -489,6 +491,14 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			writeln("}");
 		}
 		return returnValue;
+	}
+
+	private void attributePermissibilityCheck(Element arg1) {
+		EPAttribute memberAnnotation = arg1.getAnnotation(EPAttribute.class);
+		if(memberAnnotation!=null){
+			EPContainer classAnnotation = arg1.getEnclosingElement().getAnnotation(EPContainer.class);
+			classAnnotation.type().handleAttribute(memberAnnotation.type());
+		}
 	}
 
 	private void writeType(Tree arg0) {
