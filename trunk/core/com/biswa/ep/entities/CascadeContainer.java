@@ -546,6 +546,11 @@ public abstract class CascadeContainer extends AbstractContainer{
 				//Why imagine a column added later, as the column propagate through its structure
 				//we do not want to propagate millions of useless values through the system.
 				dispatchDataUpdates(attributeMapEntry.attribute);
+			}else{
+				//Just perform reallocation for the incoming column.
+				for(PhysicalEntry containerEntry : getContainerDataEntries()){
+					containerEntry.reallocate(getPhysicalSize());
+				}
 			}
 		}
 	}
