@@ -40,7 +40,7 @@ public enum EPConType {
 		public boolean handleAttribute(EPAttrType type) {
 			switch(type){
 				case Stateless:
-					throw new RuntimeException("Timed containers can only inherit Split,Static containers.");
+					throw new RuntimeException("Timed containers can not handle Stateless Attributes.");
 				default: return true;
 			}
 		}
