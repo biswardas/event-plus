@@ -13,7 +13,7 @@ public class DefaultIdentityGenerator implements IdentityGenerator {
 	 * containers and merging data in one container then the the external identity may conflict in the
 	 * union container. 
 	 */
-	final private static AtomicInteger identitySequence = new AtomicInteger(10000);
+	final private static AtomicInteger identitySequence = new AtomicInteger(0);
  
 	@Override
 	public int generateIdentity() {		
