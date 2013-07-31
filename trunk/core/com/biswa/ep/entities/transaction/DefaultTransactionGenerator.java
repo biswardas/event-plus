@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  */
 public class DefaultTransactionGenerator implements TransactionGenerator {
-	static final AtomicInteger trangen = new AtomicInteger(9000000); 
+	static final AtomicInteger trangen = new AtomicInteger(0); 
 	@Override
 	public int getNextTransactionID() {		
 		return trangen.incrementAndGet();
