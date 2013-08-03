@@ -63,19 +63,23 @@ public class WebViewer extends AbstractViewer {
                                 response.append("\"records\": [\n\r");
                                 Object[] columns = getAttributes();
                                 for(int index=0;index<requestedRecordCount;index++){
+                                		if(index>0){
+                                            response.append(",\n\r");
+                                		}
                                         response.append("{");
                                         int recordIndex = startRecord+index;
                                         Object[] substances = getLightWeightEntry(recordIndex).getSubstances();
-                                        response.append("id:").append(recordIndex).append(",\n\r");
+                                        response.append("\"id\":").append(recordIndex);
                                         for(int inner=0;inner<columns.length;inner++){
+                                        		response.append(",\n\r");
                                                 response.append("\"").append(columns[inner]).append("\":");
                                                 Object substance = substances[inner];
                                                 response.append("\"").append(substance==null?"&#160;":substance).append("\"");
-                                                response.append(",\n\r");
                                         }
-                                        response.append("},\n\r");
+                                        response.append("}");
                                 }
                                 response.append("]}");
+                                t.getResponseHeaders().add("Content-Type", "application/json");
                                 t.sendResponseHeaders(200, response.length());
                                 OutputStream os = t.getResponseBody();
                                 os.write(response.toString().getBytes());
