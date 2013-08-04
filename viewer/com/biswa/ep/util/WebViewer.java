@@ -3,8 +3,10 @@ package com.biswa.ep.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -74,7 +76,24 @@ public class WebViewer extends AbstractViewer {
                                         		response.append(",\n\r");
                                                 response.append("\"").append(columns[inner]).append("\":");
                                                 Object substance = substances[inner];
-                                                response.append("\"").append(substance==null?"&#160;":substance).append("\"");
+                                                if(substance!=null && substance.getClass().isArray()){
+                                                    if(substance.getClass().getComponentType().isPrimitive()){
+                                                            try {
+                                                                    Method m =Arrays.class.getMethod("toString",substance.getClass());
+                                                                    substance = m.invoke(Arrays.class, substance);
+                                                            } catch (Exception e) {
+                                                            }
+                                                        	response.append(substance);
+                                                    }else if(Number.class.isAssignableFrom(substance.getClass().getComponentType())){
+                                                    	substance = Arrays.toString((Object[])substance);
+                                                    	response.append(substance);
+                                                    }else{ 
+                                                    	substance = Arrays.toString((Object[])substance);
+                                                    	response.append("\"").append(substance).append("\"");
+                                                    }
+                                                }else{
+                                                	response.append("\"").append(substance==null?"":substance).append("\"");
+                                                }
                                         }
                                         response.append("}");
                                 }
