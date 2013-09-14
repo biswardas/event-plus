@@ -7,6 +7,13 @@ import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.Attribute;
 import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.dyna.ConcreteAttributeProvider;
+/**Expression driven agregator. This aggregates different column based on the change of a driving column.
+ * 
+ * AttrX:SUMX,AttrX->(AttrY=AttrX):EXPR
+ * 
+ * @author Biswa
+ *
+ */
 public class ExprAggregator extends Aggregator {
 	/**
 	 * 

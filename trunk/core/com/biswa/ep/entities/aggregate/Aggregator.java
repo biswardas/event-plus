@@ -10,7 +10,9 @@ import com.biswa.ep.entities.ContainerEntry;
 import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.PivotContainer.PivotAgent.PivotEntry;
 /**
- * Abstract aggregator class providing aggregation life cycle methods.
+ * Abstract aggregator class providing aggregation life cycle methods. Typical implementation
+ * will override aggregate() method. Advanced implementations may override 
+ * aggregate(Object preUpdate,Object postUpdate).
  * @author Biswa
  *
  */
@@ -27,7 +29,8 @@ abstract public class Aggregator implements Serializable{
 		this.aggrAttr = new LeafAttribute(aggrAttr);
 	}
 	
-	/**Driver of this aggregation, Who triggered the aggregation.
+	/**Driver of this aggregation, who triggered the aggregation. In most implementations
+	 * driver and target will be the same attribute.
 	 * 
 	 * @return Attribute
 	 */
@@ -36,7 +39,8 @@ abstract public class Aggregator implements Serializable{
 	}
 	
 	/**
-	 * Attribute on which the result going to reflect.
+	 * Attribute on which the result going to reflect. Post aggregation summary of this 
+	 * attribute will be set.
 	 * @return Attribute
 	 */
 	final public Attribute getTargetAttr() {
@@ -77,9 +81,11 @@ abstract public class Aggregator implements Serializable{
 		}
 		return aggergatedSubstance;
 	}
+	
 	/**
 	 * Before this aggregator is used in this container. This method must be called. This
 	 * is the hook for any necessary optimization required in this aggregator.
+	 * @param abs AbstractContainer
 	 */
 	public void prepare(AbstractContainer abs) {
 		Attribute tempAttr=aggrAttr.getRegisteredAttribute();
@@ -95,6 +101,7 @@ abstract public class Aggregator implements Serializable{
 
 	/**
 	 * Chains any additional aggregator to this.
+	 * @param aggregator Aggregator
 	 */
 	public Aggregator chain(Aggregator aggregator){
 		chainedAggrList.add(aggregator);
@@ -121,20 +128,44 @@ abstract public class Aggregator implements Serializable{
 		return pivotEntry;
 	}
 	
+	/**Utility method to access next object participating in the aggregation.
+	 * 
+	 * @return Object
+	 */
 	protected final Object getNextObject(){
 		return getNextEntry().getSubstance(aggrAttr);
 	}
 	
+	/**Method gives access to next container entry to be used in aggregation.
+	 * 
+	 * @return
+	 */
 	protected final ContainerEntry getNextEntry(){
 		return iter.next();
 	}
 	
+	/**
+	 * Has next record?
+	 * 
+	 * @return boolean
+	 */
 	protected final boolean hasNext(){
 		return iter.hasNext();
 	}
 
+	/**Method handles the actual aggregation.
+	 * 
+	 * @return Object
+	 */
 	protected abstract Object aggregate();
 	
+	/**Method handles the partial aggregation. Must be overridden in subclass to handle partial 
+	 * aggregation.
+	 * 
+	 * @param preUpdate Object
+	 * @param postUpdate Object
+	 * @return Object
+	 */
 	protected Object aggregate(Object preUpdate,Object postUpdate){
 		iter=pivotEntry.iterator();
 		return aggregate();
