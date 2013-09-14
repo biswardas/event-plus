@@ -1,7 +1,12 @@
 package com.biswa.ep;
 
 import java.util.Comparator;
-
+/**Utility class used to compare objects.Tries to handle lot of scenarios
+ * may not be appropriate in all scenarios but good foe general purpose use.
+ * 
+ * @author Biswa
+ *
+ */
 public class ObjectComparator implements Comparator<Object>{
 	@SuppressWarnings("unchecked")
 	@Override
