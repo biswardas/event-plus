@@ -101,8 +101,8 @@ class PersistableContainerEntry extends AbstractPhysicalEntry {
 		return underlyingEntry.toString();
 	}
 
-	private PassivableContainerEntryStore getAssociatedStore() {
-		return (PassivableContainerEntryStore) getContainer()
+	private PersistableContainerEntryStore getAssociatedStore() {
+		return (PersistableContainerEntryStore) getContainer()
 				.getContainerEntryStore();
 	}
 }
