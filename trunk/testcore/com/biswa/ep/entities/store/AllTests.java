@@ -11,7 +11,7 @@ public class AllTests {
 		suite.addTestSuite(ContainerStoreFactoryTest.class);
 		suite.addTestSuite(TestContainerEntry.class);
 		suite.addTestSuite(ConcreteContainerEntryStoreTest.class);	
-		suite.addTestSuite(PassivableContainerEntryStoreTest.class);		
+		suite.addTestSuite(PersistableContainerEntryStoreTest.class);		
 		suite.addTestSuite(WithUpdateTest.class);
 		//$JUnit-END$
 		return suite;

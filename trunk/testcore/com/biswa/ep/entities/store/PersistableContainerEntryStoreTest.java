@@ -13,7 +13,7 @@ import org.junit.Test;
 import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.ConcreteContainer;
 
-public class PassivableContainerEntryStoreTest  extends TestCase{
+public class PersistableContainerEntryStoreTest  extends TestCase{
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -31,7 +31,7 @@ public class PassivableContainerEntryStoreTest  extends TestCase{
 	public void testCreateEager() {
 		Properties props = new Properties();	
 		ConcreteContainer concreteContainer  = new ConcreteContainer("Temp", props);
-		PassivableContainerEntryStore concStore = new PassivableContainerEntryStore(concreteContainer,10);
+		PersistableContainerEntryStore concStore = new PersistableContainerEntryStore(concreteContainer,10);
 		ContainerContext.CONTAINER.set(concreteContainer);
 		PhysicalEntry oneEntry = concStore.create(1);
 		Assert.assertEquals(PersistableContainerEntry.class, oneEntry.getClass());
