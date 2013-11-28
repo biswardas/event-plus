@@ -46,7 +46,7 @@ public class ContainerStoreFactoryTest    extends TestCase{
 		
 		ConcreteContainer concreteContainer  = new ConcreteContainer("Temp", props);
 		ContainerEntryStore contStore = ContainerStoreFactory.getContainerEntryStore(concreteContainer);
-		Assert.assertEquals(PassivableContainerEntryStore.class, contStore.getClass());
+		Assert.assertEquals(PersistableContainerEntryStore.class, contStore.getClass());
 	}
 
 }
