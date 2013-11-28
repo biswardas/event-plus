@@ -11,7 +11,14 @@ public class AggrSpec extends Spec {
 	 * 
 	 */
 	private static final long serialVersionUID = 7397632399828335683L;
+	/**
+	 * Aggregations to be applied on the container.
+	 */
 	private LinkedHashMap<Attribute,Aggregator> aggrMap = new LinkedHashMap<Attribute,Aggregator>();
+	/**
+	 * Aggregation spec to be applied on the container.
+	 * @param sinkName
+	 */
 	public AggrSpec(String sinkName){
 		super(sinkName);
 	}
@@ -20,6 +27,10 @@ public class AggrSpec extends Spec {
 		PivotContainer pivotSchema = (PivotContainer)listener;
 		pivotSchema.getFilterAgent(getSinkName()).applyAggregation(aggrMap);
 	}
+	/**
+	 * Add aggregator to the aggregation spec.
+	 * @param aggr
+	 */
 	public void add(Aggregator aggr){
 		if(!aggr.isExpression()){
 			aggrMap.put(aggr.getAggrAttr(), aggr);
