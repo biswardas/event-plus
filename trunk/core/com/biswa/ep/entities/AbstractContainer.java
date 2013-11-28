@@ -35,37 +35,62 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 * Listeners listening this container
 	 */
 	final protected ListenerMap listenerMap = new ListenerMap();
-	
+	/**Container class keeps track of clients connected to this container.
+	 * 
+	 * @author Biswa
+	 *
+	 */
 	final class ListenerMap{
 		final private HashMap<String,FilterAgent> hm = new HashMap<String,FilterAgent>();
 		private FilterAgent[] listeners = new FilterAgent[0];
 		
-		
+		/**Adds a client to list, Maintains it by client name.
+		 * 
+		 * @param key String
+		 * @param value FilterAgent
+		 */
 		public void put(String key, FilterAgent value) {
 			hm.put(key, value);
 			listeners = (FilterAgent[])hm.values().toArray(new FilterAgent[0]);
 		}
-
-		public void remove(Object key) {
+		
+		/**Removes a client from list.
+		 * 
+		 * @param key String
+		 */
+		public void remove(String key) {
 			hm.remove(key);
 			listeners = (FilterAgent[])hm.values().toArray(new FilterAgent[0]);
 		}
-
+		
+		/**Returns all the agents currently listening this container.
+		 * 
+		 * @return FilterAgent[]
+		 */
 		public FilterAgent[] values() {
 			return listeners;
 		}
-
+		
+		/**Returns one FilterAgent
+		 * 
+		 * @param sink String
+		 * @return FilterAgent
+		 */
 		public FilterAgent get(String sink) {
 			return hm.get(sink);
 		}
-
+		
+		/** Are there any clients currently listeneing this container.
+		 *
+		 * @return
+		 */
 		public boolean isEmpty() {
 			return hm.isEmpty();
 		}
 	};
 
 	/**
-	 * Listeners listening this container
+	 * Map of agents expecting feedback from this container.
 	 */
 	final protected Map<String,FeedbackAgent> feedBackAgents = new  HashMap<String,FeedbackAgent>();
 	
@@ -75,23 +100,29 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	final protected Map<Attribute,Object> staticStorage = new HashMap<Attribute,Object>();
 	
 	/**
-	 * Name of this container
+	 * Name of this container.
 	 */
 	final private  String name;
 	
 	/**
 	 * Dynamic container listener for this container. The thread which modifies all data structures in the 
 	 * current container. No other thread should touch the internal data structures directly.
+	 * All incoming messages comes from this.
 	 */ 
 	final private Agent containerAgent;
 	
-	/**Thread which deals with downstream container dynamic listeners.  
+	/**
+	 * Thread which deals with downstream container dynamic listeners. Outgoing events
+	 * propagate through this. Handles double buffering of messgaes so container does not
+	 * gets stuck while sending messages. 
 	 * 
 	 */
 	final private Transmitter transmitter;
 	
 	/**
-	 * Client token generator.
+	 * Client token generator. Utility used to assign a client token for every new
+	 * client.
+	 * 
 	 */
 	final private ClientToken clientToken = new ClientToken();
 	

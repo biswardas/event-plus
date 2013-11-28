@@ -9,7 +9,7 @@ package com.biswa.ep;
  *
  */
 public class ClientToken {
-	public static final int MAX_TOKENS = 32;
+	public static final int MAX_TOKENS = 31;
 	public static final int ALL_AVAILABLE= Integer.MAX_VALUE; 
 	private int available = ALL_AVAILABLE;
 	/**Gets the next available token.
@@ -17,6 +17,9 @@ public class ClientToken {
 	 * @return int
 	 */
 	public int getToken(){
+		if(available==0){
+			throw new EPException("No more tokens available to grant.");
+		}
 		int current = 0;
 		for(int index=0;index<MAX_TOKENS;index++){
 			if((available>>index&1)==1){

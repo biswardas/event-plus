@@ -45,11 +45,18 @@ public class ClientTokenTest {
 	public void testReleaseToken() {
 		ClientToken ct = new ClientToken();
 		int i=0;
-		int expected=1;
-		while((i=ct.getToken())!=0){
-			assertEquals(expected, i);
-			expected=expected*2;
+		while(i<31){
+			assertEquals(ct.getToken(), 1<<i);	
+			i++;
 		}
 	}
 
+	@Test(expected=EPException.class)
+	public void exhaustToken() {
+		ClientToken ct = new ClientToken();
+		for(int index=0;index<32;index++){
+			System.out.println(index);
+			assertEquals(ct.getToken(), 1<<index);
+		}
+	}
 }
