@@ -15,7 +15,7 @@ public class ContainerStoreFactory {
 		}
 		
 		if(passivation_idle_period>0){
-			return new PassivableContainerEntryStore(concreteContainer,passivation_idle_period);
+			return new PersistableContainerEntryStore(concreteContainer,passivation_idle_period);
 		}else{
 			return new ConcreteContainerEntryStore(concreteContainer);
 		}	

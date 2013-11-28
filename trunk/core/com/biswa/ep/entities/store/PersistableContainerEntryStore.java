@@ -20,10 +20,10 @@ import com.biswa.ep.entities.ContainerTask;
  * @author biswa
  *
  */
-class PassivableContainerEntryStore extends ConcreteContainerEntryStore{
+class PersistableContainerEntryStore extends ConcreteContainerEntryStore{
 	private final File directory;
 	private final int passivation_idle_period;
-	public PassivableContainerEntryStore(ConcreteContainer concreteContainer, int passivation_idle_period) {
+	public PersistableContainerEntryStore(ConcreteContainer concreteContainer, int passivation_idle_period) {
 		super(concreteContainer);
 		this.passivation_idle_period = passivation_idle_period;
 		directory = new File(UUID.randomUUID().toString());
@@ -36,7 +36,7 @@ class PassivableContainerEntryStore extends ConcreteContainerEntryStore{
 
 			@Override
 			public void runtask() {
-				PassivableContainerEntryStore.this.passivate();
+				PersistableContainerEntryStore.this.passivate();
 			}
 		};
 		concreteContainer.invokePeriodically(containerTask, passivation_idle_period, passivation_idle_period, TimeUnit.MILLISECONDS);
