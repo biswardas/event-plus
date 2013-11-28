@@ -33,7 +33,7 @@ public abstract class Spec implements Serializable{
 		return sinkName;
 	}
 	
-	/**Applies the spec on the passed container.
+	/**Applies the spec on the passed container. This method is idempotent in nature.
 	 * 
 	 * @param listener ContainerListener
 	 */
