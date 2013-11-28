@@ -33,8 +33,10 @@ public class FilterSpec extends Spec {
 	private FilterSpec chainFilter;
 	private ChainMode chainMode = ChainMode.NONE;
 	
-	/** Default Constructor 
+	/** Default Constructor to build a filter which will be applied on the
+	 * container.
 	 * 
+	 * @param sinkName String
 	 * @param predicate Predicate
 	 */
 	public FilterSpec(String sinkName,Predicate predicate){
@@ -42,8 +44,10 @@ public class FilterSpec extends Spec {
 		this.predicate = predicate;
 	}
 	
-	/** Constructor to create a feedback 
+	/** Constructor to create a filter will a chain mode. Chain mode allows 
+	 * to chain filters.
 	 * 
+	 * @param sinkName String
 	 * @param predicate Predicate
 	 * @param chainMode String
 	 */
