@@ -33,15 +33,41 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		
 		@Override
 		protected void runtask() {
-			executing = true;
-			if(pendingUpdates){
-				agent().beginDefaultTran();			
-				throttledDispatch();
-				agent().commitDefaultTran();
-				pendingUpdates=false;
+			if(!runtimeStressed()){
+				executing = true;
+				if(pendingUpdates){
+					agent().beginDefaultTran();			
+					throttledDispatch();
+					agent().commitDefaultTran();
+					pendingUpdates=false;
+				}
+				executing = false;
+				activated = false;
 			}
-			executing = false;
-			activated = false;
+		}
+		/**This method needs some tuning. This analyzes the state of the
+		 * Runtime whether its safe to dispatch next batch of updates.
+		 * 
+		 * @return boolean whether runtime is stressed.
+		 */
+		private boolean runtimeStressed() {
+			if(useRuntimeAutoThrottling()){
+				Runtime runtime = Runtime.getRuntime();
+				double totalMemory = runtime.totalMemory();
+				double maxMemory = runtime.maxMemory();
+				double freeMemory = runtime.freeMemory();			
+				if(totalMemory/maxMemory>0.5 && freeMemory/totalMemory<0.5){
+					try {
+						Thread.sleep(100);
+						runtime.gc();
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
+					agent().invokeOperation(this);
+					return true;
+				}
+			}
+			return false;			
 		}
 		boolean isExecuting(){
 			return executing;
@@ -235,6 +261,14 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 			interValDuration = Integer.parseInt(interval);
 		}
 		return interValDuration;
+	}
+	
+	/**Returns whether to throttle based on the runtime state
+	 * 
+	 * @return boolean runtime based throttling.
+	 */
+	final public boolean useRuntimeAutoThrottling(){
+		return Boolean.parseBoolean(getProperty(RUNTIME_THROTTLE));
 	}
 	
 	@Override

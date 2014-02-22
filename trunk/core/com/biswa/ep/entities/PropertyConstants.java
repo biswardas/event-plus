@@ -101,6 +101,11 @@ public interface PropertyConstants {
 	 * 
 	 */
 	String EP_SLAVE_COUNT = "ep.slave.count";
+
+	/**Returns whether to throttle based on the runtime state
+	 * 
+	 */
+	String RUNTIME_THROTTLE ="ep.runtime.throttle";
 	
 	public int concurrencySupport();
 	public int getTimeOutPeriodInMillis();
