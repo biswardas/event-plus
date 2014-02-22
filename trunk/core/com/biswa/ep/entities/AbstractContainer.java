@@ -194,11 +194,11 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 		}
 		public int getEntryCount() {
 			//TODO optimize
-			return AbstractContainer.this.getContainerEntries().length;
+			return AbstractContainer.this.getLogicalEntries().length;
 		}
 		public ContainerEntry[] getContainerEntries() {
 			//TODO optimize
-			return AbstractContainer.this.getContainerEntries();
+			return AbstractContainer.this.getLogicalEntries();
 		}
 	}	
 	/**Constructor with properties to configure the container. properties are
@@ -664,7 +664,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 * 
 	 * @return ContainerEntry[]
 	 */
-	public abstract ContainerEntry[] getContainerEntries();
+	public abstract ContainerEntry[] getLogicalEntries();
 	
 	/** Number of entries this container has must always match to 
 	 * <code>getContainerEntries().length</code>
@@ -892,7 +892,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	 */
 	public void dumpContainer(){
 		verbose("##################Begin Dumping Container "+getName());
-		ContainerEntry[] contEntries = getContainerEntries();
+		ContainerEntry[] contEntries = getLogicalEntries();
 		for(ContainerEntry conEntry:contEntries){
 			verbose(conEntry.toString());
 		}

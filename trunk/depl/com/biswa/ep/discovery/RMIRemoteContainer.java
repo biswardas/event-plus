@@ -190,7 +190,7 @@ public class RMIRemoteContainer extends AbstractContainer {
 		throw new UnsupportedOperationException();
 	};
 
-	public ContainerEntry[] getContainerEntries() {
+	public ContainerEntry[] getLogicalEntries() {
 		throw new UnsupportedOperationException();
 	}
 

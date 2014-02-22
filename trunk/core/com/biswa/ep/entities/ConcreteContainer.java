@@ -171,7 +171,7 @@ public class ConcreteContainer extends CascadeContainer{
 	}
 	
 	@Override
-	public ContainerEntry[] getContainerEntries() {
+	public ContainerEntry[] getLogicalEntries() {
 		return containerEntryStore.getEntries();
 	}
 	
@@ -182,14 +182,14 @@ public class ConcreteContainer extends CascadeContainer{
 	
 	@Override
 	public void clear() {
-		for (ContainerEntry containerEntry: getContainerEntries()){
+		for (ContainerEntry containerEntry: getLogicalEntries()){
 			dispatchEntryRemoved(containerEntry);
 		}
 		containerEntryStore.clear();
 	}
 	
 	@Override
-	final protected PhysicalEntry[] getContainerDataEntries() {
+	final protected PhysicalEntry[] getPhysicalEntries() {
 		return containerEntryStore.getEntries();
 	}
 	

@@ -540,7 +540,7 @@ public class PivotContainer extends ConcreteContainer {
 		public void refilter(boolean resetSendState) {
 			root.clear();
 			// Re pivot everything based on new specification
-			for (ContainerEntry containerEntry : getContainerDataEntries()) {
+			for (ContainerEntry containerEntry : getPhysicalEntries()) {
 				entryAdded(containerEntry);
 			}
 			refreshPageView(Refresh.FORCE);

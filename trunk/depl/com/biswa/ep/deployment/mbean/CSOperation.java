@@ -9,7 +9,6 @@ import com.biswa.ep.entities.ContainerTask;
 import com.biswa.ep.entities.LeafAttribute;
 import com.biswa.ep.entities.Predicate;
 import com.biswa.ep.entities.StaticLeafAttribute;
-import com.biswa.ep.entities.dyna.ConcreteAttributeProvider;
 import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.provider.PredicateBuilder;
 

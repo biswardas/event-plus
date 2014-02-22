@@ -129,7 +129,7 @@ public class SplitContainer extends ConcreteContainer {
 		};
 		dcl.setFilterSpec(filterSpec.chain(agentFilter));
 
-		ContainerEntry[] conEntries = getContainerEntries();
+		ContainerEntry[] conEntries = getLogicalEntries();
 		//First allocate the unallocated / if the old client requested replay
 		for(ContainerEntry conEntry:conEntries){
 			if(conEntry.getToClient()==0){
@@ -158,7 +158,7 @@ public class SplitContainer extends ConcreteContainer {
 		//Too less clients to perform rebalancing
 		if(clients.length<2) return;
 		
-		ContainerEntry[] conEntries = getContainerEntries();
+		ContainerEntry[] conEntries = getLogicalEntries();
 		//Number of entries/client
 		int averageEntriesPerClient = getMaxEntryPerClient(conEntries.length,clients.length);
 		Map<Integer,SplitFilterAgent> agentToCountMap = new HashMap<Integer,SplitFilterAgent>(){
@@ -207,7 +207,7 @@ public class SplitContainer extends ConcreteContainer {
 		//remove the disconnecting client
 		super.disconnect(connectionEvent);
 		
-		ContainerEntry[] conEntries = getContainerEntries();
+		ContainerEntry[] conEntries = getLogicalEntries();
 		
 		final SplitFilterAgent[] clients = getFilterAgents();
 		SplitFilterAgent freeAgent = null;
@@ -294,7 +294,7 @@ public class SplitContainer extends ConcreteContainer {
 	 */
 	public void dumpContainer(){
 		//super.dumpContainer();
-		int unAllocated= getContainerEntries().length;
+		int unAllocated= getLogicalEntries().length;
 		verbose("##################Split details"+getName());
 		for(SplitFilterAgent oneAgent:getFilterAgents()){
 			verbose(oneAgent.name+" has "+oneAgent.getCount());

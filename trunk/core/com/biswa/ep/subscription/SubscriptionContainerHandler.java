@@ -238,7 +238,7 @@ public class SubscriptionContainerHandler implements SubscriptionSupport {
 	 *Dispatch all the collected updates to respective Subscribers. 
 	 */
 	public void processCollectedUpdates(){
-		for(ContainerEntry entry:subsContainerSupport.getContainerEntries()){
+		for(ContainerEntry entry:subsContainerSupport.getLogicalEntries()){
 			if(entry.markedDirty()){
 				Object substance = entry.getSubstance(processor);
 				SubscriptionRequest[] subscribers = entrySubscriptionRequestsMap.get(entry.getIdentitySequence());
