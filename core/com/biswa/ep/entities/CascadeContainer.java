@@ -97,7 +97,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 		private void remove(Attribute attribute) {			
 			attMapStore.remove(attribute.getName());
 			if(attribute.requiresStorage()){
-				for(ContainerEntry containerEntry : getContainerDataEntries()){
+				for(ContainerEntry containerEntry : getPhysicalEntries()){
 					containerEntry.remove(attribute);
 				}
 				returnOrdinal(attribute.getOrdinal());
@@ -518,7 +518,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 	 * 
 	 * @return PhysicalEntry[]
 	 */
-	abstract PhysicalEntry[] getContainerDataEntries();
+	abstract PhysicalEntry[] getPhysicalEntries();
 	
 	/**Returns the allocation size for the physical entry.
 	 * 
@@ -548,7 +548,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 				dispatchDataUpdates(attributeMapEntry.attribute);
 			}else{
 				//Just perform reallocation for the incoming column.
-				for(PhysicalEntry containerEntry : getContainerDataEntries()){
+				for(PhysicalEntry containerEntry : getPhysicalEntries()){
 					containerEntry.reallocate(getPhysicalSize());
 				}
 			}
@@ -589,7 +589,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 					if(!isConnected() || (connectionEvent!=null && connectionEvent.getSource().equals(subs.getSource()))){
 						//Connect the subscription agent
 						if(subs.getSubAgent().connect()){
-							for(ContainerEntry containerEntry:getContainerEntries()){
+							for(ContainerEntry containerEntry:getLogicalEntries()){
 								subs.failSafeEvaluate(subs, containerEntry);
 							}
 						}
@@ -632,12 +632,12 @@ public abstract class CascadeContainer extends AbstractContainer{
 			if(hasNonStaticDependency){
 				agent().beginDefaultTran();
 				if(appliedFilter==null){
-					for(ContainerEntry containerEntry:getContainerEntries()){
+					for(ContainerEntry containerEntry:getLogicalEntries()){
 						updateStatic(containerEntry,attribute);
 					}	
 				} else {
 					appliedFilter.prepare(this);
-					for(ContainerEntry containerEntry:getContainerEntries()){
+					for(ContainerEntry containerEntry:getLogicalEntries()){
 						if(appliedFilter.filter(containerEntry)){
 							updateStatic(containerEntry,attribute);
 						}
@@ -705,7 +705,7 @@ public abstract class CascadeContainer extends AbstractContainer{
 	 */
 	private void dispatchDataUpdates(Attribute attribute) {
 		agent().beginDefaultTran();
-		for(PhysicalEntry containerEntry : getContainerDataEntries()){
+		for(PhysicalEntry containerEntry : getPhysicalEntries()){
 			containerEntry.reallocate(getPhysicalSize());
 			Object oldSubstance = containerEntry.getSubstance(attribute);
 			Object substance  = attribute.failSafeEvaluate(attribute, containerEntry);

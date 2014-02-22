@@ -174,9 +174,9 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 
 	
 	@Override
-	final public ContainerEntry[] getContainerEntries() {
+	final public ContainerEntry[] getLogicalEntries() {
 		if(dirty){
-			allEntries=super.getContainerEntries();
+			allEntries=super.getLogicalEntries();
 			dirty=false;
 		}
 		return allEntries;
@@ -187,7 +187,7 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 	 * 
 	 */
 	protected void throttledDispatch() {
-		for(ContainerEntry containerEntry:getContainerEntries()){
+		for(ContainerEntry containerEntry:getLogicalEntries()){
 			switch(containerEntry.touchMode()){
 				case ContainerEntry.MARKED_DIRTY:
 					Map<Attribute,Object> attrSubstanceMap = collectedUpdates.get(containerEntry.getIdentitySequence());

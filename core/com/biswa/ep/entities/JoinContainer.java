@@ -129,7 +129,7 @@ final public class JoinContainer extends ConcreteContainer {
 	}
 	
 	@Override
-	final public ContainerEntry[] getContainerEntries() {
+	final public ContainerEntry[] getLogicalEntries() {
 		Collection<ContainerEntry> containerEntries= new ArrayList<ContainerEntry>();
 		for(JoinedEntryIndex.JoinedEntry je :joinedEntryCollection){
 			containerEntries.add(je.joinedEntry);
@@ -150,7 +150,7 @@ final public class JoinContainer extends ConcreteContainer {
 		int count=0;
 		if (ce.isLeftTrueRightFalse()) {
 			//Join driven by entry into the left container.
-			for (ContainerEntry rightSchemaEntry : super.getContainerDataEntries()) {
+			for (ContainerEntry rightSchemaEntry : super.getPhysicalEntries()) {
 				if (!rightSchemaEntry.isLeftTrueRightFalse()) {
 					if(jeIndex.addLeftJoinedEntry(ce, rightSchemaEntry)!=null){
 						count++;
@@ -165,7 +165,7 @@ final public class JoinContainer extends ConcreteContainer {
 			}
 		} else {
 			//Join driven by entry into right container
-			for (ContainerEntry leftSchemaEntry : super.getContainerDataEntries()) {
+			for (ContainerEntry leftSchemaEntry : super.getPhysicalEntries()) {
 				if (leftSchemaEntry.isLeftTrueRightFalse()) {
 					if(jeIndex.addRightJoinedEntry(leftSchemaEntry, ce)!=null){
 						count++;

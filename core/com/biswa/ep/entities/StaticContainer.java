@@ -75,7 +75,7 @@ public class StaticContainer extends CascadeContainer {
 	}
 
 	@Override
-	public ContainerEntry[] getContainerEntries() {
+	public ContainerEntry[] getLogicalEntries() {
 		return null;
 	}
 	
@@ -90,7 +90,7 @@ public class StaticContainer extends CascadeContainer {
 	}
 	
 	@Override
-	PhysicalEntry[] getContainerDataEntries() {
+	PhysicalEntry[] getPhysicalEntries() {
 		return null;
 	}
 	@Override

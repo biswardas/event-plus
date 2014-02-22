@@ -76,7 +76,7 @@ public class ViewPortViewer extends GenericViewer {
 			if(isPivot()){
 				return sourceAgent.getSortedEntry(getName(), id, 2);
 			}else{
-				ContainerEntry conEntry = getContainerEntries()[id];
+				ContainerEntry conEntry = getLogicalEntries()[id];
 				return new LightWeightEntry(conEntry.getIdentitySequence(),conEntry.getSubstancesAsArray());
 			}
 		} catch (RemoteException e) {

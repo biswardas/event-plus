@@ -3,9 +3,7 @@ package com.biswa.ep.discovery;
 import java.lang.ref.WeakReference;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 import com.biswa.ep.deployment.Deployer;
@@ -222,7 +220,7 @@ public class RMIListenerImpl implements RMIListener{
 			protected void runtask() {
 				try {
 					for (ContainerEntry containerEntry : getContainer()
-							.getContainerEntries()) {
+							.getLogicalEntries()) {
 						if (filterSpec.filter(containerEntry)) {
 							holder.add(containerEntry.cloneConcrete());
 						}
@@ -251,7 +249,7 @@ public class RMIListenerImpl implements RMIListener{
 			protected void runtask() {
 				try {
 					for (ContainerEntry containerEntry : getContainer()
-							.getContainerEntries()) {
+							.getLogicalEntries()) {
 						holder.add(containerEntry.getIdentitySequence());
 					}
 				} finally {
