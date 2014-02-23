@@ -51,7 +51,7 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 		 * @return boolean whether runtime is stressed.
 		 */
 		private boolean runtimeStressed() {
-			if(useRuntimeAutoThrottling()){
+			if(autoThrottling){
 				Runtime runtime = Runtime.getRuntime();
 				double totalMemory = runtime.totalMemory();
 				double maxMemory = runtime.maxMemory();
@@ -100,6 +100,11 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 	 */
 	private Map<Integer,Map<Attribute,Object>> collectedUpdates = null;
 	
+	/**
+	 * Returns whether to throttle based on the runtime state
+	 * 
+	 */
+	private boolean autoThrottling = false;
 	/**Constructor to build throttled container.
 	 * 
 	 * @param name String
@@ -107,6 +112,7 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 	 */
 	public ThrottledContainer(String name,Properties props) {
 		super(name,props);
+		autoThrottling = Boolean.parseBoolean(getProperty(RUNTIME_THROTTLE));
 		initThrottling();
 	}
 	
@@ -261,14 +267,6 @@ public abstract class ThrottledContainer extends ConcreteContainer {
 			interValDuration = Integer.parseInt(interval);
 		}
 		return interValDuration;
-	}
-	
-	/**Returns whether to throttle based on the runtime state
-	 * 
-	 * @return boolean runtime based throttling.
-	 */
-	final public boolean useRuntimeAutoThrottling(){
-		return Boolean.parseBoolean(getProperty(RUNTIME_THROTTLE));
 	}
 	
 	@Override
