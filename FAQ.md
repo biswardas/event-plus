@@ -1,0 +1,1 @@
+How do you compare this with [Esper](http://esper.codehaus.org/)

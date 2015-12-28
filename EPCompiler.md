@@ -1,0 +1,12 @@
+## Compiler ##
+`EventPlus` framework has tried NOT to reinvent wheels whenever possible and tried to keep learning curve as small as possible. Entire framework is revolving around 3 carefully thought annotations.
+  * `EPContext` Any Java code annotated with this annotation qualifies to be processed by EP annotation processing cycle. We will not be discussing about the syntax here as they are discussed in **[language](EPLanguage.md)** section. These are the namespaces of your containers performing business logic. You can reuse other contexts by importing them here. During annotation processing for every java code in package `x` compliant above generates java source in package `epimpl.x` with standard `@Generated` annotation. As next step any java code with both `@EPContext` and `@Generated` annotation goes through descriptor generation phase. Its imperative that you do not define packages starting with `epimpl` and do not manually annotate your code with `@Generated` annotations.
+  * `EPContainer` If an inherited class/interface above do not define EPContainer automatically treated as helper class and do not partcipate/interfere in dependency run-time. All the permissible dependency checks are only performed only when the interface or class is annotated with this annotation. Nested containers will be ignored during compilation so wont participate in runtime.
+  * `EPAttribute` Every (variable/method)member of EPContainer automatically gets assigned as EPAttribute and undergoes dependency checks. i.e any non static attribute can not depend on static attributes.
+
+The annotations above use Sun Compiler API interfaces extensively and can only be compiled with SUN JDK. JDK 1.7 is recommended however 1.6 will still work. You can not use IBM/Eclipse Compiler to compile above code. You can use eclipse to develop but remember add a custom builder to build the code in your project settings. Standard eclipse compiler will skip these annotations and wont perform additional processing required. Even though you can add the annotations in Eclipse project annotation Factory still the compiler will fail as Eclipse does not use Sun compiler Interface API and uses an incremental proprietary compiler.
+If you are using ant to build the code then nothing special required.
+
+![http://event-plus.googlecode.com/svn/trunk/documentation/EPCompiler.png](http://event-plus.googlecode.com/svn/trunk/documentation/EPCompiler.png)
+
+In future other compiler support will be added.
