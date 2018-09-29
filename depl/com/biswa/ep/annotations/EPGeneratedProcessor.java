@@ -17,7 +17,7 @@ import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 
 @SupportedAnnotationTypes( {"javax.annotation.Generated" })
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class EPGeneratedProcessor extends AbstractProcessor {
 	private EPContainerManager containerManager = new EPContainerManager();
 	@Override

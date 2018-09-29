@@ -23,7 +23,7 @@ import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
 
 @SupportedAnnotationTypes( { "com.biswa.ep.annotations.EPContext" })
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class EPAnnotationProcessor extends AbstractProcessor {
 	private EPContainerManager containerManager = new EPContainerManager();
 	@Override
