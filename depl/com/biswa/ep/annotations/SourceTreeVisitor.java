@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.jar.Attributes;
+import java.util.logging.Logger;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -49,6 +50,7 @@ import com.sun.source.util.Trees;
  * 
  */
 public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
+	private static final Logger logger = Logger.getLogger(SourceTreeVisitor.class.getName());
 	private String currentContainerName;
 
 	private class DependencyManager {
@@ -89,7 +91,7 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			if (container!=null) {
 				dependencyMap.put(attribute,container);
 			}else{
-				System.out.println("Could not locate type for:"+attribute);
+				logger.fine("Could not locate type for:"+attribute);
 			}
 		}
 
@@ -485,7 +487,6 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			}
 
 			writeln("}");
-
 			returnValue = super.visitMethod(arg0, arg1);
 			writeType(arg0.getReturnType());
 			writeln("}");
