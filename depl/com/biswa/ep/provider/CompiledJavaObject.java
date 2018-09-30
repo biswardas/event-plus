@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
@@ -22,6 +23,7 @@ import javax.tools.ToolProvider;
 import com.biswa.ep.entities.Attribute;
 
 public class CompiledJavaObject extends SimpleJavaFileObject {
+	static final Logger logger = Logger.getLogger(CompiledJavaObject.class.getName());
 	private String expression;
 	private String name = null;
 	private Attribute attribute = null; 
@@ -142,6 +144,6 @@ public class CompiledJavaObject extends SimpleJavaFileObject {
 		typeMap.put("b", double.class);
 		typeMap.put("x", double.class);
 		CompiledJavaObject jfo = new CompiledJavaObject("x=a+b",typeMap);
-		System.out.println(jfo.getCompiledAttribute());
+		logger.info(String.valueOf(jfo.getCompiledAttribute()));
 	}
 }

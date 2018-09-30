@@ -1,6 +1,8 @@
 package com.biswa.ep.entities;
 
 import java.io.Serializable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.biswa.ep.ContainerContext;
 
@@ -14,6 +16,7 @@ import com.biswa.ep.ContainerContext;
  *
  */
 public abstract class ContainerTask implements Runnable,Serializable{
+	static final Logger logger = Logger.getLogger(ContainerTask.class.getName());
 	/**
 	 * 
 	 */
@@ -57,8 +60,7 @@ public abstract class ContainerTask implements Runnable,Serializable{
 		try{
 			runtask();
 		}catch(Throwable th){
-			System.out.println("Exception occured in thread:"+Thread.currentThread().getName());
-			th.printStackTrace(System.out);
+			logger.log(Level.WARNING,"Exception occured in thread:"+Thread.currentThread().getName(),th);
 		}
 	}
 	

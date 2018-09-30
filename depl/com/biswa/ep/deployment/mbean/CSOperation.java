@@ -1,5 +1,7 @@
 package com.biswa.ep.deployment.mbean;
 
+import java.util.logging.Logger;
+
 import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.Attribute;
@@ -13,6 +15,7 @@ import com.biswa.ep.entities.spec.FilterSpec;
 import com.biswa.ep.provider.PredicateBuilder;
 
 public class CSOperation implements CSOperationMBean {
+	static final Logger logger = Logger.getLogger(CSOperation.class.getName());
 	private AbstractContainer cs;
 	private Thread pausedThread;
 	
@@ -80,7 +83,7 @@ public class CSOperation implements CSOperationMBean {
 			long createdAt = System.nanoTime();
 			@Override
 			protected void runtask() {
-				System.out.println("Latency Experiencing(ns) in container "+ContainerContext.CONTAINER.get().getName()+" :"+(System.nanoTime()-createdAt));
+				logger.info("Latency Experiencing(ns) in container "+ContainerContext.CONTAINER.get().getName()+" :"+(System.nanoTime()-createdAt));
 			}
 		});	
 	}

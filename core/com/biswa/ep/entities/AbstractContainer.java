@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import com.biswa.ep.ClientToken;
 import com.biswa.ep.ContainerContext;
@@ -30,6 +31,7 @@ import com.biswa.ep.entities.transaction.TransactionRelay;
  *
  */
 abstract public class AbstractContainer implements ContainerListener,ConnectionListener,TransactionRelay,Dispatcher,PropertyConstants{
+	static final Logger logger = Logger.getLogger(AbstractContainer.class.getName());
 	final private ConcreteIdentityGenerator idGen = new ConcreteIdentityGenerator(); 
 	/**
 	 * Listeners listening this container
@@ -884,7 +886,7 @@ abstract public class AbstractContainer implements ContainerListener,ConnectionL
 	}
 	
 	public void verbose(String str){
-		System.out.println(Thread.currentThread().getName()+":"+str);
+		logger.info(Thread.currentThread().getName()+":"+str);
 	}
 	
 	/**

@@ -1,7 +1,7 @@
 package com.biswa.ep.entities;
 
 
-public class StaticLeafAttribute extends StaticAttribute {
+public final class StaticLeafAttribute extends StaticAttribute {
 	/**
 	 * 
 	 */

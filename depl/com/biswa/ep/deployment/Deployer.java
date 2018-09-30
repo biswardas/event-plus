@@ -19,6 +19,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.logging.Logger;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -49,6 +50,7 @@ import com.biswa.ep.discovery.DiscProperties;
 import com.biswa.ep.discovery.RegistryHelper;
 
 public class Deployer extends UncaughtExceptionHandler implements DiscProperties{
+	static final Logger logger = Logger.getLogger(Deployer.class.getName());
 	final static ExecutorService deployer = Executors
 			.newSingleThreadExecutor(new NamedThreadFactory("Deployer",false));
 
@@ -69,10 +71,10 @@ public class Deployer extends UncaughtExceptionHandler implements DiscProperties
 		}
 		String name=UUID.randomUUID().toString();
 		if(!isSlave()){
-			System.out.println("Starting as Master. Name="+name);
+			logger.info("Starting as Master. Name="+name);
 			bindTheDeployer(name,false);
 		}else{
-			System.out.println("Starting as Slave. Name="+name);
+			logger.info("Starting as Slave. Name="+name);
 			System.setProperty(PP_DIS_AUTO_REG,"true");
 			bindTheDeployer(name,true);
 		}
@@ -105,11 +107,11 @@ public class Deployer extends UncaughtExceptionHandler implements DiscProperties
 
 
 	public static void deploy(String fileName) throws JAXBException, InterruptedException, ExecutionException {
-		System.out.println("Attempting to deploy "+fileName);
+		logger.info("Attempting to deploy "+fileName);
 		Context context = buildContext(fileName);
 		Future<?> future = deploy(context,false);
 		future.get();
-		System.out.println(fileName+" deployed.");
+		logger.info(fileName+" deployed.");
 	}
 	
 	

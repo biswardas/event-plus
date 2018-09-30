@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import javax.lang.model.element.Element;
 import javax.tools.SimpleJavaFileObject;
@@ -33,6 +34,7 @@ import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.util.Context;
 
 public class EPJavaObject extends SimpleJavaFileObject {
+	static final Logger logger = Logger.getLogger(EPJavaObject.class.getName());
 	private String expression;
 
 	protected EPJavaObject(String expression) {
@@ -58,7 +60,7 @@ public class EPJavaObject extends SimpleJavaFileObject {
 
 	public static void main(String[] args) {
 		EPJavaObject jfo = new EPJavaObject("x=a+b");
-		System.out.println(jfo.getVariables());
+		logger.info(String.valueOf(jfo.getVariables()));
 	}
 
 	private Set<String> al = new HashSet<String>();

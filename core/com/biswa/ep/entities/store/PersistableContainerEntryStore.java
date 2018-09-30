@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import com.biswa.ep.entities.ConcreteContainer;
 import com.biswa.ep.entities.ContainerEntry;
@@ -21,6 +22,7 @@ import com.biswa.ep.entities.ContainerTask;
  *
  */
 class PersistableContainerEntryStore extends ConcreteContainerEntryStore{
+	private static final Logger logger = Logger.getLogger(PersistableContainerEntryStore.class.getName());
 	private final File directory;
 	private final int passivation_idle_period;
 	public PersistableContainerEntryStore(ConcreteContainer concreteContainer, int passivation_idle_period) {
@@ -52,7 +54,7 @@ class PersistableContainerEntryStore extends ConcreteContainerEntryStore{
 	private void passivate() {
 		long begin = System.currentTimeMillis();
 		int i = 0;
-		System.out.println("Passivation Triggered");
+		logger.info("Passivation Triggered");
 		for(ContainerEntry persistEntry:getEntries()){
 			 PersistableContainerEntry perEntry=(PersistableContainerEntry)persistEntry;
 			 if((System.currentTimeMillis()-perEntry.getLastAccessed())>passivation_idle_period){
@@ -62,7 +64,8 @@ class PersistableContainerEntryStore extends ConcreteContainerEntryStore{
 			 }
 		}
 		long end = System.currentTimeMillis();
-		System.out.println("Took " +(end-begin)+" milliseconds to passivate " +i+ " records");
+		
+		logger.info("Took " +(end-begin)+" milliseconds to passivate " +i+ " records");
 	}
 
 	protected void store(PhysicalEntry underlyingEntry)

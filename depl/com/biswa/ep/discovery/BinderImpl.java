@@ -9,6 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.management.ObjectName;
 
@@ -17,6 +19,7 @@ import com.biswa.ep.deployment.EPDeployer;
 import com.biswa.ep.deployment.mbean.Discovery;
 
 public class BinderImpl implements Binder,BinderImplMBean {
+	static final Logger logger = Logger.getLogger(BinderImpl.class.getName());
 	private static final long DELAY = Long.getLong(DiscProperties.PP_REG_HC_INTERVAL, 60000);
 	private ConcurrentHashMap<String,String> containerToInstanceMap = new ConcurrentHashMap<String,String>();
 	private ConcurrentHashMap<String,EPDeployer> instanceMap = new ConcurrentHashMap<String,EPDeployer>();
@@ -69,9 +72,9 @@ public class BinderImpl implements Binder,BinderImplMBean {
 		try {
 			ObjectName bindName = new ObjectName("ContainerSchema:name="+name);
 			MBS.registerMBean(new Discovery(obj), bindName);
-			System.out.println("Registered:"+bindName);
+			logger.info("Registered:"+bindName);
 		}catch(Exception e){
-			System.err.println("Error while registering with JMX: "+name);
+			logger.log(Level.WARNING,"Error while registering with JMX: "+name,e);
 		}
 	}
 
@@ -97,9 +100,9 @@ public class BinderImpl implements Binder,BinderImplMBean {
 		try {
 			ObjectName bindName = new ObjectName("ContainerSchema:name="+acceptName);
 			MBS.unregisterMBean(bindName);
-			System.out.println("Unregistered:"+bindName);
+			logger.info("Unregistered:"+bindName);
 		} catch (Exception e) {
-			System.err.println("Error while unbinding from JMX: "+acceptName);
+			logger.log(Level.WARNING,"Error while unbinding from JMX: "+acceptName,e);
 		}
 	}
 

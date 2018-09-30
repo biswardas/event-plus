@@ -3,6 +3,7 @@ package com.biswa.ep.deployment.handler;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 import javax.rmi.PortableRemoteObject;
 
@@ -22,6 +23,7 @@ import com.biswa.ep.entities.ConcreteContainer;
 import com.biswa.ep.entities.PropertyConstants;
 
 public class ForkJoinDeploymentHandler extends DeploymentHandler {
+	static final Logger logger = Logger.getLogger(ForkJoinDeploymentHandler.class.getName());
 	@Override
 	public ConcreteContainer deploy(Container container, Context context,
 			ContainerManager containerManager) {
@@ -47,8 +49,7 @@ public class ForkJoinDeploymentHandler extends DeploymentHandler {
 					EPDeployer epDeployer = (EPDeployer) PortableRemoteObject
 							.narrow(remote, EPDeployer.class);
 					String name = epDeployer.getName();
-					System.out
-							.println("Attempting to Deploy Context in remote VM="+name);
+					logger.info("Attempting to Deploy Context in remote VM="+name);
 					epDeployer.deploy(deploymentDescriptor);
 					addToSlaveListenerList(container, context, listenList,
 							name);

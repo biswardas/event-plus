@@ -12,6 +12,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
@@ -34,7 +35,7 @@ import com.biswa.ep.entities.spec.Spec;
  *
  */
 abstract public class TransactionAdapter extends TransactionGeneratorImpl implements DataOperation, TransactionSupport,TransactionRelay,FeedbackSupport {
-
+	private static final Logger logger = Logger.getLogger(TransactionAdapter.class.getName());
 	/**
 	 * Queue manages the task which must be performed only when container is in connected state.
 	 * Any transactional operation can only be performed after a container is connected.
@@ -200,7 +201,7 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 	
 	@Override
 	public void addFeedbackSource(final FeedbackEvent feedbackEvent) {
-		//System.out.println("Feedback Source Added:"+feedbackEvent);
+		logger.fine("Feedback Source Added:"+feedbackEvent);
 		OuterTask outer = new OuterTask(){
 			@Override
 			public void runouter() {
