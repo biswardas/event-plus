@@ -16,7 +16,7 @@ import javax.lang.model.util.SimpleElementVisitor6;
 import com.biswa.ep.discovery.DiscProperties;
 import com.sun.tools.javac.code.Symbol;
 
-public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
+public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> implements SourceParsingHelper{
 	private Writer writer = null;
 	private String context = null;
 	private EPContainerManager containerManager = null;
@@ -87,7 +87,7 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 					visitAttributes(epContainer, upStreamContainers);
 
 				}
-				if (!containerAnnot.generator().isEmpty()) {
+				if (extractGenerator(innerElement)!=null) {
 					write("<Source className='"
 							+ ((Symbol.ClassSymbol) epContainer).flatName()
 							+ "$Inlet'/>");
@@ -216,7 +216,7 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 
 					writeSubscriber(epAttribute.container(), sourceContext,
 							listenMethod, epAttribute.depends(), innerElement
-									.getSimpleName().toString(),epAttribute.processor());
+									.getSimpleName().toString(),extractProcessor(innerElement));
 				}
 			}
 		}
@@ -324,7 +324,7 @@ public class GenSourceVisitor extends SimpleElementVisitor6<Void, Void> {
 		write("<Subscribe container='" + container + "' context='" + context
 				+ "' method='" + listenMethod + "' depends='" + depends
 				+ "' response='" + response + "'>");
-			if(!handler.isEmpty()){
+			if(handler!=null){
 				write("<Handler className='" + handler + "'/>");
 			}			
 		write("</Subscribe>");

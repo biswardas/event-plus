@@ -88,5 +88,5 @@ public @interface EPAttribute {
 	 * 
 	 * @return String
 	 */
-	String processor() default "";
+	Class<? extends Object> processor() default Object.class;
 }

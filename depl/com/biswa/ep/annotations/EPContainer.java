@@ -38,7 +38,7 @@ public @interface EPContainer {
 	 * the container by providing a class here.
 	 * @return String
 	 */
-	String generator() default "";
+	Class<? extends Object> generator() default Object.class;
 
 	/**
 	 * Specifies the source filter of this container. This container does not propagate

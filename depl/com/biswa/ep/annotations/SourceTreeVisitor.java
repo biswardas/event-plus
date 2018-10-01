@@ -49,7 +49,7 @@ import com.sun.source.util.Trees;
  * @author dasbib
  * 
  */
-public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
+public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> implements SourceParsingHelper{
 	private static final Logger logger = Logger.getLogger(SourceTreeVisitor.class.getName());
 	private String currentContainerName;
 
@@ -366,23 +366,22 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 			Tree containerTree = trees.getTree(containerElement);
 			containerTree.accept(this, containerElement);
 		}
-
-		if (!epContainerAnn.generator().isEmpty()) {
-			generateInlet(epContainerAnn);
-		}
+		generateInlet(extractGenerator(arg1));
 		writeln("}");
 	}
 
 
-	private void generateInlet(EPContainer epContainerAnn) {
-		writeln("static public class Inlet extends SimpleInlet{");
-		writeln("private " +epContainerAnn.generator() + " generator =new "
-				+ epContainerAnn.generator() + "();");
-		writeln("@Override");
-		writeln("protected void failSafeInit() throws Exception{generator.init(new com.biswa.ep.jdbc.EPLocalConnection(agent));}");
-		writeln("@Override");
-		writeln("protected void failSafeTerminate() throws Exception{generator.terminate();}");
-		writeln("}");
+	private void generateInlet(String className) {
+		if(className!=null){
+			writeln("static public class Inlet extends SimpleInlet{");
+			writeln("private " +className + " generator =new "
+					+ className + "();");
+			writeln("@Override");
+			writeln("protected void failSafeInit() throws Exception{generator.init(new com.biswa.ep.jdbc.EPLocalConnection(agent));}");
+			writeln("@Override");
+			writeln("protected void failSafeTerminate() throws Exception{generator.terminate();}");
+			writeln("}");
+		}
 	}
 
 	private void generateEPContext(ClassTree arg0, Element arg1) {
@@ -566,10 +565,10 @@ public class SourceTreeVisitor extends SimpleTreeVisitor<Boolean, Element> {
 		writeln("}");
 
 		switch (attrType) {
-		case SubProcessor:
-			writeln("private " +epAttribute.processor() + " processor =new "
-					+ epAttribute.processor() + "();");
-
+		case SubProcessor:			
+			String className = extractProcessor(arg1);
+			writeln("private " +className + " processor =new "
+					+ className + "();");
 			// Generate Eval Function
 			writeln("@Override");
 			writeln("protected void failSafeInit() throws Exception{processor.init(queue);}");
