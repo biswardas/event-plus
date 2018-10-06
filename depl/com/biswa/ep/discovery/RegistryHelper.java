@@ -47,7 +47,7 @@ public class RegistryHelper implements DiscProperties{
 	
 	private static void init(String registryHost,int port) throws RemoteException, NotBoundException{
 		registry = LocateRegistry.getRegistry(registryHost,port);
-		binder = (Binder) registry.lookup(Binder.BINDER);
+		binder = (Binder) PortableRemoteObject.narrow(registry.lookup(Binder.BINDER),Binder.class);
 		binder.checkHealth(true);
 	}
 	

@@ -28,7 +28,7 @@ public class EPCallableStatement extends EPAbstractStatement {
 		super(sql);
 		this.sqlConnection = sqlConnection;
 		try {
-			rmil = (RMIListener) sqlConnection.getRegistry().lookup(getSink());
+			rmil =  sqlConnection.lookup(getSink());
 		} catch (Throwable th) {
 			throw new SQLException(th);
 		}

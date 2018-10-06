@@ -3,7 +3,6 @@ package com.biswa.ep.jdbc;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -13,12 +12,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.rmi.PortableRemoteObject;
+
+import com.biswa.ep.discovery.Binder;
+import com.biswa.ep.discovery.RMIListener;
 import com.biswa.ep.entities.transaction.TransactionEvent;
 
 class EPConnection extends EPAbstractConnection implements Connection {
 	private static final Pattern pattern = Pattern
 			.compile("jdbc:ep:rmi://(.*?)\\[([0-9]*?)\\]");
-	private Registry registry;
+	private Binder binder;
 	final private Properties info;
 	private static class TransactionOwner{
 		private EPCallableStatement epCallableStatement;
@@ -35,8 +38,7 @@ class EPConnection extends EPAbstractConnection implements Connection {
 			String host=matcher.group(1);
 			int port=Integer.parseInt(matcher.group(2));
 			try {
-				this.registry = LocateRegistry.getRegistry(host, port);
-				registry.lookup(com.biswa.ep.discovery.TransactionGenerator.TRANSACTION_GENERATOR);
+				binder = (Binder) PortableRemoteObject.narrow(LocateRegistry.getRegistry(host, port).lookup(Binder.BINDER),Binder.class);
 			} catch (RemoteException e) {
 				throw new SQLException(e);
 			} catch (NotBoundException e) {
@@ -113,8 +115,8 @@ class EPConnection extends EPAbstractConnection implements Connection {
 		return null;
 	}
 
-	Registry getRegistry() {
-		return registry;
+	RMIListener lookup(String sinkName) throws ClassCastException, RemoteException {
+		return (RMIListener) PortableRemoteObject.narrow(binder.lookup(sinkName),RMIListener.class);
 	}
 }
 
