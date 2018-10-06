@@ -14,8 +14,6 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.logging.Logger;
 
-import javax.swing.SwingUtilities;
-
 import com.biswa.ep.NamedThreadFactory;
 import com.biswa.ep.entities.AbstractContainer;
 import com.biswa.ep.entities.Attribute;
@@ -97,33 +95,6 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		}
 	}
 	
-	/**Task handler which dispatches all threads in Swing thread.
-	 * 
-	 * @author Biswa
-	 *
-	 */
-	private class SwingTaskHandler extends ContainerTaskHandler{
-		/**Method which applies the task on the container.
-		 * 
-		 * @param r
-		 */
-		public void executeNow(final ContainerTask r){
-			try {
-				if(SwingUtilities.isEventDispatchThread()){
-					r.run();
-				}else{
-					SwingUtilities.invokeAndWait(r);
-				}
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		}
-
-		public boolean ensureExecutingInRightThread(boolean b) {
-			return SwingUtilities.isEventDispatchThread();
-		}
-	}
-	
 	/**Multi-threaded task handler which applies the updates on the container in multiple
 	 * threads. The sequence of operation on the records are guaranteed. It uses the record 
 	 * locking concept for achieving parallelism. 
@@ -186,10 +157,8 @@ abstract public class TransactionAdapter extends TransactionGeneratorImpl implem
 		eventCollector = new ScheduledThreadPoolExecutor(1,new NamedThreadFactory("PPL",cl));
 		if(cl.concurrencySupport()>0){
 			taskHandler = new MultiThreadedHandler(cl);
-		}else if(cl.concurrencySupport()==0){//Concurrency not supported.
+		}else{//Concurrency not supported.
 			taskHandler = new ContainerTaskHandler();
-		}else{//Execute in Swing thread
-			taskHandler = new SwingTaskHandler();
 		}
 		transactionTracker = new TransactionTracker(this);
 	}
