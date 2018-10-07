@@ -3,7 +3,6 @@ package com.biswa.ep.util;
 import java.util.Properties;
 import java.util.WeakHashMap;
 
-import com.biswa.ep.ContainerContext;
 import com.biswa.ep.entities.ConcreteContainer;
 import com.biswa.ep.entities.ConnectionEvent;
 import com.biswa.ep.entities.ContainerDeleteEvent;
@@ -27,7 +26,6 @@ public abstract class AbstractViewer extends ConcreteContainer implements UIOper
                                 put("concurrent",threadModel);
                         }
                 });
-                ContainerContext.initialize(AbstractViewer.this);
         }
 
         @Override
