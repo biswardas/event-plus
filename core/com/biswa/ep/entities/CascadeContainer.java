@@ -126,7 +126,8 @@ public abstract class CascadeContainer extends AbstractContainer{
 			returnedOrdinalList.add(returnedOrdinal);
 		}
 		
-		/**Returns the externally Subscribed attributes for the Container
+		/**Returns array of attributes which external sinks expecting to receive from this 
+		 * container.
 		 * 
 		 * @return Attribute[]
 		 */
